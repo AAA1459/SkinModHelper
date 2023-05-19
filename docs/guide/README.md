@@ -242,6 +242,19 @@ If you get missing textures or unexpected vanilla textures:
 * Check your log to see what textures are missing -- these messages can point you in the right direction
 * Make sure the number of images matches the number of animation "frames"
 
+If some xml-undefined textures are misaligned:
+1. In the same folder as that texture, create a .meta.yaml file with the name of that texture
+  * If the texture is "madeline.png", So create "madeline.meta.yaml" flie
+2. Write that texture information to the .meta.yaml file you create
+```
+X: [X offset value of texture in game]
+Y: [Y offset value of texture in game]
+Width: [pixel Width of texture]
+Height: [pixel Height of texture]
+Premultiplied: [true/false]    # about this i don't know.
+```
+3. Restart the game to make it work or reload
+
 If you get crashes:
 * Check your log to see if it's a missing texture
 * Make sure you don't have any "Metadata" sections for missing animations in Sprites.xml
