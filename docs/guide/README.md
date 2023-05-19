@@ -244,7 +244,7 @@ If you get missing textures or unexpected vanilla textures:
 
 If some xml-undefined textures are misaligned:
 1. In the same folder as that texture, create a .meta.yaml file with the name of that texture
-  * If the texture is "madeline.png", So create "madeline.meta.yaml" flie
+   * If the texture is "madeline.png", So create "madeline.meta.yaml" flie
 2. Write that texture information to the .meta.yaml file you create
 ```
 X: [X offset value of texture in game]
