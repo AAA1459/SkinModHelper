@@ -1,3 +1,4 @@
 # Skin Swap Trigger
-placements.triggers.SkinModHelper/SkinSwapTrigger.tooltips.skinId=The skin ID to apply. This should be the same ID as the one in SkinModHelperConfig.yaml (use "Default" for Madeline).
-placements.triggers.SkinModHelper/SkinSwapTrigger.tooltips.revertOnLeave=If checked, the previous skin will be restored upon exiting the trigger.
+placements.triggers.SkinModHelper/SkinSwapTrigger.tooltips.skinId=The skin ID to apply. This should be the same ID as the one in SkinModHelperConfig.yaml  (use the "Default" for Madeline, not use any for recover the user own skin)
+
+placements.triggers.SkinModHelper/SkinSwapTrigger.tooltips.revertOnLeave=If checked, Player will lose the this skin when exiting the trigger.

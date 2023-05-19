@@ -20,13 +20,37 @@
     </ItemDefinitionGroup>
 
     <ItemGroup>
-        <PackageReference Include="MonoMod.RuntimeDetour" Version="22.01.04.03" />
+        <PackageReference Include="MonoMod.RuntimeDetour" Version="22.7.31.1">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
     </ItemGroup>
 
     <ItemGroup>
         <Reference Include="$(CelestePrefix)\Celeste.exe" />
         <Reference Include="$(CelestePrefix)\MMHOOK_Celeste.dll" />
         <Reference Include="$(CelestePrefix)\YamlDotNet.dll" />
+        <Reference Include="ExtendedVariantMode">
+          <HintPath>..\..\AbackupB\ExtendedVariantMode.dll</HintPath>
+        </Reference>
+        <Reference Include="JungleHelper">
+          <HintPath>..\..\AbackupB\JungleHelper.dll</HintPath>
+        </Reference>
+        <Reference Include="Mono.Cecil">
+          <HintPath>..\..\..\Mono.Cecil.dll</HintPath>
+        </Reference>
+        <Reference Include="MonoMod.RuntimeDetour">
+          <HintPath>..\..\..\MonoMod.RuntimeDetour.dll</HintPath>
+        </Reference>
+        <Reference Include="MonoMod.RuntimeDetour.HookGen">
+          <HintPath>..\..\..\MonoMod.RuntimeDetour.HookGen.exe</HintPath>
+        </Reference>
+        <Reference Include="MonoMod.Utils">
+          <HintPath>..\..\..\MonoMod.Utils.dll</HintPath>
+        </Reference>
+        <Reference Include="SaveFilePortraits">
+          <HintPath>..\..\AbackupB\SaveFilePortraits.dll</HintPath>
+        </Reference>
     </ItemGroup>
 
     <Choose>
@@ -56,6 +80,14 @@
     
     <PropertyGroup>
         <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+        <ApplicationIcon />
+        <OutputType>Library</OutputType>
+        <StartupObject />
+        <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
+    </PropertyGroup>
+    
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+      <DefineConstants>TRACE</DefineConstants>
     </PropertyGroup>
 
 </Project>
