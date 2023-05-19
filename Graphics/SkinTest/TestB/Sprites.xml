@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Sprites>
+
+  <cloud path="SkinTest/TestB/clouds/" start="idle">
+    <Justify x="0.5" y="0.5"/>
+    <Loop id="idle" path="cloud" delay="0.08" frames="0"/>
+  </cloud>
+</Sprites>
+
+
+
+
+
+
+
+
+
+
