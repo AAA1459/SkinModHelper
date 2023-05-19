@@ -1,4 +1,70 @@
-SKIN_MOD_HELPER_SETTINGS_TITLE=Skin Mod Helper
-SKIN_MOD_HELPER_SETTINGS_DEFAULT=Default
-SKIN_MOD_HELPER_SETTINGS_SELECTED_SKIN_MOD=Skin Mod
-SKIN_MOD_HELPER_SETTINGS_SELECTED_SKIN_MOD_DESCRIPTION=Some sprites may not reload immediately
+
+#SkinModHelper_mod_name=Skin Mod Helper
+
+SkinModHelper_options_Backpack= Backpack
+
+SkinModHelper_options_BackpackMode_Default= Default
+SkinModHelper_options_BackpackMode_Off= Off
+SkinModHelper_options_BackpackMode_On= On
+
+SkinModHelper_Settings_PlayerSkin_Selected= Player Skin
+SkinModHelper_Settings_DefaultPlayer= Default
+
+SkinModHelper_Settings_SilhouetteSkin_Selected= Silhouette Skin
+SkinModHelper_Settings_DefaultSilhouette= Default
+
+
+SkinModHelper_Settings_Otherskin= General Skin
+SkinModHelper_MORE_OPTIONS= More Options
+
+
+
+
+
+
+
+SkinModHelper_NewMenu_SkinFreeConfig= any Skin of Free collocations
+SkinModHelper_NewMenu_SkinFreeConfig_opened= Skin Free Collocations
+
+SkinModHelper_SkinFreeConfig_OnOff= Enabled
+
+SkinModHelper_NewSubMenu_SpritesXml= Sprites Skin
+SkinModHelper_NewSubMenu_PortraitsXml= Portraits Skin
+SkinModHelper_NewSubMenu_OtherExtra= Other Skin
+
+SkinModHelper_anyXmls_Original= Original
+SkinModHelper_anyXmls_Default= Default / Current skin
+
+##---annotation name of animation-set ID---
+
+SkinModHelper_Sprite_badeline= {+MENU_VARIANT_PLAYASBADELINE}
+SkinModHelper_Sprite_player_playback= Silhouette
+
+SkinModHelper_Sprite_cloudRemix= Small cloud
+SkinModHelper_Sprite_booster= Green bubble
+SkinModHelper_Sprite_boosterRed= Red bubble
+SkinModHelper_Sprite_glider= Jellyfish
+
+SkinModHelper_Portraits_portrait_badeline= {+MENU_VARIANT_PLAYASBADELINE}
+
+SkinModHelper_Other_SP_death_particle= All - death particle
+SkinModHelper_Other_dreamblock_particles= DreamBlock - particles animation
+SkinModHelper_Other_feather_particles= flyFeather - particles texture
+SkinModHelper_Other_feather_outline= flyFeather - outline
+
+##---
+
+
+SkinModHelper_ExSprite_SkinTest_TestA= SkinTest_TestA (SkinModHelper)
+SkinModHelper_ExSprite_SkinTest_TestB= SkinTest_TestB (SkinModHelper)
+
+SkinModHelper_anySprite_SkinTest_TestA= SkinTest_TestA
+SkinModHelper_anySprite_SkinTest_TestB= SkinTest_TestB
+
+SkinModHelper_anyOther_SkinTest_TestA= SkinTest_TestA
+SkinModHelper_anyOther_SkinTest_TestB= SkinTest_TestB
+
+
+
+
+
