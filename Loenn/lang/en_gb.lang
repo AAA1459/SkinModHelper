@@ -10,5 +10,6 @@ mods.SkinModHelper.name=Skin Mod Helper
 
 # Skin Swap Trigger
 triggers.SkinModHelper/SkinSwapTrigger.placements.name.normal=Skin Swap Trigger
-triggers.SkinModHelper/SkinSwapTrigger.attributes.description.revertOnLeave=If checked, the previous skin will be restored upon exiting the trigger.
-triggers.SkinModHelper/SkinSwapTrigger.attributes.description.skinId=The skin ID to apply. This should be the same ID as the one in SkinModHelperConfig.yaml (use "Default" for Madeline).
+triggers.SkinModHelper/SkinSwapTrigger.attributes.description.revertOnLeave=If checked, Player will lose the this skin when exiting the trigger.
+
+triggers.SkinModHelper/SkinSwapTrigger.attributes.description.skinId=The skin ID to apply. This should be the same ID as the one in SkinModHelperConfig.yaml  (use the "Default" for Madeline, not use any for recover the user own skin)

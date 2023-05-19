@@ -21,7 +21,7 @@ You can do this from the main menu or from in-game.
 
 **For Mappers**:
 
-Use the Skin Swap Trigger to change the player's skin to any loaded skin mod! Usable in Ahorn or Lönn.
+Use the Skin Swap Trigger to change the player's skin to any loaded skin mod! Usable in Ahorn or LÃ¶nn.
  
  
 **For Skin Modders**:
@@ -39,8 +39,7 @@ See the [guide](docs/guide/README.md) for more information.
 
 Contact
 -------
-If you encounter any issues or have suggestions, you can reach me on Discord (Bigkahuna#0491) or 
-ping me in the #modding-feedback channel in the main [Celeste Discord](https://discord.gg/celeste).
+If you encounter any issues or have suggestions in this fork, you can reach me on Discord (AAA1459#7937)
 
 
 Credits
