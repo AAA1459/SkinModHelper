@@ -37,32 +37,32 @@ SkinModHelper_anyXmls_Default= Default / Current skin
 
 ##---annotation name of animation-set ID---
 
-SkinModHelper_Sprite_badeline= {+MENU_VARIANT_PLAYASBADELINE}
-SkinModHelper_Sprite_player_playback= Silhouette
+SkinModHelper_Sprite__badeline= {+MENU_VARIANT_PLAYASBADELINE}
+SkinModHelper_Sprite__player_playback= Silhouette
 
-SkinModHelper_Sprite_cloudRemix= Small cloud
-SkinModHelper_Sprite_booster= Green bubble
-SkinModHelper_Sprite_boosterRed= Red bubble
-SkinModHelper_Sprite_glider= Jellyfish
+SkinModHelper_Sprite__cloudRemix= Small cloud
+SkinModHelper_Sprite__booster= Green bubble
+SkinModHelper_Sprite__boosterRed= Red bubble
+SkinModHelper_Sprite__glider= Jellyfish
 
-SkinModHelper_Portraits_portrait_badeline= {+MENU_VARIANT_PLAYASBADELINE}
+SkinModHelper_Portraits__portrait_badeline= {+MENU_VARIANT_PLAYASBADELINE}
 
-SkinModHelper_Other_SP_death_particle= All - death particle
-SkinModHelper_Other_dreamblock_particles= DreamBlock - particles animation
-SkinModHelper_Other_feather_particles= flyFeather - particles texture
-SkinModHelper_Other_feather_outline= flyFeather - outline
+SkinModHelper_Other__death_particle= Vanilla - death particle
+SkinModHelper_Other__dreamblock_particles= DreamBlock - particles animation
+SkinModHelper_Other__feather_particles= flyFeather - particles texture
+SkinModHelper_Other__feather_outline= flyFeather - outline
 
 ##---
 
 
-SkinModHelper_ExSprite_SkinTest_TestA= SkinTest_TestA (SkinModHelper)
-SkinModHelper_ExSprite_SkinTest_TestB= SkinTest_TestB (SkinModHelper)
+SkinModHelper_ExSprite__SkinTest_TestA= SkinTest_TestA (SkinModHelper)
+SkinModHelper_ExSprite__SkinTest_TestB= SkinTest_TestB (SkinModHelper)
 
-SkinModHelper_anySprite_SkinTest_TestA= SkinTest_TestA
-SkinModHelper_anySprite_SkinTest_TestB= SkinTest_TestB
+SkinModHelper_anySprite__SkinTest_TestA= SkinTest_TestA
+SkinModHelper_anySprite__SkinTest_TestB= SkinTest_TestB
 
-SkinModHelper_anyOther_SkinTest_TestA= SkinTest_TestA
-SkinModHelper_anyOther_SkinTest_TestB= SkinTest_TestB
+SkinModHelper_anyOther__SkinTest_TestA= SkinTest_TestA
+SkinModHelper_anyOther__SkinTest_TestB= SkinTest_TestB
 
 
 

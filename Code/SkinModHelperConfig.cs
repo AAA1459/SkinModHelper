@@ -24,7 +24,6 @@ namespace Celeste.Mod.SkinModHelper {
 
 
 
-        public string SpecificPlayerSprite_Path { get; set; }
         public string colorGrade_Path { get; set; }
         public string OtherSprite_Path { get; set; }
         public string OtherSprite_ExPath { get; set; }

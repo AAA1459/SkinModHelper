@@ -100,10 +100,10 @@ namespace Celeste.Mod.SkinModHelper {
             On.Monocle.SpriteBank.CreateOn += SpriteBankCreateOn;
 
             On.Celeste.Lookout.Interact += on_Lookout_Interact;
-            IL.Celeste.Player.Render += PlayerRenderIlHook;
+            IL.Celeste.Player.Render += PlayerRenderIlHook_Color;
             On.Celeste.PlayerSprite.Render += OnPlayerSpriteRender;
 
-            IL.Celeste.Player.Render += PlayerRenderIlHook_LoopReLoad;
+            IL.Celeste.Player.Render += PlayerRenderIlHook_Sprite;
             On.Celeste.PlayerHair.GetHairTexture += PlayerHairGetHairTextureHook;
             On.Monocle.Sprite.Play += PlayerSpritePlayHook;
 
@@ -115,6 +115,7 @@ namespace Celeste.Mod.SkinModHelper {
             On.Celeste.GameLoader.LoadThread += GameLoaderLoadThreadHook;
             On.Celeste.OuiFileSelectSlot.Setup += OuiFileSelectSlotSetupHook;
 
+            On.Celeste.DeathEffect.Render += DeathEffectRenderHook;
             IL.Celeste.DeathEffect.Draw += DeathEffectDrawHook;
             IL.Celeste.DreamBlock.ctor_Vector2_float_float_Nullable1_bool_bool_bool += DreamBlockHook;
 
@@ -159,10 +160,10 @@ namespace Celeste.Mod.SkinModHelper {
             On.Monocle.SpriteBank.CreateOn -= SpriteBankCreateOn;
 
             On.Celeste.Lookout.Interact -= on_Lookout_Interact;
-            IL.Celeste.Player.Render -= PlayerRenderIlHook;
+            IL.Celeste.Player.Render -= PlayerRenderIlHook_Color;
             On.Celeste.PlayerSprite.Render -= OnPlayerSpriteRender;
 
-            IL.Celeste.Player.Render -= PlayerRenderIlHook_LoopReLoad;
+            IL.Celeste.Player.Render -= PlayerRenderIlHook_Sprite;
             On.Celeste.PlayerHair.GetHairTexture -= PlayerHairGetHairTextureHook;
             On.Monocle.Sprite.Play -= PlayerSpritePlayHook;
 
@@ -174,6 +175,7 @@ namespace Celeste.Mod.SkinModHelper {
             On.Celeste.GameLoader.LoadThread -= GameLoaderLoadThreadHook;
             On.Celeste.OuiFileSelectSlot.Setup -= OuiFileSelectSlotSetupHook;
 
+            On.Celeste.DeathEffect.Render -= DeathEffectRenderHook;
             IL.Celeste.DeathEffect.Draw -= DeathEffectDrawHook;
             IL.Celeste.DreamBlock.ctor_Vector2_float_float_Nullable1_bool_bool_bool -= DreamBlockHook;
 
@@ -551,7 +553,6 @@ namespace Celeste.Mod.SkinModHelper {
                 }
             }
 
-            skinConfigs_MoreDefaultValue();
             RecordSpriteBanks_Start();
 
             if (Settings.SelectedPlayerSkin == null || !skinConfigs.ContainsKey(Settings.SelectedPlayerSkin)) {
@@ -649,7 +650,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
 
 
-        private void PlayerRenderIlHook(ILContext il) {
+        private void PlayerRenderIlHook_Color(ILContext il) {
             ILCursor cursor = new ILCursor(il);
 
             // jump to the usage of the Red color
@@ -698,83 +699,141 @@ namespace Celeste.Mod.SkinModHelper {
 
 
         // ---Specific Player Sprite---
-        private void PlayerRenderIlHook_LoopReLoad(ILContext il) {
+        private void PlayerRenderIlHook_Sprite(ILContext il) {
             ILCursor cursor = new ILCursor(il);
-            while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdstr("characters/player/startStarFlyWhite"))) {
+            
+            if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdstr("characters/player/startStarFlyWhite"))) {
                 Logger.Log("SkinModHelper", $"Changing startStarFlyWhite path at {cursor.Index} in CIL code for {cursor.Method.FullName}");
-                cursor.EmitDelegate<Func<string, string>>((orig) => {
 
-                    string CustomPath = GetReskinPath(GFX.Game, "startStarFlyWhite", true, false, false, Player_Skinid_verify, true);
-                    if (CustomPath != "startStarFlyWhite") {
-                        return CustomPath;
+                cursor.Emit(OpCodes.Ldarg_0);
+                cursor.EmitDelegate<Func<string, Player, string>>((orig, self) => {
+
+                    Sprite On_sprite = self.Sprite;
+                    string spritePath = $"{(On_sprite.Has("startStarFly") ? On_sprite.GetFrame("startStarFly", 0) : On_sprite.Texture)}";
+
+                    spritePath = spritePath.Remove(spritePath.LastIndexOf("/") + 1) + "startStarFlyWhite";
+                    string number = "";
+                    while (number != "00" && !GFX.Game.Has(spritePath + number)) {
+                        number = number + "0";
+                    }
+
+                    if (GFX.Game.Has(spritePath + number)) {
+                        return spritePath;
                     }
                     return orig;
                 });
             }
         }
-
+        
         private MTexture PlayerHairGetHairTextureHook(On.Celeste.PlayerHair.orig_GetHairTexture orig, PlayerHair self, int index) {
-            DynData<PlayerSprite> spriteData = new DynData<PlayerSprite>(self.Sprite);
 
-            string spriteID = (string)spriteData["spriteName"];
-            if (spriteData["hairName"] == null || spriteData.Get<string>("hairName") != spriteID) {
-                spriteData["hairName"] = spriteID;
-            }
-            string HairPath = (SpriteSkin_record.ContainsKey(spriteID)) ? spriteID + SpriteSkin_record[spriteID] : spriteID;
+            Sprite On_sprite = self.Sprite;
+            string spritePath = $"{(On_sprite.Has("idle") ? On_sprite.GetFrame("idle", 0) : On_sprite.Texture)}";
 
+            spritePath = spritePath.Remove(spritePath.LastIndexOf("/") + 1);
+            if (index == 0) {
+                string bangs = spritePath + "bangs";
 
-            if (spritesWithHair.Contains(spriteID) && GFX.SpriteBank.SpriteData.ContainsKey(HairPath)) {
-                string SourcesPath = GFX.SpriteBank.SpriteData[HairPath].Sources[0].Path;
+                string number = "";
+                while (number != "00" && !GFX.Game.Has(bangs + number)) {
+                    number = number + "0";
+                }
 
-                if (index == 0) {
-                    string bangs = spriteID == HairPath ? GetReskinPath(GFX.Game, "bangs", true, false, false, (int)self.Sprite.Mode, true) : "bangs";
-
-                    if (bangs == "bangs") {
-                        bangs = SourcesPath + "bangs";
-                    }
-                    string number = "";
-                    while (number != "00" && !GFX.Game.Has(bangs + number)) {
-                        number = number + "0";
-                    }
-                    if (GFX.Game.Has(bangs + number)) {
-                        List<MTexture> newbangs = GFX.Game.GetAtlasSubtextures(bangs);
-                        return newbangs.Count > self.Sprite.HairFrame ? newbangs[self.Sprite.HairFrame] : newbangs[0];
-                    }
-                } else {
-                    string newhair = spriteID == HairPath ? GetReskinPath(GFX.Game, "hair00", true, false, false, (int)self.Sprite.Mode) : "hair00";
-
-                    if (newhair == "hair00") {
-                        newhair = SourcesPath + "hair00";
-                    }
-                    if (GFX.Game.Has(newhair)) {
-                        return GFX.Game[newhair];
-                    }
+                if (GFX.Game.Has(bangs + number)) {
+                    List<MTexture> newbangs = GFX.Game.GetAtlasSubtextures(bangs);
+                    return newbangs.Count > self.Sprite.HairFrame ? newbangs[self.Sprite.HairFrame] : newbangs[0];
+                }
+            } else {
+                string newhair = spritePath + "hair00";
+                if (GFX.Game.Has(newhair)) {
+                    return GFX.Game[newhair];
                 }
             }
             return orig(self, index);
         }
 
+
+
+
+        private void DeathEffectRenderHook(On.Celeste.DeathEffect.orig_Render orig, DeathEffect self) {
+
+            string spritePath = (string)new DynData<DeathEffect>(self)["spritePath"];
+
+            if (self.Entity != null && spritePath == null) {
+
+                var Sprite = self.Entity.GetType().GetField("sprite", BindingFlags.NonPublic | BindingFlags.Instance);
+
+                if (Sprite != null) {
+                    Sprite On_sprite = Sprite.GetValue(self.Entity) as Sprite;
+
+                    spritePath = $"{(On_sprite.Has("idle") ? On_sprite.GetFrame("idle", 0) : On_sprite.Texture)}";
+
+                    spritePath = spritePath.Remove(spritePath.LastIndexOf("/") + 1) + "death_particle";
+                    new DynData<DeathEffect>(self)["spritePath"] = spritePath;
+                }
+            }
+            if (self.Entity != null) {
+                DeathEffectNewDraw(self.Entity.Position + self.Position, self.Color, self.Percent, spritePath);
+            }
+        }
+        public static void DeathEffectNewDraw(Vector2 position, Color color, float ease, string spritePath = "") {
+
+            spritePath = (spritePath == null || !GFX.Game.Has(spritePath)) ? "characters/player/hair00" : spritePath;
+
+            string SpriteID = "death_particle";
+            if (spritePath == "characters/player/hair00" && OtherSkins_records.ContainsKey(SpriteID)) {
+                Update_FreeCollocations_OtherExtra(SpriteID, null, true, true);
+                string SkinId = getOtherSkin_ReskinPath(GFX.Game, "death_particle", SpriteID, OtherSkin_record[SpriteID]);
+
+                spritePath = SkinId == "death_particle" ? spritePath : SkinId;
+            }
+
+            Color color2 = (Math.Floor(ease * 10f) % 2.0 == 0.0) ? color : Color.White;
+            MTexture mTexture = GFX.Game[spritePath];
+            float num = (ease < 0.5f) ? (0.5f + ease) : Ease.CubeOut(1f - (ease - 0.5f) * 2f);
+            for (int i = 0; i < 8; i++) {
+                Vector2 value = Calc.AngleToVector(((float)i / 8f + ease * 0.25f) * ((float)Math.PI * 2f), Ease.CubeOut(ease) * 24f);
+                mTexture.DrawCentered(position + value + new Vector2(-1f, 0f), Color.Black, new Vector2(num, num));
+                mTexture.DrawCentered(position + value + new Vector2(1f, 0f), Color.Black, new Vector2(num, num));
+                mTexture.DrawCentered(position + value + new Vector2(0f, -1f), Color.Black, new Vector2(num, num));
+                mTexture.DrawCentered(position + value + new Vector2(0f, 1f), Color.Black, new Vector2(num, num));
+            }
+
+            for (int j = 0; j < 8; j++) {
+                Vector2 value2 = Calc.AngleToVector(((float)j / 8f + ease * 0.25f) * ((float)Math.PI * 2f), Ease.CubeOut(ease) * 24f);
+                mTexture.DrawCentered(position + value2, color2, new Vector2(num, num));
+            }
+        }
+
+        // Although in "DeathEffectRenderHook", we blocked the original method. but only Player will still run this Hook
         private void DeathEffectDrawHook(ILContext il) {
             ILCursor cursor = new(il);
             while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdstr("characters/player/hair00"))) {
                 cursor.EmitDelegate<Func<string, string>>((orig) => {
 
-                    string SpriteID = "SP_death_particle";
-                    if (OtherSkins_records.ContainsKey(SpriteID)) {
-                        Update_FreeCollocations_OtherExtra(SpriteID, null, true, true);
-                        string SkinId = getOtherSkin_ReskinPath(GFX.Game, "death_particle", SpriteID, OtherSkin_record[SpriteID]);
+                    string spritePath = orig;
+                    if (Engine.Scene is Level) {
+                        Sprite On_sprite = Engine.Scene.Tracker?.GetEntity<Player>().Sprite;
 
-                        return SkinId == "death_particle" ? orig : SkinId;
+                        spritePath = $"{(On_sprite.Has("idle") ? On_sprite.GetFrame("idle", 0) : On_sprite.Texture)}";
+                        spritePath = spritePath.Remove(spritePath.LastIndexOf("/") + 1) + "death_particle";
+
+                        spritePath = !GFX.Game.Has(spritePath) ? orig : spritePath;
                     }
-                    return orig;
+
+                    if (spritePath == orig) {
+                        string SpriteID = "death_particle";
+                        if (OtherSkins_records.ContainsKey(SpriteID)) {
+                            Update_FreeCollocations_OtherExtra(SpriteID, null, true, true);
+                            string SkinId = getOtherSkin_ReskinPath(GFX.Game, "death_particle", SpriteID, OtherSkin_record[SpriteID]);
+
+                            spritePath = SkinId == "death_particle" ? spritePath : SkinId;
+                        }
+                    }
+                    return spritePath;
                 });
             }
         }
-
-
-
-
-
 
 
 
@@ -789,7 +848,7 @@ namespace Celeste.Mod.SkinModHelper {
             }
 
             if (new_path != null) {
-                path = GetReskinPath(self, new_path, false, true, false, Player_Skinid_verify, number_search);
+                path = GetReskinPath(self, new_path, true, false, Player_Skinid_verify, number_search);
             }
             return orig(self, path);
         }
@@ -880,7 +939,6 @@ namespace Celeste.Mod.SkinModHelper {
         // ---Load part---
         private void GameLoaderLoadThreadHook(On.Celeste.GameLoader.orig_LoadThread orig, GameLoader self) {
             orig(self);
-            skinConfigs_MoreDefaultValue();
             RecordSpriteBanks_Start();
 
 
@@ -1018,17 +1076,13 @@ namespace Celeste.Mod.SkinModHelper {
 
 
 
-        private static string GetReskinPath(Atlas atlas, string orig, bool S_Path, bool N_Path, bool Ex_Path, int mode, bool number_search = false) {
+        private static string GetReskinPath(Atlas atlas, string orig, bool N_Path, bool Ex_Path, int mode, bool number_search = false) {
             string number = "";
             string CustomPath = null;
             if (mode != 0) {
                 foreach (SkinModHelperConfig config in SkinModHelperModule.skinConfigs.Values) {
                     foreach (int hash_search in config.hashValues) {
                         if (mode == hash_search) {
-                            if (S_Path && !string.IsNullOrEmpty(config.SpecificPlayerSprite_Path)) {
-                                CustomPath = config.SpecificPlayerSprite_Path + "/" + orig;
-                            }
-
                             if (N_Path && !string.IsNullOrEmpty(config.OtherSprite_Path)) {
                                 CustomPath = config.OtherSprite_Path + "/" + orig;
                             }
@@ -1191,8 +1245,8 @@ namespace Celeste.Mod.SkinModHelper {
                     RecordSpriteBanks(GFX.SpriteBank, DEFAULT, spritesXmlPath);
                     RecordSpriteBanks(GFX.PortraitsSpriteBank, DEFAULT, portraitsXmlPath);
 
-                    if (GFX.Game.Has(config.SpecificPlayerSprite_Path + "/death_particle")) {
-                        RecordSpriteBanks(null, DEFAULT, null, "SP_death_particle");
+                    if (GFX.Game.Has(config.OtherSprite_Path + "/death_particle")) {
+                        RecordSpriteBanks(null, DEFAULT, null, "death_particle");
                     }
                     if (GFX.Game.Has(config.OtherSprite_Path + "/objects/dreamblock/particles")) {
                         RecordSpriteBanks(null, DEFAULT, null, "dreamblock_particles");
@@ -1215,7 +1269,7 @@ namespace Celeste.Mod.SkinModHelper {
                     RecordSpriteBanks(GFX.PortraitsSpriteBank, config.SkinName, portraitsXmlPath);
 
                     if (GFX.Game.Has(config.OtherSprite_ExPath + "/death_particle")) {
-                        RecordSpriteBanks(null, config.SkinName, null, "SP_death_particle");
+                        RecordSpriteBanks(null, config.SkinName, null, "death_particle");
                     }
                     if (GFX.Game.Has(config.OtherSprite_ExPath + "/objects/dreamblock/particles")) {
                         RecordSpriteBanks(null, config.SkinName, null, "dreamblock_particles");
@@ -1269,35 +1323,6 @@ namespace Celeste.Mod.SkinModHelper {
             }
         }
 
-        private void skinConfigs_MoreDefaultValue() {
-            if (GFX.SpriteBank == null) {
-                return;
-            }
-            Dictionary<string, string> SP_Path = new Dictionary<string, string>();
-            foreach (SkinModHelperConfig config in skinConfigs.Values) {
-                if (string.IsNullOrEmpty(config.SpecificPlayerSprite_Path)) {
-
-                    string SourcesPath = null;
-                    if (GFX.SpriteBank.SpriteData.ContainsKey(config.Character_ID)) {
-                        SourcesPath = GFX.SpriteBank.SpriteData[config.Character_ID].Sources[0].Path;
-
-
-                        if (SourcesPath.EndsWith("/")) {
-                            SourcesPath = SourcesPath.Remove(SourcesPath.LastIndexOf("/"), 1);
-                        }
-                        SP_Path[config.SkinName] = SourcesPath;
-                    } else {
-                        Logger.Log(LogLevel.Error, "SkinModHelper", $"{config.SkinName}'s '{config.Character_ID}' exist't in Graphics/Sprites.xml, this will make crash the game ");
-                    }
-                    if (SourcesPath == null) {
-                        SP_Path[config.SkinName] = "characters/" + config.Character_ID;
-                    }
-                }
-            }
-            foreach (string SkinName in SP_Path.Keys) {
-                skinConfigs[SkinName].SpecificPlayerSprite_Path = SP_Path[SkinName];
-            }
-        }
 
 
 
@@ -1468,9 +1493,7 @@ namespace Celeste.Mod.SkinModHelper {
             if (Default) {
                 foreach (SkinModHelperConfig config in skinConfigs.Values) {
                     if (Player_Skinid_verify == config.hashValues[1]) {
-                        if (SpriteID.StartsWith("SP_")) {
-                            CustomPath = config.SpecificPlayerSprite_Path + "/" + origPath;
-                        } else if (!string.IsNullOrEmpty(config.OtherSprite_Path)) {
+                        if (!string.IsNullOrEmpty(config.OtherSprite_Path)) {
                             CustomPath = config.OtherSprite_Path + "/" + origPath;
                         }
 

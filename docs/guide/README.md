@@ -25,7 +25,6 @@ Each of the fields will be explained below.
   SilhouetteMode: [true/false]
   JungleLanternMode: [true/false]
   
-  SpecificPlayerSprite_Path: [a path]
   OtherSprite_Path: [a path]
   colorGrade_Path: [a path]
   
@@ -87,19 +86,6 @@ If, the skin you make is a player skin. then we have these things:
    * Note: If the new ID does not match "[Character_ID]". Then it will directly crash the game
 
 
-Specific Player Sprite
------------------------------------
-A player skin has some skin textures that cannot be easily replaced in vanilla, 
-such as the "bangs" and "startStarFlyWhite" textures.
-
-Skin Mod Helper will make those textures no longer use "characters/player" root path, 
-Then try to use "[SourcesPath of Character_ID in sprites.xml]" as the new root path.
-
-If you don't want to do that, and if you want to manually set a more unique new root path, then you can use this:
-```
-  SpecificPlayerSprite_Path: [path to the root directory of some specific texture]     
-    # Path's starting point is "Graphics/Atlases/Gameplay/"
-```
 
 OtherSprite
 -----------------------------------
@@ -209,19 +195,17 @@ More Miscellaneous
 1. About reskin method mentioned in "OtherSprite", it also can work for Portraits.xml, 
 Just consider the corresponding "Sprites.xml" as "Portraits.xml".
 
-2. You can add a custom death particle (the circles that appear around Madeline when she dies) by
-creating a small image named death_particle.png and place it in your "[SpecificPlayerSprite_Path]" folder. Use white
-as the only color -- it will be filled in by your current hair color on death.
-   * For reference, the vanilla death particle is an 8x8 white circle (hair00.png).
-
-3. A few extra things that can be reskinned
+2. A few extra things that can be reskinned
    * The particles for feathers: "../Gameplay/[OtherSprite_Path]/particles/feather.png"
    * The particles for dream blocks: "../Gameplay/[OtherSprite_Path]/objects/dreamblock/particles.png"
       * Use the vanilla image as a guide -- you need to space out the three particle sizes in a specific way for them to be used correctly.
-   * The new bangs for all hasHair-ID in Sprites.xml: "../Gameplay/[IDself's SourcesPath]/bangs[number].png"
-   * The new hair for all hasHair-ID in Sprites.xml: "../Gameplay/[IDself's SourcesPath]/hair00.png"
+   * The death particle for All things: "../Gameplay/[OtherSprite_Path]/death_particle.png"
+      * specified the death particle for specified-ID in Sprites.xml: "../Gameplay/[IDself's rootPath]/death_particle.png"
+      * death particle's vanilla image are "characters/player/hair00.png"
+   * The new bangs for specified-ID in Sprites.xml: "../Gameplay/[IDself's rootPath]/bangs[number].png"
+   * The new hair for specified-ID in Sprites.xml: "../Gameplay/[IDself's rootPath]/hair00.png"
 
-Note: some specific sprites's reskin path, can also use [OtherSprite_ExPath] to complete the reskin for them
+Note: [OtherSprite_Path] in reskin path, can also look as [OtherSprite_ExPath] to do
 
 
 
@@ -249,7 +233,7 @@ If some xml-undefined textures are misaligned:
 ```
 X: [X offset value of texture in game]
 Y: [Y offset value of texture in game]
-Width: [pixel Width of texture]
+Width: [pixel Width of texture]     # maybe, game need get its center point
 Height: [pixel Height of texture]
 Premultiplied: [true/false]    # about this i don't know.
 ```

@@ -51,7 +51,7 @@ namespace Celeste.Mod.SkinModHelper
             foreach (SkinModHelperConfig config in SkinModHelperModule.skinConfigs.Values)
             {
                 bool selected = config.SkinName == SkinModHelperModule.Settings.SelectedPlayerSkin;
-                string name = Dialog.Clean("SkinModHelper_Player_" + config.SkinName);
+                string name = Dialog.Clean("SkinModHelper_Player__" + config.SkinName);
                 if (config.Player_List)
                 {
                     skinSelectMenu.Add(name, config.SkinName, selected);
@@ -78,7 +78,7 @@ namespace Celeste.Mod.SkinModHelper
             foreach (SkinModHelperConfig config in SkinModHelperModule.skinConfigs.Values)
             {
                 bool selected = config.SkinName == SkinModHelperModule.Settings.SelectedSilhouetteSkin;
-                string name = Dialog.Clean("SkinModHelper_Player_" + config.SkinName);
+                string name = Dialog.Clean("SkinModHelper_Player__" + config.SkinName);
                 if (config.Silhouette_List)
                 {
                     skinSelectMenu.Add(name, config.SkinName, selected);
@@ -98,7 +98,7 @@ namespace Celeste.Mod.SkinModHelper
                 }
 
                 foreach (SkinModHelperConfig config in SkinModHelperModule.OtherskinConfigs.Values) {
-                    string Options_name = ("SkinModHelper_ExSprite_" + config.SkinName);
+                    string Options_name = ("SkinModHelper_ExSprite__" + config.SkinName);
                     bool Options_OnOff = false;
 
                     if (!SkinModHelperModule.Settings.ExtraXmlList.ContainsKey(config.SkinName)) {
@@ -139,7 +139,7 @@ namespace Celeste.Mod.SkinModHelper
             foreach (KeyValuePair<string, List<string>> recordID in SkinModHelperModule.SpriteSkins_records) {
 
                 string SpriteID = recordID.Key;
-                string SpriteText = Dialog.Has("SkinModHelper_Sprite_" + SpriteID) ? $"{SpriteID} ({Dialog.Clean("SkinModHelper_Sprite_" + SpriteID)})" : SpriteID;
+                string SpriteText = Dialog.Has($"SkinModHelper_Sprite__{SpriteID}") ? $"{SpriteID} ({Dialog.Clean($"SkinModHelper_Sprite__{SpriteID}")})" : SpriteID;
                 TextMenu.Option<string> skinSelectMenu = new(SpriteText);
 
 
@@ -152,7 +152,7 @@ namespace Celeste.Mod.SkinModHelper
                 skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_Default"), SkinModHelperModule.DEFAULT, selected);
                 foreach (string SkinName in recordID.Value) {
                     selected = SkinName == SkinModHelperModule.Settings.FreeCollocations_Sprites[SpriteID];
-                    string SkinText = Dialog.Has("SkinModHelper_Sprite_" + SpriteID + SkinName) ? Dialog.Clean("SkinModHelper_Sprite_" + SpriteID + SkinName) : Dialog.Clean("SkinModHelper_anySprite_" + SkinName);
+                    string SkinText = Dialog.Has($"SkinModHelper_Sprite__{SpriteID}__{SkinName}") ? Dialog.Clean($"SkinModHelper_Sprite__{SpriteID}__{SkinName}") : Dialog.Clean($"SkinModHelper_anySprite__{SkinName}");
                     skinSelectMenu.Add(SkinText, SkinName, selected);
                 }
 
@@ -168,7 +168,7 @@ namespace Celeste.Mod.SkinModHelper
             foreach (KeyValuePair<string, List<string>> recordID in SkinModHelperModule.PortraitsSkins_records) {
 
                 string SpriteID = recordID.Key;
-                string SpriteText = Dialog.Has("SkinModHelper_Portraits_" + SpriteID) ? $"{SpriteID} ({Dialog.Clean("SkinModHelper_Portraits_" + SpriteID)})" : SpriteID;
+                string SpriteText = Dialog.Has($"SkinModHelper_Portraits__{SpriteID}") ? $"{SpriteID} ({Dialog.Clean($"SkinModHelper_Portraits__{SpriteID}")})" : SpriteID;
                 TextMenu.Option<string> skinSelectMenu = new(SpriteText);
 
 
@@ -180,7 +180,7 @@ namespace Celeste.Mod.SkinModHelper
                 bool selected = SkinModHelperModule.Settings.FreeCollocations_Portraits[SpriteID] == SkinModHelperModule.DEFAULT;
                 skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_Default"), SkinModHelperModule.DEFAULT, selected);
                 foreach (string SkinName in recordID.Value) {
-                    string SkinText = Dialog.Has("SkinModHelper_Portraits_" + SpriteID + SkinName) ? Dialog.Clean("SkinModHelper_Portraits_" + SpriteID + SkinName) : Dialog.Clean("SkinModHelper_anyPortraits_" + SkinName);
+                    string SkinText = Dialog.Has($"SkinModHelper_Portraits__{SpriteID}__{SkinName}") ? Dialog.Clean($"SkinModHelper_Portraits__{SpriteID}__{SkinName}") : Dialog.Clean($"SkinModHelper_anyPortraits__{SkinName}");
                     selected = SkinName == SkinModHelperModule.Settings.FreeCollocations_Portraits[SpriteID];
                     skinSelectMenu.Add(SkinText, SkinName, selected);
                 }
@@ -197,7 +197,7 @@ namespace Celeste.Mod.SkinModHelper
             foreach (KeyValuePair<string, List<string>> recordID in SkinModHelperModule.OtherSkins_records) {
 
                 string SpriteID = recordID.Key;
-                string SpriteText = Dialog.Clean("SkinModHelper_Other_" + SpriteID);
+                string SpriteText = Dialog.Clean($"SkinModHelper_Other__{SpriteID}");
                 TextMenu.Option<string> skinSelectMenu = new(SpriteText);
 
 
@@ -209,7 +209,7 @@ namespace Celeste.Mod.SkinModHelper
                 bool selected = SkinModHelperModule.Settings.FreeCollocations_OtherExtra[SpriteID] == SkinModHelperModule.DEFAULT;
                 skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_Default"), SkinModHelperModule.DEFAULT, selected);
                 foreach (string SkinName in recordID.Value) {
-                    string SkinText = Dialog.Has("SkinModHelper_Other_" + SpriteID + SkinName) ? Dialog.Clean("SkinModHelper_Other_" + SpriteID + SkinName) : Dialog.Clean("SkinModHelper_anyOther_" + SkinName);
+                    string SkinText = Dialog.Has($"SkinModHelper_Other__{SpriteID}__{SkinName}") ? Dialog.Clean($"SkinModHelper_Other__{SpriteID}__{SkinName}") : Dialog.Clean($"SkinModHelper_anyOther__{SkinName}");
                     selected = SkinName == SkinModHelperModule.Settings.FreeCollocations_OtherExtra[SpriteID];
                     skinSelectMenu.Add(SkinText, SkinName, selected);
                 }
