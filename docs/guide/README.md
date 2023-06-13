@@ -21,15 +21,7 @@ Each of the fields will be explained below.
   Character_ID: [new Player ID]
   hashSeed: [SkinName]
   
-  BadelineMode: [true/false]    
-  SilhouetteMode: [true/false]
-  JungleLanternMode: [true/false]
-  
   OtherSprite_Path: [a path]
-  colorGrade_Path: [a path]
-  
-  HairColors:
-  - < HairColors >
   
   # ---non-Player skin---
   OtherSprite_ExPath: [a path]
@@ -51,31 +43,11 @@ Then, you need to set a PlayerSkin ID for the SkinName information you wrote, us
   Character_ID: [your new Player ID]     # this also needs you to Create a "Sprites.Xml", will be detailed description later
 ```
 
-HairColors
------------------------------------
-If you want your player skin to have a new hair color, other than the default maddy's color, 
-Then you can use this:
-```
-  HairColors:     # The following content can be set multiple times, but do not let [Dashes] repeat same number
-  - Dashes: [use 0 to 5]
-    Color: [use six digit RGB hex code]
-```
-
-Character's effect setting
------------------------------------
-If you want to set their character-effect for your player skin, 
-Then you can choose to add the effect you want (you can add multiple):
-```
-  BadelineMode: true     # Let the default hair color of PlayerSkin be baddy
-  SilhouetteMode: true     # Color the player's entire body with its hair color, like a silhouette
-  JungleLanternMode: true     # This involves some gameplay mechanisms of JungleHelper, probably don't add this unless you know what you're doing
-```
-
 A brief introduction to Sprites.xml
 -----------------------------------
 If you want to know more about config file, you may need to know a little about XMLs first
 
-SkinModHelper can only replace sprites included in the default Sprites.xml location. 
+SkinModHelper can replace sprites included in the default Sprites.xml location. 
 ("Celeste/Mods/[mod_name]/Graphics/Sprites.xml" or Vanilla's "Celeste/Content/Graphics/Sprites.xml")
 
 If, the skin you make is a player skin. then we have these things: 
@@ -103,19 +75,6 @@ If your skin type is "non-Player Skin", you just want to simply reskin some IDs.
   OtherSprite_ExPath: [same as OtherSprite_Path]
 ```
 
-ColorGrades
------------------------------------
-You can add color grades, let your playerSkin self are rendered differently at different dash counts by placing them
-```
-  colorGrade_Path: [custom colorGrade's root directory Path]    # Path's starting point is "Graphics/ColorGrading/"
-```
-in "Graphics/ColorGrading/[colorGrade_Path]/" and name the images "dashX.png", where X is the number
-of dashes the color grade should apply to. For example, if I had a 0-dash color grade, I would name
-the file "Graphics/ColorGrading/Bigkahuna/MySkin/dash0.png".
-   * You can grab the base color grade from "Celeste/Content/Graphics/ColorGrading/none.png"
-   * Pick the color you want to replace on the sprite, find that color on the color grade, and then
-   replace it with the color you want for that dash count.
-
 
 let your skin appear in Mod-Options
 -----------------------------------
@@ -140,6 +99,7 @@ Then you can use this to change and fix it.
 
 You can write multiple skin info to your config file, 
 this just need repeats everything above steps.
+
 
 
 Special Jump of config files
@@ -179,13 +139,11 @@ The following content can be copied directly into your config file for test:
 
 - SkinName: "vanilla_player_NB"
   Character_ID: "player_no_backpack"
-
+  OtherSprite_Path: "SkinTest/TestA"
 
 - SkinName: "vanilla_Silhouette"
-  Player_List: true
-
-  SilhouetteMode: true
-  Character_ID: "player_playback"
+  Silhouette_List: true
+  Character_ID: "player_badeline"
 ```
 (Regarding the files and sprites required for the above configurations, SkinModHelper's own files already contain them, you can refer to those files)
 
@@ -204,8 +162,14 @@ Just consider the corresponding "Sprites.xml" as "Portraits.xml".
       * death particle's vanilla image are "characters/player/hair00.png"
    * The new bangs for specified-ID in Sprites.xml: "../Gameplay/[IDself's rootPath]/bangs[number].png"
    * The new hair for specified-ID in Sprites.xml: "../Gameplay/[IDself's rootPath]/hair00.png"
-
+   
 Note: [OtherSprite_Path] in reskin path, can also look as [OtherSprite_ExPath] to do
+
+
+3. more complicated things
+   * [Setting ColorGrade for skin](/docs/guide//skinconfig/ColorGrade.md)
+   * [Setting HairConfig for skin](/docs/guide//skinconfig/HairConfig.md)
+   * [Setting some effects for skin](/docs/guide/skinconfig/CharacterConfig.md)
 
 
 
@@ -215,7 +179,7 @@ If your skin is not be registered (or does not appear in the menu):
 * Make sure your configuration file is named correctly and in the right place
 * Check your log to see your skin report anything when trying to register
 * If the log says nothing, see this section: 
-  [let your skin appear in Mod-Options](...docs/guide/README.md#let-your-skin-appear-in-mod-options)
+  [let your skin appear in Mod-Options](#let-your-skin-appear-in-mod-options)
 
 If your sprites/portraits are not appearing in-game:
 * Make sure your XML is valid. You can compare to the vanilla files or use an [online syntax checker](https://www.xmlvalidation.com/)
