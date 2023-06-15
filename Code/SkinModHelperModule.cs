@@ -96,13 +96,10 @@ namespace Celeste.Mod.SkinModHelper {
             IL.Celeste.Player.GetTrailColor += patch_SpriteMode_Badeline;
             IL.Celeste.PlayerPlayback.SetFrame += patch_SpriteMode_Silhouette;
 
+            On.Celeste.PlayerHair.Render += PlayerHairRenderHook;
             On.Celeste.Player.Update += PlayerUpdateHook;
             On.Celeste.PlayerSprite.ctor += on_PlayerSprite_ctor;
             On.Monocle.SpriteBank.CreateOn += SpriteBankCreateOn;
-
-            On.Celeste.BadelineOldsite.ctor_Vector2_int += on_BadelineOldsite_ctor;
-            On.Celeste.BadelineDummy.ctor += on_BadelineDummy_ctor;
-            On.Celeste.DreamMirror.Added += DreamMirrorAddedHook;
 
             On.Celeste.Lookout.Interact += on_Lookout_Interact;
             IL.Celeste.Player.Render += PlayerRenderIlHook_Color;
@@ -161,13 +158,10 @@ namespace Celeste.Mod.SkinModHelper {
             IL.Celeste.Player.GetTrailColor -= patch_SpriteMode_Badeline;
             IL.Celeste.PlayerPlayback.SetFrame -= patch_SpriteMode_Silhouette;
 
+            On.Celeste.PlayerHair.Render -= PlayerHairRenderHook;
             On.Celeste.Player.Update -= PlayerUpdateHook;
             On.Celeste.PlayerSprite.ctor -= on_PlayerSprite_ctor;
             On.Monocle.SpriteBank.CreateOn -= SpriteBankCreateOn;
-
-            On.Celeste.BadelineOldsite.ctor_Vector2_int -= on_BadelineOldsite_ctor;
-            On.Celeste.BadelineDummy.ctor -= on_BadelineDummy_ctor;
-            On.Celeste.DreamMirror.Added -= DreamMirrorAddedHook;
 
             On.Celeste.Lookout.Interact -= on_Lookout_Interact;
             IL.Celeste.Player.Render -= PlayerRenderIlHook_Color;
@@ -343,74 +337,6 @@ namespace Celeste.Mod.SkinModHelper {
             return orig(self, sprite, id);
         }
         
-        private void on_BadelineOldsite_ctor(On.Celeste.BadelineOldsite.orig_ctor_Vector2_int orig, BadelineOldsite self, Vector2 position, int index) {
-            orig(self, position, index);
-
-            int dashCount = Math.Max(Math.Min(index, MAX_DASHES), 0);
-            
-            HairConfig hairConfig = searchSkinConfig<HairConfig>($"Graphics/Atlases/Gameplay/{getAnimationRootPath(self.Sprite)}skinConfig/" + "HairConfig");
-            CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{getAnimationRootPath(self.Sprite)}skinConfig/" + "CharacterConfig");
-
-
-            if (ModeConfig != null && ModeConfig.BadelineMode == null) {
-                ModeConfig.BadelineMode = true;
-            }
-            if (hairConfig != null && hairConfig.HairColors != null) {
-                self.Hair.Color = HairConfig.BuildHairColors(hairConfig, ModeConfig)[dashCount];
-            }
-
-            if (ModeConfig != null) {
-                if (ModeConfig.SilhouetteMode == true) {
-                    self.Sprite.Color = self.Hair.Color;
-                } else if (ModeConfig.SilhouetteMode == false) {
-                    self.Sprite.Color = Color.White;
-                }
-            }
-        }
-        private void on_BadelineDummy_ctor(On.Celeste.BadelineDummy.orig_ctor orig, BadelineDummy self, Vector2 position) {
-            orig(self, position);
-
-            HairConfig hairConfig = searchSkinConfig<HairConfig>($"Graphics/Atlases/Gameplay/{getAnimationRootPath(self.Sprite)}skinConfig/" + "HairConfig");
-            CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{getAnimationRootPath(self.Sprite)}skinConfig/" + "CharacterConfig");
-
-            if (hairConfig != null && hairConfig.HairColors != null) {
-                self.Hair.Color = HairConfig.BuildHairColors(hairConfig)[0];
-            }
-
-            if (ModeConfig != null) {
-                if (ModeConfig.SilhouetteMode == true) {
-                    self.Sprite.Color = self.Hair.Color;
-                } else if (ModeConfig.SilhouetteMode == false) {
-                    self.Sprite.Color = Color.White;
-                }
-            }
-        }
-        private void DreamMirrorAddedHook(On.Celeste.DreamMirror.orig_Added orig, DreamMirror self, Scene scene) {
-            orig(self, scene);
-
-            if (!(bool)new DynData<DreamMirror>(self)["smashed"]) {
-
-                PlayerHair reflectionHair = (PlayerHair)new DynData<DreamMirror>(self)["reflectionHair"];
-                PlayerSprite reflectionSprite = (PlayerSprite)new DynData<DreamMirror>(self)["reflectionSprite"];
-
-                HairConfig hairConfig = searchSkinConfig<HairConfig>($"Graphics/Atlases/Gameplay/{getAnimationRootPath(reflectionSprite)}skinConfig/" + "HairConfig");
-                CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{getAnimationRootPath(reflectionSprite)}skinConfig/" + "CharacterConfig");
-
-                if (hairConfig != null && hairConfig.HairColors != null) {
-                    reflectionHair.Color = HairConfig.BuildHairColors(hairConfig)[0];
-                }
-
-                if (ModeConfig != null) {
-                    if (ModeConfig.SilhouetteMode == true) {
-                        reflectionSprite.Color = reflectionHair.Color;
-                    } else if (ModeConfig.SilhouetteMode == false) {
-                        reflectionSprite.Color = Color.White;
-                    }
-                }
-                new DynData<PlayerSprite>(reflectionSprite)["ColorGrade_Path"] = $"{getAnimationRootPath(reflectionSprite)}ColorGrading/dash0";
-            }
-        }
-
 
 
         private void patch_SpriteMode_Badeline(ILContext il) {
@@ -621,16 +547,18 @@ namespace Celeste.Mod.SkinModHelper {
 
 
 
-
+        
         // ---Custom ColorGrade---
         private void OnPlayerSpriteRender(On.Celeste.PlayerSprite.orig_Render orig, PlayerSprite self) {
             orig(self);
-            int? get_dashCount;
-            string colorGrade_Path = (string)new DynData<PlayerSprite>(self)["ColorGrade_Path"];
+            DynData<PlayerSprite> selfData = new DynData<PlayerSprite>(self);
 
-            if (self.Entity is BadelineOldsite badeline) {
-                get_dashCount = (int)new DynData<BadelineOldsite>(badeline)["index"];
-            } else if (self.Entity is BadelineDummy) {
+            int? get_dashCount;
+            string colorGrade_Path = (string)selfData["ColorGrade_Path"];
+
+            if (self.Entity is BadelineOldsite badelineOldsite) {
+                get_dashCount = (int)new DynData<BadelineOldsite>(badelineOldsite)["index"];
+            } else if (self.Mode == (PlayerSpriteMode)2) {
                 get_dashCount = 0;
             } else {
                 var Dashes = self.Entity.GetType().GetField("Dashes");
@@ -641,6 +569,7 @@ namespace Celeste.Mod.SkinModHelper {
                 }
             }
             
+
             if (get_dashCount != null) {
                 colorGrade_Path = getAnimationRootPath(self);
                 int dashCount = Math.Max(Math.Min((int)get_dashCount, MAX_DASHES), 0);
@@ -650,7 +579,7 @@ namespace Celeste.Mod.SkinModHelper {
                 }
 
                 colorGrade_Path = $"{colorGrade_Path}ColorGrading/dash{dashCount}";
-                new DynData<PlayerSprite>(self)["ColorGrade_Path"] = colorGrade_Path;
+                selfData["ColorGrade_Path"] = colorGrade_Path;
             }
 
             if (colorGrade_Path != null && GFX.Game.Has(colorGrade_Path)) {
@@ -728,7 +657,7 @@ namespace Celeste.Mod.SkinModHelper {
                     return color;
                 });
             }
-                    
+
             // jump to the usage of the White-color / Null-color
             if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchCall<Color>("get_White"))) {
                 Logger.Log("SkinModHelper", $"Patching silhouette color at {cursor.Index} in IL code for Player.Render()");
@@ -878,6 +807,47 @@ namespace Celeste.Mod.SkinModHelper {
             }
         }
 
+        // ---Badelines / Baddys---
+        private void PlayerHairRenderHook(On.Celeste.PlayerHair.orig_Render orig, PlayerHair self) {
+
+            if (self.Entity is Player || self.Entity is PlayerPlayback || (bool?)new DynData<PlayerHair>(self)["Update_firstHook_SMH"] == false) {
+                orig(self); return;
+            }
+            new DynData<PlayerHair>(self)["Update_firstHook_SMH"] = false;
+
+            int? get_dashCount = null;
+
+            string rootPath = getAnimationRootPath(self.Sprite);
+
+            if (self.Entity is BadelineOldsite badelineOldsite) {
+                get_dashCount = (int)new DynData<BadelineOldsite>(badelineOldsite)["index"];
+            } else if (self.Sprite.Mode == (PlayerSpriteMode)2) {
+                get_dashCount = 0;
+            }
+
+            if (get_dashCount != null) {
+                int dashCount = Math.Max(Math.Min((int)get_dashCount, MAX_DASHES), 0);
+
+                HairConfig hairConfig = searchSkinConfig<HairConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "HairConfig");
+                CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "CharacterConfig");
+
+                if (self.Sprite.Mode == (PlayerSpriteMode)2 && ModeConfig != null && ModeConfig.BadelineMode == null) {
+                    ModeConfig.BadelineMode = true;
+                }
+
+                if (hairConfig != null && hairConfig.HairColors != null) {
+                    self.Color = HairConfig.BuildHairColors(hairConfig, ModeConfig)[dashCount];
+                }
+                if (ModeConfig != null) {
+                    if (ModeConfig.SilhouetteMode == true) {
+                        self.Sprite.Color = self.Color;
+                    } else if (ModeConfig.SilhouetteMode == false) {
+                        self.Sprite.Color = Color.White;
+                    }
+                }
+            }
+            orig(self);
+        }
 
 
         // ---Other Sprite---
