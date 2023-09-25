@@ -52,6 +52,7 @@ namespace Celeste.Mod.SkinModHelper
             {
                 bool selected = config.SkinName == SkinModHelperModule.Settings.SelectedPlayerSkin;
                 string name = Dialog.Clean("SkinModHelper_Player__" + config.SkinName);
+                name = !string.IsNullOrEmpty(config.SkinDialogKey) ? config.SkinDialogKey : name;
                 if (config.Player_List)
                 {
                     skinSelectMenu.Add(name, config.SkinName, selected);
@@ -79,6 +80,7 @@ namespace Celeste.Mod.SkinModHelper
             {
                 bool selected = config.SkinName == SkinModHelperModule.Settings.SelectedSilhouetteSkin;
                 string name = Dialog.Clean("SkinModHelper_Player__" + config.SkinName);
+                name = !string.IsNullOrEmpty(config.SkinDialogKey) ? config.SkinDialogKey : name;
                 if (config.Silhouette_List)
                 {
                     skinSelectMenu.Add(name, config.SkinName, selected);
@@ -107,6 +109,7 @@ namespace Celeste.Mod.SkinModHelper
                         Options_OnOff = SkinModHelperModule.Settings.ExtraXmlList[config.SkinName];
                     }
 
+                    Options_name = !string.IsNullOrEmpty(config.SkinDialogKey) ? config.SkinDialogKey : Options_name;
                     TextMenu.OnOff Options = new TextMenu.OnOff(Dialog.Clean(Options_name), Options_OnOff);
                     Options.Change(OnOff => SkinModHelperModule.UpdateExtraXml(config.SkinName, OnOff));
 
@@ -131,9 +134,13 @@ namespace Celeste.Mod.SkinModHelper
 
             TextMenu.OnOff SkinFreeConfig_OnOff = new TextMenu.OnOff(Dialog.Clean("SkinModHelper_SkinFreeConfig_OnOff"), SkinModHelperModule.Settings.FreeCollocations_OffOn);
             SkinFreeConfig_OnOff.Change(OnOff => SkinModHelperModule.Update_FreeCollocations_OnOff(OnOff, inGame));
+
+            if (Disabled(inGame)) {
+                SkinFreeConfig_OnOff.Disabled = true;
+            }
             menu.Add(SkinFreeConfig_OnOff);
 
-            if (SkinModHelperModule.SpriteSkins_records != null) {
+            if (SkinModHelperModule.SpriteSkins_records.Count > 0) {
                 menu.Add(buildHeading(menu, "SpritesXml"));
             }
             foreach (KeyValuePair<string, List<string>> recordID in SkinModHelperModule.SpriteSkins_records) {
@@ -147,22 +154,25 @@ namespace Celeste.Mod.SkinModHelper
                 if (!SkinModHelperModule.Settings.FreeCollocations_Sprites.ContainsKey(SpriteID)) {
                     SkinModHelperModule.Settings.FreeCollocations_Sprites[SpriteID] = SkinModHelperModule.DEFAULT;
                 }
+                string selected = SkinModHelperModule.Settings.FreeCollocations_Sprites[SpriteID];
 
-                bool selected = SkinModHelperModule.Settings.FreeCollocations_Sprites[SpriteID] == SkinModHelperModule.DEFAULT;
-                skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_Default"), SkinModHelperModule.DEFAULT, selected);
+                skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_Default"), SkinModHelperModule.DEFAULT, selected == SkinModHelperModule.DEFAULT);
+                skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_LockedToPlayer"), SkinModHelperModule.LockedToPlayer, selected == SkinModHelperModule.LockedToPlayer);
+
                 foreach (string SkinName in recordID.Value) {
-                    selected = SkinName == SkinModHelperModule.Settings.FreeCollocations_Sprites[SpriteID];
                     string SkinText = Dialog.Has($"SkinModHelper_Sprite__{SpriteID}__{SkinName}") ? Dialog.Clean($"SkinModHelper_Sprite__{SpriteID}__{SkinName}") : Dialog.Clean($"SkinModHelper_anySprite__{SkinName}");
-                    skinSelectMenu.Add(SkinText, SkinName, selected);
+                    
+                    if (!string.IsNullOrEmpty(SkinModHelperModule.OtherskinConfigs[SkinName].SkinDialogKey)) {
+                        SkinText = Dialog.Clean(SkinModHelperModule.OtherskinConfigs[SkinName].SkinDialogKey);
+                    }
+                    skinSelectMenu.Add(SkinText, SkinName, (SkinName == selected));
                 }
-
-
                 skinSelectMenu.Change(skinId => SkinModHelperModule.Update_FreeCollocations_Sprites(SpriteID, skinId, inGame));
                 menu.Add(skinSelectMenu);
             }
 
 
-            if (SkinModHelperModule.PortraitsSkins_records != null) {
+            if (SkinModHelperModule.PortraitsSkins_records.Count > 0) {
                 menu.Add(buildHeading(menu, "PortraitsXml"));
             }
             foreach (KeyValuePair<string, List<string>> recordID in SkinModHelperModule.PortraitsSkins_records) {
@@ -176,22 +186,25 @@ namespace Celeste.Mod.SkinModHelper
                 if (!SkinModHelperModule.Settings.FreeCollocations_Portraits.ContainsKey(SpriteID)) {
                     SkinModHelperModule.Settings.FreeCollocations_Portraits[SpriteID] = SkinModHelperModule.DEFAULT;
                 }
+                string selected = SkinModHelperModule.Settings.FreeCollocations_Portraits[SpriteID];
 
-                bool selected = SkinModHelperModule.Settings.FreeCollocations_Portraits[SpriteID] == SkinModHelperModule.DEFAULT;
-                skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_Default"), SkinModHelperModule.DEFAULT, selected);
+                skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_Default"), SkinModHelperModule.DEFAULT, selected == SkinModHelperModule.DEFAULT);
+                skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_LockedToPlayer"), SkinModHelperModule.LockedToPlayer, selected == SkinModHelperModule.LockedToPlayer);
+
                 foreach (string SkinName in recordID.Value) {
                     string SkinText = Dialog.Has($"SkinModHelper_Portraits__{SpriteID}__{SkinName}") ? Dialog.Clean($"SkinModHelper_Portraits__{SpriteID}__{SkinName}") : Dialog.Clean($"SkinModHelper_anyPortraits__{SkinName}");
-                    selected = SkinName == SkinModHelperModule.Settings.FreeCollocations_Portraits[SpriteID];
-                    skinSelectMenu.Add(SkinText, SkinName, selected);
+
+                    if (!string.IsNullOrEmpty(SkinModHelperModule.OtherskinConfigs[SkinName].SkinDialogKey)) {
+                        SkinText = Dialog.Clean(SkinModHelperModule.OtherskinConfigs[SkinName].SkinDialogKey);
+                    }
+                    skinSelectMenu.Add(SkinText, SkinName, (SkinName == selected));
                 }
-
-
                 skinSelectMenu.Change(skinId => SkinModHelperModule.Update_FreeCollocations_Portraits(SpriteID, skinId, inGame));
                 menu.Add(skinSelectMenu);
             }
 
 
-            if (SkinModHelperModule.OtherSkins_records != null) {
+            if (SkinModHelperModule.OtherSkins_records.Count > 0) {
                 menu.Add(buildHeading(menu, "OtherExtra"));
             }
             foreach (KeyValuePair<string, List<string>> recordID in SkinModHelperModule.OtherSkins_records) {
@@ -206,12 +219,19 @@ namespace Celeste.Mod.SkinModHelper
                     SkinModHelperModule.Settings.FreeCollocations_OtherExtra[SpriteID] = SkinModHelperModule.DEFAULT;
                 }
 
-                bool selected = SkinModHelperModule.Settings.FreeCollocations_OtherExtra[SpriteID] == SkinModHelperModule.DEFAULT;
-                skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_Default"), SkinModHelperModule.DEFAULT, selected);
+                string selected = SkinModHelperModule.Settings.FreeCollocations_OtherExtra[SpriteID];
+                bool select = SkinModHelperModule.Settings.FreeCollocations_OtherExtra[SpriteID] == SkinModHelperModule.DEFAULT;
+
+                skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_Default"), SkinModHelperModule.DEFAULT, selected == SkinModHelperModule.DEFAULT);
+                skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_LockedToPlayer"), SkinModHelperModule.LockedToPlayer, selected == SkinModHelperModule.LockedToPlayer);
+
                 foreach (string SkinName in recordID.Value) {
                     string SkinText = Dialog.Has($"SkinModHelper_Other__{SpriteID}__{SkinName}") ? Dialog.Clean($"SkinModHelper_Other__{SpriteID}__{SkinName}") : Dialog.Clean($"SkinModHelper_anyOther__{SkinName}");
-                    selected = SkinName == SkinModHelperModule.Settings.FreeCollocations_OtherExtra[SpriteID];
-                    skinSelectMenu.Add(SkinText, SkinName, selected);
+
+                    if (!string.IsNullOrEmpty(SkinModHelperModule.OtherskinConfigs[SkinName].SkinDialogKey)) {
+                        SkinText = Dialog.Clean(SkinModHelperModule.OtherskinConfigs[SkinName].SkinDialogKey);
+                    }
+                    skinSelectMenu.Add(SkinText, SkinName, (SkinName == selected));
                 }
 
 
@@ -219,7 +239,6 @@ namespace Celeste.Mod.SkinModHelper
                 menu.Add(skinSelectMenu);
             }
         }
-
 
 
 

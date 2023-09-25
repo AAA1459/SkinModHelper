@@ -6,6 +6,13 @@ using System.Text.RegularExpressions;
 
 namespace Celeste.Mod.SkinModHelper {
     public class SkinModHelperConfig {
+
+        public SkinModHelperConfig() {
+        }
+        public SkinModHelperConfig(string skinName) {
+            SkinName = skinName;
+        }
+
         public string SkinName { get; set; }
         public bool Player_List { get; set; }
         public bool Silhouette_List { get; set; }
@@ -22,7 +29,7 @@ namespace Celeste.Mod.SkinModHelper {
         public string OtherSprite_ExPath { get; set; }
 
 
-
+        public string SkinDialogKey { get; set; }
         public string hashSeed { get; set; }
 
         public int hashValues;
@@ -38,6 +45,11 @@ namespace Celeste.Mod.SkinModHelper {
 
 
     public class HairConfig {
+        public HairConfig(List<HairColor> hairColors) {
+            HairColors = hairColors;
+        }
+
+
         public List<HairColor> HairColors { get; set; }
         public class HairColor {
             public int Dashes { get; set; }
@@ -65,6 +77,52 @@ namespace Celeste.Mod.SkinModHelper {
                     }
                 }
             }
+            // Fill upper dash range with the last customized dash color
+            for (int i = 3; i <= SkinModHelperModule.MAX_DASHES; i++) {
+                if (!changed[i]) {
+                    GeneratedHairColors[i] = GeneratedHairColors[i - 1];
+                }
+            }
+            return GeneratedHairColors;
+        }
+    }
+
+
+    public class SkinModHelperOldConfig {
+        public string SkinId { get; set; }
+        public string SkinDialogKey { get; set; }
+        public List<HairColor> HairColors { get; set; }
+
+        public class HairColor {
+            public int Dashes { get; set; }
+            public string Color { get; set; }
+        }
+
+        public List<Color> GeneratedHairColors { get; set; }
+
+        public static List<Color> BuildHairColors(SkinModHelperOldConfig config) {
+
+            List<bool> changed = new(new bool[SkinModHelperModule.MAX_DASHES + 1]);
+
+            // Default colors taken from vanilla
+            List<Color> GeneratedHairColors = new List<Color>(new Color[SkinModHelperModule.MAX_DASHES + 1]) {
+                [0] = Calc.HexToColor("44B7FF"),
+                [1] = Calc.HexToColor("AC3232"),
+                [2] = Calc.HexToColor("FF6DEF")
+            };
+
+            if (config.HairColors != null) {
+                foreach (HairColor hairColor in config.HairColors) {
+                    Regex hairColorRegex = new(@"^[a-fA-F0-9]{6}$");
+                    if (hairColor.Dashes >= 0 && hairColor.Dashes <= SkinModHelperModule.MAX_DASHES && hairColorRegex.IsMatch(hairColor.Color)) {
+                        GeneratedHairColors[hairColor.Dashes] = Calc.HexToColor(hairColor.Color);
+                        changed[hairColor.Dashes] = true;
+                    } else {
+                        Logger.Log(LogLevel.Warn, "SkinModHelper", $"Invalid hair color or dash count values provided for {config.SkinId}.");
+                    }
+                }
+            }
+
             // Fill upper dash range with the last customized dash color
             for (int i = 3; i <= SkinModHelperModule.MAX_DASHES; i++) {
                 if (!changed[i]) {

@@ -30,12 +30,6 @@
         <Reference Include="$(CelestePrefix)\Celeste.exe" />
         <Reference Include="$(CelestePrefix)\MMHOOK_Celeste.dll" />
         <Reference Include="$(CelestePrefix)\YamlDotNet.dll" />
-        <Reference Include="ExtendedVariantMode">
-          <HintPath>..\..\AbackupB\ExtendedVariantMode.dll</HintPath>
-        </Reference>
-        <Reference Include="JungleHelper">
-          <HintPath>..\..\AbackupB\JungleHelper.dll</HintPath>
-        </Reference>
         <Reference Include="Mono.Cecil">
           <HintPath>..\..\..\Mono.Cecil.dll</HintPath>
         </Reference>
@@ -47,9 +41,6 @@
         </Reference>
         <Reference Include="MonoMod.Utils">
           <HintPath>..\..\..\MonoMod.Utils.dll</HintPath>
-        </Reference>
-        <Reference Include="SaveFilePortraits">
-          <HintPath>..\..\AbackupB\SaveFilePortraits.dll</HintPath>
         </Reference>
     </ItemGroup>
 

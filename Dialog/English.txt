@@ -6,6 +6,7 @@ SkinModHelper_options_Backpack= Backpack
 SkinModHelper_options_BackpackMode_Default= Default
 SkinModHelper_options_BackpackMode_Off= Off
 SkinModHelper_options_BackpackMode_On= On
+SkinModHelper_options_BackpackMode_Invert= Invert
 
 SkinModHelper_Settings_PlayerSkin_Selected= Player Skin
 SkinModHelper_Settings_DefaultPlayer= Default
@@ -23,8 +24,8 @@ SkinModHelper_MORE_OPTIONS= More Options
 
 
 
-SkinModHelper_NewMenu_SkinFreeConfig= any Skin of Free collocations
-SkinModHelper_NewMenu_SkinFreeConfig_opened= Skin Free Collocations
+SkinModHelper_NewMenu_SkinFreeConfig= Detailed & Precisely - skin choose
+SkinModHelper_NewMenu_SkinFreeConfig_opened= Precisely skin choose
 
 SkinModHelper_SkinFreeConfig_OnOff= Enabled
 
@@ -32,17 +33,17 @@ SkinModHelper_NewSubMenu_SpritesXml= Sprites Skin
 SkinModHelper_NewSubMenu_PortraitsXml= Portraits Skin
 SkinModHelper_NewSubMenu_OtherExtra= Other Skin
 
-SkinModHelper_anyXmls_Original= Original
-SkinModHelper_anyXmls_Default= Default / Current skin
+SkinModHelper_anyXmls_Original= " Original "
+SkinModHelper_anyXmls_Default= " Default / Current "
+SkinModHelper_anyXmls_LockedToPlayer= " Locked to Player Skin "
+
 
 ##---annotation name of animation-set ID---
 
+SkinModHelper_Sprite__player= madeline
 SkinModHelper_Sprite__badeline= {+MENU_VARIANT_PLAYASBADELINE}
-SkinModHelper_Sprite__player_playback= Silhouette
+SkinModHelper_Sprite__player_playback= silhouette
 
-SkinModHelper_Sprite__cloudRemix= Small cloud
-SkinModHelper_Sprite__booster= Green bubble
-SkinModHelper_Sprite__boosterRed= Red bubble
 SkinModHelper_Sprite__glider= Jellyfish
 
 SkinModHelper_Portraits__portrait_badeline= {+MENU_VARIANT_PLAYASBADELINE}

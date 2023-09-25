@@ -6,7 +6,7 @@ namespace Celeste.Mod.SkinModHelper {
     [SettingName("SKIN_MOD_HELPER_SETTINGS_TITLE")]
     public class SkinModHelperSettings : EverestModuleSettings {
 
-        public enum BackpackMode { Default, Off, On }
+        public enum BackpackMode { Default, Invert, Off, On }
         private BackpackMode backpack = BackpackMode.Default;
 
         public BackpackMode Backpack {
