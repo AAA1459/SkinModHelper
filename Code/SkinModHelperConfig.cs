@@ -9,8 +9,10 @@ namespace Celeste.Mod.SkinModHelper {
 
         public SkinModHelperConfig() {
         }
-        public SkinModHelperConfig(string skinName) {
-            SkinName = skinName;
+        public SkinModHelperConfig(SkinModHelperOldConfig old_config) {
+            SkinName = old_config.SkinId;
+            SkinDialogKey = old_config.SkinDialogKey;
+            OtherSprite_ExPath = old_config.SkinId.Replace('_', '/') + '/';
         }
 
         public string SkinName { get; set; }
@@ -45,9 +47,6 @@ namespace Celeste.Mod.SkinModHelper {
 
 
     public class HairConfig {
-        public HairConfig(List<HairColor> hairColors) {
-            HairColors = hairColors;
-        }
 
 
         public List<HairColor> HairColors { get; set; }

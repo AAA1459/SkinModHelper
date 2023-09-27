@@ -511,9 +511,7 @@ namespace Celeste.Mod.SkinModHelper {
                             Logger.Log(LogLevel.Warn, "SkinModHelper", $"Duplicate or invalid skin mod ID {old_config.SkinId}, will not register.");
                             continue;
                         }
-                        SkinModHelperConfig config = new(old_config.SkinId);
-                        config.OtherSprite_ExPath = old_config.SkinId.Replace('_', '/') + '/';
-                        config.SkinDialogKey = old_config.SkinDialogKey;
+                        SkinModHelperConfig config = new(old_config);
 
                         if (config.SkinName == DEFAULT || config.SkinName == ORIGINAL || config.SkinName == LockedToPlayer ||
                             OtherskinConfigs.ContainsKey(config.SkinName) || skinConfigs.ContainsKey(config.SkinName)) {
