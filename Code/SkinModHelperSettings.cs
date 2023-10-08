@@ -58,5 +58,6 @@ namespace Celeste.Mod.SkinModHelper {
             }
             textMenu.Add(item);
         }
+        public string SelectedSkinMod = null;
     }
 }

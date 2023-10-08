@@ -6,13 +6,15 @@ using Celeste;
 using Celeste.Mod;
 using Celeste.Mod.UI;
 using System.Collections;
+using System.Reflection;
+using System.Threading;
 
 namespace Celeste.Mod.SkinModHelper
 {
     public class SkinModHelperUI
     {
         public enum NewMenuCategory {
-            SkinFreeConfig, None
+            SkinFreeConfig, None, SkinsExtended
         }
         public void CreateAllOptions(NewMenuCategory category, bool includeMasterSwitch, bool includeCategorySubmenus, bool includeRandomizer,
             Action submenuBackAction, TextMenu menu, bool inGame, bool forceEnabled) {
@@ -26,6 +28,9 @@ namespace Celeste.Mod.SkinModHelper
             }
             if (category == NewMenuCategory.SkinFreeConfig) {
                 Build_SkinFreeConfig_NewMenu(menu, inGame);
+            }
+            if (category == NewMenuCategory.SkinsExtended) {
+                Build_SkinsExtended_NewMenu(menu, inGame);
             }
         }
         private TextMenu.SubHeader buildHeading(TextMenu menu, string headingNameResource) {
@@ -52,7 +57,8 @@ namespace Celeste.Mod.SkinModHelper
             {
                 bool selected = config.SkinName == SkinModHelperModule.Settings.SelectedPlayerSkin;
                 string name = Dialog.Clean("SkinModHelper_Player__" + config.SkinName);
-                name = !string.IsNullOrEmpty(config.SkinDialogKey) ? config.SkinDialogKey : name;
+                name = !string.IsNullOrEmpty(config.SkinDialogKey) ? Dialog.Clean(config.SkinDialogKey) : name;
+
                 if (config.Player_List)
                 {
                     skinSelectMenu.Add(name, config.SkinName, selected);
@@ -65,8 +71,6 @@ namespace Celeste.Mod.SkinModHelper
             if (Disabled(inGame)) {
                 skinSelectMenu.Disabled = true;
             }
-
-
             menu.Add(skinSelectMenu);
         }
 
@@ -80,7 +84,7 @@ namespace Celeste.Mod.SkinModHelper
             {
                 bool selected = config.SkinName == SkinModHelperModule.Settings.SelectedSilhouetteSkin;
                 string name = Dialog.Clean("SkinModHelper_Player__" + config.SkinName);
-                name = !string.IsNullOrEmpty(config.SkinDialogKey) ? config.SkinDialogKey : name;
+                name = !string.IsNullOrEmpty(config.SkinDialogKey) ? Dialog.Clean(config.SkinDialogKey) : name;
                 if (config.Silhouette_List)
                 {
                     skinSelectMenu.Add(name, config.SkinName, selected);
@@ -109,7 +113,7 @@ namespace Celeste.Mod.SkinModHelper
                         Options_OnOff = SkinModHelperModule.Settings.ExtraXmlList[config.SkinName];
                     }
 
-                    Options_name = !string.IsNullOrEmpty(config.SkinDialogKey) ? config.SkinDialogKey : Options_name;
+                    Options_name = !string.IsNullOrEmpty(config.SkinDialogKey) ? Dialog.Clean(config.SkinDialogKey) : Options_name;
                     TextMenu.OnOff Options = new TextMenu.OnOff(Dialog.Clean(Options_name), Options_OnOff);
                     Options.Change(OnOff => SkinModHelperModule.UpdateExtraXml(config.SkinName, OnOff));
 
@@ -118,14 +122,23 @@ namespace Celeste.Mod.SkinModHelper
             });
         }
 
-
         public TextMenuExt.SubMenu BuildMoreOptionsMenu(TextMenu menu, bool inGame, bool includeCategorySubmenus, Action submenuBackAction) {
             return new TextMenuExt.SubMenu(Dialog.Clean("SkinModHelper_MORE_OPTIONS"), false).Apply(subMenu => {
 
-                //if (includeCategorySubmenus) {
-                    TextMenuButtonExt SpriteSubmenu;
-                    subMenu.Add(SpriteSubmenu = AbstractSubmenu.BuildOpenMenuButton<OuiCategorySubmenu>(menu, inGame, submenuBackAction, new object[] { NewMenuCategory.SkinFreeConfig }));
-                //}
+                TextMenuButtonExt SpriteSubmenu;
+                subMenu.Add(SpriteSubmenu = AbstractSubmenu.BuildOpenMenuButton<OuiCategorySubmenu>(menu, inGame, submenuBackAction, new object[] { NewMenuCategory.SkinFreeConfig }));
+
+                TextMenuButtonExt SkinsExtended = AbstractSubmenu.BuildOpenMenuButton<OuiCategorySubmenu>(menu, inGame, submenuBackAction, new object[] { NewMenuCategory.SkinsExtended });
+                menu.OnUpdate += () => {
+                    if (Input.MenuConfirm.Pressed) {
+                        SkinModHelperModule.Instance.SaveSettings();
+
+                        subMenu.Remove(SkinsExtended);
+                        if (DetectSkinExtended()) {
+                            subMenu.Add(SkinsExtended);
+                        }
+                    }
+                };
             });
         }
 
@@ -252,6 +265,35 @@ namespace Celeste.Mod.SkinModHelper
             }
             return false;
         }
+
+
+
+
+        public static Dictionary<string, MethodInfo> ExtendedOptions = new();
+        public void Build_SkinsExtended_NewMenu(TextMenu menu, bool inGame) {
+
+            //You can use be-like this code in your mod for put your options to this menu of skinmodhelper:
+            /*
+            MethodInfo GetMethod = typeof(SkinModHelperUI).GetMethod("Build_SkinFreeConfig_NewMenu", BindingFlags.Public | BindingFlags.Instance);
+            SkinModHelperUI.ExtendedOptions.Add("skinName", GetMethod);
+            */
+            foreach (string Skin in ExtendedOptions.Keys) {
+                if (SkinModHelperModule.Settings.SelectedPlayerSkin == Skin || SkinModHelperModule.Settings.SelectedSilhouetteSkin == Skin) {
+                    menu.Add(buildHeading(menu, Skin));
+                    ExtendedOptions[Skin].Invoke(this, new object[] { menu, inGame });
+                }
+            }
+        }
+        public bool DetectSkinExtended() {
+            foreach (string Skin in ExtendedOptions.Keys) {
+                if (SkinModHelperModule.Settings.SelectedPlayerSkin == Skin || SkinModHelperModule.Settings.SelectedSilhouetteSkin == Skin) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+
     }
 
     public class OuiSkinModHelperSubmenu : AbstractSubmenu {

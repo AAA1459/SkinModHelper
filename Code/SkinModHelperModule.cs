@@ -32,7 +32,7 @@ namespace Celeste.Mod.SkinModHelper {
 
         public override Type SettingsType => typeof(SkinModHelperSettings);
         public override Type SessionType => typeof(SkinModHelperSession);
-
+        
 
         public static SkinModHelperSettings Settings => (SkinModHelperSettings)Instance._Settings;
         public static SkinModHelperSession Session => (SkinModHelperSession)Instance._Session;
@@ -1523,14 +1523,15 @@ namespace Celeste.Mod.SkinModHelper {
             if (!OnOff) {
                 Settings.FreeCollocations_Sprites[SpriteID] = SkinId;
             }
+            var value = Settings.FreeCollocations_Sprites;
 
 
-            bool boolen = SkinId == DEFAULT || SkinId == LockedToPlayer || Settings.FreeCollocations_Sprites[SpriteID] == DEFAULT 
-                          || Settings.FreeCollocations_Sprites[SpriteID] == LockedToPlayer;
-            if (!Settings.FreeCollocations_OffOn || !Settings.FreeCollocations_Sprites.ContainsKey(SpriteID) || boolen) {
+            bool boolen = SkinId == DEFAULT || SkinId == LockedToPlayer
+                          || !value.ContainsKey(SpriteID) || value[SpriteID] == DEFAULT || value[SpriteID] == LockedToPlayer;
+            if (!Settings.FreeCollocations_OffOn || boolen) {
                 SpriteSkin_record[SpriteID] = getSkinDefaultValues(GFX.SpriteBank, SpriteID);
             } else {
-                SpriteSkin_record[SpriteID] = Settings.FreeCollocations_Sprites[SpriteID];
+                SpriteSkin_record[SpriteID] = value[SpriteID];
             }
         }
 
@@ -1538,24 +1539,29 @@ namespace Celeste.Mod.SkinModHelper {
             if (!OnOff) {
                 Settings.FreeCollocations_Portraits[SpriteID] = SkinId;
             }
+            var value = Settings.FreeCollocations_Portraits;
 
-            bool boolen = SkinId == DEFAULT || SkinId == LockedToPlayer || Settings.FreeCollocations_Portraits[SpriteID] == DEFAULT 
-                          || Settings.FreeCollocations_Portraits[SpriteID] == LockedToPlayer;
-            if (!Settings.FreeCollocations_OffOn || !Settings.FreeCollocations_Portraits.ContainsKey(SpriteID) || boolen) {
+
+            bool boolen = SkinId == DEFAULT || SkinId == LockedToPlayer 
+                          || !value.ContainsKey(SpriteID) || value[SpriteID] == DEFAULT || value[SpriteID] == LockedToPlayer;
+            if (!Settings.FreeCollocations_OffOn || boolen) {
                 PortraitsSkin_record[SpriteID] = getSkinDefaultValues(GFX.PortraitsSpriteBank, SpriteID);
             } else {
-                PortraitsSkin_record[SpriteID] = Settings.FreeCollocations_Portraits[SpriteID];
+                PortraitsSkin_record[SpriteID] = value[SpriteID];
             }
         }
         public static void Update_FreeCollocations_OtherExtra(string SpriteID, string SkinId, bool inGame, bool OnOff = false) {
             if (!OnOff) {
                 Settings.FreeCollocations_OtherExtra[SpriteID] = SkinId;
             }
+            var value = Settings.FreeCollocations_OtherExtra;
 
-            if (!Settings.FreeCollocations_OffOn || SkinId == DEFAULT || !Settings.FreeCollocations_OtherExtra.ContainsKey(SpriteID) || Settings.FreeCollocations_OtherExtra[SpriteID] == DEFAULT) {
+
+            bool boolen = SkinId == DEFAULT || !value.ContainsKey(SpriteID) || value[SpriteID] == DEFAULT;
+            if (!Settings.FreeCollocations_OffOn || boolen) {
                 OtherSkin_record[SpriteID] = DEFAULT;
             } else {
-                OtherSkin_record[SpriteID] = Settings.FreeCollocations_OtherExtra[SpriteID];
+                OtherSkin_record[SpriteID] = value[SpriteID];
             }
         }
 
@@ -1571,8 +1577,10 @@ namespace Celeste.Mod.SkinModHelper {
             if (selfBank.Has(SpriteID + $"{Player_Skinid_verify}")) {
                 return $"{Player_Skinid_verify}";
             }
-            if ((selfBank == GFX.SpriteBank && Settings.FreeCollocations_Sprites[SpriteID] == LockedToPlayer) ||
-                (selfBank == GFX.PortraitsSpriteBank && Settings.FreeCollocations_Portraits[SpriteID] == LockedToPlayer)) { return null; }
+
+            if ((selfBank == GFX.SpriteBank && Settings.FreeCollocations_Sprites.ContainsKey(SpriteID) && Settings.FreeCollocations_Sprites[SpriteID] == LockedToPlayer)
+                || (selfBank == GFX.PortraitsSpriteBank && Settings.FreeCollocations_Portraits.ContainsKey(SpriteID) && Settings.FreeCollocations_Portraits[SpriteID] == LockedToPlayer)) 
+                { return null; }
 
             string SkinID = null;
             foreach (SkinModHelperConfig config in OtherskinConfigs.Values) {
@@ -1591,7 +1599,8 @@ namespace Celeste.Mod.SkinModHelper {
         public static string getOtherSkin_ReskinPath(Atlas atlas, string origPath, string SpriteID, string SkinId, bool number_search = false) {
             string number = "";
             string CustomPath = null;
-            bool Default = !Settings.FreeCollocations_OffOn || SkinId == DEFAULT || !OtherSkin_record.ContainsKey(SpriteID) || OtherSkin_record[SpriteID] == DEFAULT;
+            bool Default = !Settings.FreeCollocations_OffOn || SkinId == DEFAULT || SkinId == LockedToPlayer 
+                           || !OtherSkin_record.ContainsKey(SpriteID) || OtherSkin_record[SpriteID] == DEFAULT || OtherSkin_record[SpriteID] == LockedToPlayer;
             if (Default) {
                 foreach (SkinModHelperConfig config in skinConfigs.Values) {
                     if (Player_Skinid_verify == config.hashValues) {
@@ -1610,7 +1619,7 @@ namespace Celeste.Mod.SkinModHelper {
                     }
                 }
             }
-            if (SkinId == LockedToPlayer || OtherSkin_record[SpriteID] == LockedToPlayer) { return origPath; }
+            if (SkinId == LockedToPlayer || (OtherSkin_record.ContainsKey(SpriteID) && OtherSkin_record[SpriteID] == LockedToPlayer)) { return origPath; }
 
             CustomPath = null;
             foreach (SkinModHelperConfig config in OtherskinConfigs.Values) {
