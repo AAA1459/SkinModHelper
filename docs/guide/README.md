@@ -23,7 +23,8 @@ Each of the fields will be explained below.
   
   OtherSprite_Path: [a path]
   
-  # ---non-Player skin---
+  # ---General skin---
+  General_List: [true/false]
   OtherSprite_ExPath: [a path]
 ```
 
@@ -70,7 +71,7 @@ Below we will introduce a method to let SkinModHelper reskin them with the same 
   OtherSprite_Path: [Root directory path of non-default Sprites.xml]    # Path's starting point is "Graphics/".
 ```
 
-If your skin type is "non-Player Skin", you just want to simply reskin some IDs. Then use this:
+If your skin type is "General Skin", you just want to simply reskin some IDs. Then use this:
 ```
   OtherSprite_ExPath: [same as OtherSprite_Path]
 ```
@@ -83,8 +84,11 @@ If your skin type is "Player Skin", Then We need to use some more content to let
   Player_List: true    # Affects the "Player Skin" option
   Silhouette_List: true    # Affects the "Silhouette Skin" option
 ```
-If your skin type is "non-Player Skin", Then when you set "[OtherSprite_ExPath]" after, them will appear in "General Skin" list
-
+If your skin type is "General Skin", Then when you set "[OtherSprite_ExPath]" after, them will appear in "General Skin" list.
+Or use this to prevent it get there:
+```
+  General_List: false
+```
 
 hashSeed
 -----------------------------------

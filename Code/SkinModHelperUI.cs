@@ -56,8 +56,8 @@ namespace Celeste.Mod.SkinModHelper
             foreach (SkinModHelperConfig config in SkinModHelperModule.skinConfigs.Values)
             {
                 bool selected = config.SkinName == SkinModHelperModule.Settings.SelectedPlayerSkin;
-                string name = Dialog.Clean("SkinModHelper_Player__" + config.SkinName);
-                name = !string.IsNullOrEmpty(config.SkinDialogKey) ? Dialog.Clean(config.SkinDialogKey) : name;
+                string name = "SkinModHelper_Player__" + config.SkinName;
+                name = Dialog.Clean(!string.IsNullOrEmpty(config.SkinDialogKey) ? config.SkinDialogKey : name);
 
                 if (config.Player_List)
                 {
@@ -83,8 +83,8 @@ namespace Celeste.Mod.SkinModHelper
             foreach (SkinModHelperConfig config in SkinModHelperModule.skinConfigs.Values)
             {
                 bool selected = config.SkinName == SkinModHelperModule.Settings.SelectedSilhouetteSkin;
-                string name = Dialog.Clean("SkinModHelper_Player__" + config.SkinName);
-                name = !string.IsNullOrEmpty(config.SkinDialogKey) ? Dialog.Clean(config.SkinDialogKey) : name;
+                string name = "SkinModHelper_Player__" + config.SkinName;
+                name = Dialog.Clean(!string.IsNullOrEmpty(config.SkinDialogKey) ? config.SkinDialogKey : name);
                 if (config.Silhouette_List)
                 {
                     skinSelectMenu.Add(name, config.SkinName, selected);
@@ -113,11 +113,13 @@ namespace Celeste.Mod.SkinModHelper
                         Options_OnOff = SkinModHelperModule.Settings.ExtraXmlList[config.SkinName];
                     }
 
-                    Options_name = !string.IsNullOrEmpty(config.SkinDialogKey) ? Dialog.Clean(config.SkinDialogKey) : Options_name;
-                    TextMenu.OnOff Options = new TextMenu.OnOff(Dialog.Clean(Options_name), Options_OnOff);
-                    Options.Change(OnOff => SkinModHelperModule.UpdateExtraXml(config.SkinName, OnOff));
+                    if (config.General_List != false) {
+                        Options_name = !string.IsNullOrEmpty(config.SkinDialogKey) ? config.SkinDialogKey : Options_name;
+                        TextMenu.OnOff Options = new TextMenu.OnOff(Dialog.Clean(Options_name), Options_OnOff);
+                        Options.Change(OnOff => SkinModHelperModule.UpdateExtraXml(config.SkinName, OnOff));
 
-                    subMenu.Add(Options);
+                        subMenu.Add(Options);
+                    }
                 }
             });
         }
