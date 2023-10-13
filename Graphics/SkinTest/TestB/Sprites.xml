@@ -1,10 +1,30 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Sprites>
 
-  <cloud path="SkinTest/TestB/clouds/" start="idle">
+  <flyFeather path="SkinTest/TestB/flyFeather/" start="loop">
     <Justify x="0.5" y="0.5"/>
-    <Loop id="idle" path="cloud" delay="0.08" frames="0"/>
-  </cloud>
+    <Anim id="loop" path="idle" delay="0.06" frames="0-20" goto="flash"/>
+    <Anim id="flash" path="flash" delay="0.06"  frames="0-20" goto="loop"/>
+  </flyFeather>
+  
+  <booster path="SkinTest/TestB/booster/" start="loop">
+    <Justify x="0.5" y="0.5"/>
+    <Loop id="loop" path="booster" delay="0.1" frames="0-4"/>
+    <Loop id="inside" path="booster" delay="0.1" frames="5-8"/>
+    <Loop id="spin" path="booster" delay="0.06" frames="18-25"/>
+    <Anim id="pop" path="booster" delay="0.08" frames="9-17"/>
+  </booster>
+  
+  <boosterRed path="SkinTest/TestB/boosterRed/" start="loop">
+    <Justify x="0.5" y="0.5"/>
+    <Anim id="appear" path="boosterRed" delay="0.08" frames="26-34" goto="loop"/>
+    <Loop id="loop" path="boosterRed" delay="0.1" frames="0-4"/>
+    <Loop id="inside" path="boosterRed" delay="0.1" frames="5-8"/>
+    <Loop id="spin" path="boosterRed" delay="0.06" frames="18-25"/>
+    <Anim id="pop" path="boosterRed" delay="0.08" frames="9-17"/>
+  </boosterRed>
+  
+
 </Sprites>
 
 
