@@ -1,6 +1,4 @@
 
-#SkinModHelper_mod_name=Skin Mod Helper
-
 SkinModHelper_options_Backpack= Backpack
 
 SkinModHelper_options_BackpackMode_Default= Default
@@ -48,10 +46,10 @@ SkinModHelper_Sprite__glider= Jellyfish
 
 SkinModHelper_Portraits__portrait_badeline= {+MENU_VARIANT_PLAYASBADELINE}
 
-SkinModHelper_Other__death_particle= Vanilla - death particle
-SkinModHelper_Other__dreamblock_particles= DreamBlock - particles animation
-SkinModHelper_Other__feather_particles= flyFeather - particles texture
-SkinModHelper_Other__feather_outline= flyFeather - outline
+SkinModHelper_Other__death_particle= Vanilla  -  death particle
+SkinModHelper_Other__dreamblock_particles= DreamBlock  -  particles animation
+SkinModHelper_Other__feather_particles= flyFeather  -  particles texture
+SkinModHelper_Other__Mountain_marker= Mountain  -  climber mark
 
 ##---
 

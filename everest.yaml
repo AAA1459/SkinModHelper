@@ -1,19 +1,11 @@
 - Name: SkinModHelper
-  Version: 0.7.2
+  Version: 0.7.3
   DLL: Code/bin/SkinModHelper.dll
-
   Dependencies:
-
     - Name: Everest
-
       Version: 1.2742.0
-
   OptionalDependencies:
-
     - Name: JungleHelper
-
       Version: 1.0.8
-
     - Name: SaveFilePortraits
-
       Version: 1.0.0

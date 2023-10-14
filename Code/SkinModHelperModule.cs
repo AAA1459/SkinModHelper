@@ -941,15 +941,20 @@ namespace Celeste.Mod.SkinModHelper {
         // ---Other Sprite---
         private static List<MTexture> GetAtlasSubtexturesHook(On.Monocle.Atlas.orig_GetAtlasSubtextures orig, Atlas self, string path) {
 
-            string new_path = null;
+            string SpriteID = null;
+            string SpritePath = null;
             bool number_search = false;
+
             if (path == "marker/runNoBackpack" || path == "marker/Fall" || path == "marker/runBackpack") {
-                new_path = path;
+                SpritePath = path;
+                SpriteID = "Mountain_marker";
                 number_search = true;
             }
+            
 
-            if (new_path != null) {
-                path = GetReskinPath(self, new_path, true, false, Player_Skinid_verify, number_search);
+            if (SpriteID != null && OtherSkins_records.ContainsKey(SpriteID)) {
+                Update_FreeCollocations_OtherExtra(SpriteID, null, true, true);
+                path = getOtherSkin_ReskinPath(self, SpritePath, SpriteID, OtherSkin_record[SpriteID], number_search);
             }
             return orig(self, path);
         }
@@ -1063,7 +1068,6 @@ namespace Celeste.Mod.SkinModHelper {
                     Player_Skinid_verify = skinConfigs[$"{Settings.SelectedPlayerSkin}_NB"].hashValues;
                 }
             }
-
             Xmls_refresh = null;
             SpecificSprite_LoopReload();
             orig(self);
@@ -1339,7 +1343,7 @@ namespace Celeste.Mod.SkinModHelper {
                 }
             }
         }
-
+        public static Dictionary<string, string> OtherSkin_list = new Dictionary<string, string>();
         private void RecordSpriteBanks_Start() {
             SpriteSkins_records.Clear();
             PortraitsSkins_records.Clear();
@@ -1363,6 +1367,9 @@ namespace Celeste.Mod.SkinModHelper {
                     if (GFX.Game.Has(config.OtherSprite_Path + "/particles/feather")) {
                         RecordSpriteBanks(null, DEFAULT, null, "feather_particles");
                     }
+                    if (MTN.Mountain.Has(config.OtherSprite_Path + "/marker/runBackpack00000")) {
+                        RecordSpriteBanks(null, DEFAULT, null, "Mountain_marker");
+                    }
                 }
             }
 
@@ -1383,6 +1390,9 @@ namespace Celeste.Mod.SkinModHelper {
                     }
                     if (GFX.Game.Has(config.OtherSprite_ExPath + "/particles/feather")) {
                         RecordSpriteBanks(null, config.SkinName, null, "feather_particles");
+                    }
+                    if (MTN.Mountain.Has(config.OtherSprite_ExPath + "/marker/runBackpack00000")) {
+                        RecordSpriteBanks(null, config.SkinName, null, "Mountain_marker");
                     }
                 }
             }
