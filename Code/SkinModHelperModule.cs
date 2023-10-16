@@ -138,18 +138,9 @@ namespace Celeste.Mod.SkinModHelper {
                 Assembly assembly = Everest.Modules.Where(m => m.Metadata?.Name == "JungleHelper").First().GetType().Assembly;
                 Type EnforceSkinController = assembly.GetType("Celeste.Mod.JungleHelper.Entities.EnforceSkinController");
 
-                doneHooks.Add(new Hook(EnforceSkinController.GetMethod("ChangePlayerSpriteMode", BindingFlags.Public | BindingFlags.Static),
-                                       typeof(SkinModHelperModule).GetMethod("ChangePlayerSpriteMode", BindingFlags.Public | BindingFlags.Static)));
-
                 doneHooks.Add(new Hook(EnforceSkinController.GetMethod("HasLantern", BindingFlags.Public | BindingFlags.Static),
                                        typeof(SkinModHelperModule).GetMethod("HasLantern", BindingFlags.Public | BindingFlags.Static)));
-
-                doneHooks.Add(new Hook(EnforceSkinController.GetMethod("Initialize", BindingFlags.Public | BindingFlags.Static),
-                                    typeof(SkinModHelperModule).GetMethod("JungleHookBlock", BindingFlags.Public | BindingFlags.Static)));
             }
-        }
-        public static void JungleHookBlock() {
-            return;
         }
 
 
@@ -286,11 +277,14 @@ namespace Celeste.Mod.SkinModHelper {
 
             string hash_object = null;
             if (!isGhost && (mode == PlayerSpriteMode.Madeline || mode == PlayerSpriteMode.MadelineNoBackpack || mode == PlayerSpriteMode.MadelineAsBadeline)) {
-
                 hash_object = Session.SessionPlayerSkin == null ? Settings.SelectedPlayerSkin : Session.SessionPlayerSkin;
-            } else if (!isGhost && mode == PlayerSpriteMode.Playback) {
 
+            } else if (!isGhost && mode == PlayerSpriteMode.Playback) {
                 hash_object = Session.SessionSilhouetteSkin == null ? Settings.SelectedSilhouetteSkin : Session.SessionSilhouetteSkin;
+
+            } else if (!isGhost && (mode == (PlayerSpriteMode)444482 || mode == (PlayerSpriteMode)444483)) {
+                hash_object = (Session.SessionPlayerSkin == null ? Settings.SelectedPlayerSkin : Session.SessionPlayerSkin) + "_lantern";
+
             } else if (isGhost) {
                 selfData["isGhost"] = true;
             }
@@ -1778,42 +1772,6 @@ namespace Celeste.Mod.SkinModHelper {
                 }
             }
             return false;
-        }
-
-
-        public static void ChangePlayerSpriteMode(Player player, bool hasLantern) {
-            PlayerSpriteMode mode;
-
-            if (hasLantern) {
-                mode = SaveData.Instance.Assists.PlayAsBadeline ? (PlayerSpriteMode)444483 : (PlayerSpriteMode)444482;
-
-                string hash_object = $"{(Session.SessionPlayerSkin == null ? Settings.SelectedPlayerSkin : Session.SessionPlayerSkin)}_lantern";
-
-                if (skinConfigs.ContainsKey(hash_object)) {
-
-                    if (!skinConfigs[hash_object].JungleLanternMode) {
-                        Logger.Log(LogLevel.Warn, "SkinModHelper", $"{hash_object} unset JungleLanternMode to true, will cancel this jungle-jump");
-                    } else {
-                        if (!backpackOn && skinConfigs.ContainsKey($"{hash_object}_NB")) {
-                            if (!skinConfigs[$"{hash_object}_NB"].JungleLanternMode) {
-                                Logger.Log(LogLevel.Warn, "SkinModHelper", $"{$"{hash_object}_NB"} unset JungleLanternMode to true, will jungle-jump to {hash_object}");
-                            } else {
-                                hash_object = $"{hash_object}_NB";
-                            }
-                        }
-                        Player_Skinid_verify = skinConfigs[hash_object].hashValues;
-                        mode = (PlayerSpriteMode)skinConfigs[hash_object].hashValues;
-                    }
-                }
-            } else {
-                mode = SaveData.Instance.Assists.PlayAsBadeline ? PlayerSpriteMode.MadelineAsBadeline : player.DefaultSpriteMode;
-            }
-
-            if (player.Active) {
-                player.ResetSpriteNextFrame(mode);
-            } else {
-                player.ResetSprite(mode);
-            }
         }
     }
 }
