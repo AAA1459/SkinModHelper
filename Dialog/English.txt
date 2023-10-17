@@ -50,7 +50,6 @@ SkinModHelper_Other__death_particle= Particles when player dies
 SkinModHelper_Other__dreamblock_particles= Particles inside DreamBlock
 SkinModHelper_Other__feather_particles= Particles when get flyFeather
 SkinModHelper_Other__Mountain_marker= Mountain climber mark
-
 ##---
 
 

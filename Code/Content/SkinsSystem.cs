@@ -262,18 +262,10 @@ namespace Celeste.Mod.SkinModHelper {
                     RecordSpriteBanks(GFX.SpriteBank, DEFAULT, spritesXmlPath);
                     RecordSpriteBanks(GFX.PortraitsSpriteBank, DEFAULT, portraitsXmlPath);
 
-                    if (GFX.Game.Has(config.OtherSprite_Path + "/death_particle")) {
-                        RecordSpriteBanks(null, DEFAULT, null, "death_particle");
-                    }
-                    if (GFX.Game.Has(config.OtherSprite_Path + "/objects/dreamblock/particles")) {
-                        RecordSpriteBanks(null, DEFAULT, null, "dreamblock_particles");
-                    }
-                    if (GFX.Game.Has(config.OtherSprite_Path + "/particles/feather")) {
-                        RecordSpriteBanks(null, DEFAULT, null, "feather_particles");
-                    }
-                    if (MTN.Mountain.Has(config.OtherSprite_Path + "/marker/runBackpack00000")) {
-                        RecordSpriteBanks(null, DEFAULT, null, "Mountain_marker");
-                    }
+                    RecordOtherSprite(GFX.Game, $"{config.OtherSprite_Path}/death_particle", "death_particle", DEFAULT);
+                    RecordOtherSprite(GFX.Game, $"{config.OtherSprite_Path}/objects/dreamblock/particles", "dreamblock_particles", DEFAULT);
+                    RecordOtherSprite(GFX.Game, $"{config.OtherSprite_Path}/particles/feather", "feather_particles", DEFAULT);
+                    RecordOtherSprite(MTN.Mountain, $"{config.OtherSprite_Path}/marker/runBackpack00000", "Mountain_marker", DEFAULT);
                 }
             }
 
@@ -286,21 +278,19 @@ namespace Celeste.Mod.SkinModHelper {
                     RecordSpriteBanks(GFX.SpriteBank, config.SkinName, spritesXmlPath);
                     RecordSpriteBanks(GFX.PortraitsSpriteBank, config.SkinName, portraitsXmlPath);
 
-                    if (GFX.Game.Has(config.OtherSprite_ExPath + "/death_particle")) {
-                        RecordSpriteBanks(null, config.SkinName, null, "death_particle");
-                    }
-                    if (GFX.Game.Has(config.OtherSprite_ExPath + "/objects/dreamblock/particles")) {
-                        RecordSpriteBanks(null, config.SkinName, null, "dreamblock_particles");
-                    }
-                    if (GFX.Game.Has(config.OtherSprite_ExPath + "/particles/feather")) {
-                        RecordSpriteBanks(null, config.SkinName, null, "feather_particles");
-                    }
-                    if (MTN.Mountain.Has(config.OtherSprite_ExPath + "/marker/runBackpack00000")) {
-                        RecordSpriteBanks(null, config.SkinName, null, "Mountain_marker");
-                    }
+                    RecordOtherSprite(GFX.Game, $"{config.OtherSprite_ExPath}/death_particle", "death_particle", config.SkinName);
+                    RecordOtherSprite(GFX.Game, $"{config.OtherSprite_ExPath}/objects/dreamblock/particles", "dreamblock_particles", config.SkinName);
+                    RecordOtherSprite(GFX.Game, $"{config.OtherSprite_ExPath}/particles/feather", "feather_particles", config.SkinName);
+                    RecordOtherSprite(MTN.Mountain, $"{config.OtherSprite_ExPath}/marker/runBackpack00000", "Mountain_marker", config.SkinName);
                 }
             }
         }
+        public static void RecordOtherSprite(Atlas atlas, string spritePath, string otherSkin, string skinId) {
+            if (atlas.Has(spritePath)) {
+                RecordSpriteBanks(null, skinId, null, otherSkin);
+            }
+        }
+
         private static void RecordSpriteBanks(SpriteBank origBank, string skinId, string xmlPath, string otherSkin = null) {
             if (otherSkin == null) {
                 SpriteBank newBank = BuildBank(origBank, skinId, xmlPath);
@@ -555,7 +545,7 @@ namespace Celeste.Mod.SkinModHelper {
             return "";
         }
         public static string getOtherSkin_ReskinPath(Atlas atlas, string origPath, string SpriteID, string SkinId, bool number_search = false) {
-            string number = "";
+            string get_number = "";
             string CustomPath = null;
             bool Default = !Settings.FreeCollocations_OffOn || SkinId == DEFAULT || SkinId == LockedToPlayer
                            || !OtherSkin_record.ContainsKey(SpriteID) || OtherSkin_record[SpriteID] == DEFAULT || OtherSkin_record[SpriteID] == LockedToPlayer;
@@ -567,10 +557,10 @@ namespace Celeste.Mod.SkinModHelper {
                         }
 
                         if (CustomPath != null) {
-                            while (number_search && number != "00000" && !atlas.Has(CustomPath + number)) {
-                                number = number + "0";
+                            while (number_search && get_number != "00000" && !atlas.Has(CustomPath + get_number)) {
+                                get_number = get_number + "0";
                             }
-                            if (atlas.Has(CustomPath + number)) {
+                            if (atlas.Has(CustomPath + get_number)) {
                                 return CustomPath;
                             }
                         }
@@ -585,17 +575,18 @@ namespace Celeste.Mod.SkinModHelper {
                     if (SkinId == config.SkinName ||
                        (Default && Settings.ExtraXmlList.ContainsKey(config.SkinName) && Settings.ExtraXmlList[config.SkinName])) {
 
-                        number = "";
+                        string number = "";
                         while (number_search && number != "00000" && !atlas.Has($"{config.OtherSprite_ExPath}/{origPath}{number}")) {
                             number = number + "0";
                         }
                         if (atlas.Has($"{config.OtherSprite_ExPath}/{origPath}{number}")) {
+                            get_number = number;
                             CustomPath = $"{config.OtherSprite_ExPath}/{origPath}";
                         }
                     }
                 }
             }
-            return atlas.Has(CustomPath + number) ? CustomPath : origPath;
+            return atlas.Has(CustomPath + get_number) ? CustomPath : origPath;
         }
     }
 }

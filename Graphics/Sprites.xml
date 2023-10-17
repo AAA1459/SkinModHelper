@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<Sprites>
+  <!-- this Sprites.xml used as Vanilla patchs -->
+  <refill path="objects/refill/" start="idle">
+    <Justify x="0.5" y="0.5"/>
+    <Loop id="idle" path="idle" delay="0.1"/>
+	<Anim id="flash" path="flash" delay="0.05"/>
+  </refill>
+  
+  <refillTwo path="objects/refillTwo/" copy="refill"/>
+	
+	
+</Sprites>

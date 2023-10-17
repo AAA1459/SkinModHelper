@@ -24,25 +24,29 @@ namespace Celeste.Mod.SkinModHelper {
         public static void Load() {
             On.Celeste.Lookout.Interact += on_Lookout_Interact;
 
-            IL.Celeste.Booster.Added += Celeste_BoosterILHook;
-            IL.Celeste.FlyFeather.ctor_Vector2_bool_bool += Celeste_flyFeatherILHook;
-            On.Celeste.Cloud.Added += Celeste_CloudHook;
+            IL.Celeste.Booster.Added += Celeste_Booster_ILHook;
+            IL.Celeste.FlyFeather.ctor_Vector2_bool_bool += Celeste_flyFeather_ILHook;
+            On.Celeste.Cloud.Added += Celeste_Cloud_Hook;
 
-            IL.Celeste.DreamBlock.ctor_Vector2_float_float_Nullable1_bool_bool_bool += Celeste_DreamBlockHook;
+            IL.Celeste.DreamBlock.ctor_Vector2_float_float_Nullable1_bool_bool_bool += Celeste_DreamBlock_ILHook;
+
+            On.Celeste.Refill.Added += Celeste_Refill_Hook;
         }
 
         public static void Unload() {
             On.Celeste.Lookout.Interact -= on_Lookout_Interact;
 
-            IL.Celeste.Booster.Added -= Celeste_BoosterILHook;
-            IL.Celeste.FlyFeather.ctor_Vector2_bool_bool -= Celeste_flyFeatherILHook;
-            On.Celeste.Cloud.Added += Celeste_CloudHook;
+            IL.Celeste.Booster.Added -= Celeste_Booster_ILHook;
+            IL.Celeste.FlyFeather.ctor_Vector2_bool_bool -= Celeste_flyFeather_ILHook;
+            On.Celeste.Cloud.Added += Celeste_Cloud_Hook;
 
-            IL.Celeste.DreamBlock.ctor_Vector2_float_float_Nullable1_bool_bool_bool -= Celeste_DreamBlockHook;
+            IL.Celeste.DreamBlock.ctor_Vector2_float_float_Nullable1_bool_bool_bool -= Celeste_DreamBlock_ILHook;
+
+            On.Celeste.Refill.Added += Celeste_Refill_Hook;
         }
 
 
-        //-----------------------------objects-----------------------------
+        //-----------------------------Lookout-----------------------------
         public static void on_Lookout_Interact(On.Celeste.Lookout.orig_Interact orig, Lookout self, Player player) {
             orig(self, player);
             if (Player_Skinid_verify != 0) {
@@ -54,7 +58,8 @@ namespace Celeste.Mod.SkinModHelper {
             return;
         }
 
-        public static void Celeste_flyFeatherILHook(ILContext il) {
+        //-----------------------------flyFeather-----------------------------
+        public static void Celeste_flyFeather_ILHook(ILContext il) {
             ILCursor cursor = new(il);
 
             while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdstr("objects/flyFeather/outline"))) {
@@ -65,7 +70,8 @@ namespace Celeste.Mod.SkinModHelper {
                 });
             }
         }
-        public static void Celeste_CloudHook(On.Celeste.Cloud.orig_Added orig, Cloud self, Scene scene) {
+        //-----------------------------Cloud-----------------------------
+        public static void Celeste_Cloud_Hook(On.Celeste.Cloud.orig_Added orig, Cloud self, Scene scene) {
             orig(self, scene);
             Sprite sprite = new DynData<Cloud>(self)["sprite"] as Sprite;
 
@@ -79,8 +85,8 @@ namespace Celeste.Mod.SkinModHelper {
                 new DynData<Cloud>(self)["particleType"] = particleType;
             }
         }
-
-        public static void Celeste_BoosterILHook(ILContext il) {
+        //-----------------------------Booster-----------------------------
+        public static void Celeste_Booster_ILHook(ILContext il) {
             ILCursor cursor = new(il);
 
             while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdstr("objects/booster/outline"))) {
@@ -115,7 +121,8 @@ namespace Celeste.Mod.SkinModHelper {
                 });
             }
         }
-        public static void Celeste_DreamBlockHook(ILContext il) {
+        //-----------------------------DreamBlock-----------------------------
+        public static void Celeste_DreamBlock_ILHook(ILContext il) {
             ILCursor cursor = new(il);
 
             while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdstr("objects/dreamblock/particles"))) {
@@ -130,5 +137,32 @@ namespace Celeste.Mod.SkinModHelper {
                 });
             }
         }
+        //-----------------------------Refill-----------------------------
+        private static void Celeste_Refill_Hook(On.Celeste.Refill.orig_Added orig, Refill self, Scene scene) {
+            orig(self, scene);
+            DynData<Refill> selfData = new DynData<Refill>(self);
+
+            string SpriteID = null;
+
+            // Filter out the refill of helpers
+            if (self.GetType().FullName == "Celeste.Refill") {
+                SpriteID = (bool)selfData["twoDashes"] ? "refillTwo" : "refill";
+            }
+
+            if (SpriteID != null) {
+                Sprite sprite = selfData["sprite"] as Sprite;
+                sprite = GFX.SpriteBank.CreateOn(sprite, SpriteID);
+
+                Sprite flash = selfData["flash"] as Sprite;
+                flash = GFX.SpriteBank.CreateOn(flash, SpriteID);
+
+                string SpritePath = getAnimationRootPath(sprite) + "outline";
+                if (GFX.Game.Has(SpritePath)) {
+                    Image outline = selfData["outline"] as Image;
+                    outline = new Image(GFX.Game[SpritePath]);
+                }
+            }
+        }
+
     }
 }
