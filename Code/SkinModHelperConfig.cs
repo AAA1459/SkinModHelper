@@ -4,6 +4,9 @@ using Monocle;
 using YamlDotNet.Serialization;
 using System.Text.RegularExpressions;
 
+using static Celeste.Mod.SkinModHelper.SkinsSystem;
+using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
+
 namespace Celeste.Mod.SkinModHelper {
     public class SkinModHelperConfig {
 
@@ -57,10 +60,10 @@ namespace Celeste.Mod.SkinModHelper {
 
         public static List<Color> BuildHairColors(HairConfig build_object, CharacterConfig ModeConfig = null) {
 
-            List<bool> changed = new(new bool[SkinModHelperModule.MAX_DASHES + 1]);
+            List<bool> changed = new(new bool[MAX_DASHES + 1]);
 
             // Default colors taken from vanilla
-            List<Color> GeneratedHairColors = new List<Color>(new Color[SkinModHelperModule.MAX_DASHES + 1]) {
+            List<Color> GeneratedHairColors = new List<Color>(new Color[MAX_DASHES + 1]) {
                 [0] = Calc.HexToColor("44B7FF"),
                 [1] = ModeConfig != null && ModeConfig.BadelineMode == true ? Calc.HexToColor("9B3FB5") : Calc.HexToColor("AC3232"),
                 [2] = Calc.HexToColor("FF6DEF")
@@ -70,14 +73,14 @@ namespace Celeste.Mod.SkinModHelper {
                 foreach (HairColor hairColor in build_object.HairColors) {
 
                     Regex hairColorRegex = new(@"^[a-fA-F0-9]{6}$");
-                    if (hairColor.Dashes >= 0 && hairColor.Dashes <= SkinModHelperModule.MAX_DASHES && hairColorRegex.IsMatch(hairColor.Color)) {
+                    if (hairColor.Dashes >= 0 && hairColor.Dashes <= MAX_DASHES && hairColorRegex.IsMatch(hairColor.Color)) {
                         GeneratedHairColors[hairColor.Dashes] = Calc.HexToColor(hairColor.Color);
                         changed[hairColor.Dashes] = true;
                     }
                 }
             }
             // Fill upper dash range with the last customized dash color
-            for (int i = 3; i <= SkinModHelperModule.MAX_DASHES; i++) {
+            for (int i = 3; i <= MAX_DASHES; i++) {
                 if (!changed[i]) {
                     GeneratedHairColors[i] = GeneratedHairColors[i - 1];
                 }
@@ -101,10 +104,10 @@ namespace Celeste.Mod.SkinModHelper {
 
         public static List<Color> BuildHairColors(SkinModHelperOldConfig config) {
 
-            List<bool> changed = new(new bool[SkinModHelperModule.MAX_DASHES + 1]);
+            List<bool> changed = new(new bool[MAX_DASHES + 1]);
 
             // Default colors taken from vanilla
-            List<Color> GeneratedHairColors = new List<Color>(new Color[SkinModHelperModule.MAX_DASHES + 1]) {
+            List<Color> GeneratedHairColors = new List<Color>(new Color[MAX_DASHES + 1]) {
                 [0] = Calc.HexToColor("44B7FF"),
                 [1] = Calc.HexToColor("AC3232"),
                 [2] = Calc.HexToColor("FF6DEF")
@@ -113,7 +116,7 @@ namespace Celeste.Mod.SkinModHelper {
             if (config.HairColors != null) {
                 foreach (HairColor hairColor in config.HairColors) {
                     Regex hairColorRegex = new(@"^[a-fA-F0-9]{6}$");
-                    if (hairColor.Dashes >= 0 && hairColor.Dashes <= SkinModHelperModule.MAX_DASHES && hairColorRegex.IsMatch(hairColor.Color)) {
+                    if (hairColor.Dashes >= 0 && hairColor.Dashes <= MAX_DASHES && hairColorRegex.IsMatch(hairColor.Color)) {
                         GeneratedHairColors[hairColor.Dashes] = Calc.HexToColor(hairColor.Color);
                         changed[hairColor.Dashes] = true;
                     } else {
@@ -123,7 +126,7 @@ namespace Celeste.Mod.SkinModHelper {
             }
 
             // Fill upper dash range with the last customized dash color
-            for (int i = 3; i <= SkinModHelperModule.MAX_DASHES; i++) {
+            for (int i = 3; i <= MAX_DASHES; i++) {
                 if (!changed[i]) {
                     GeneratedHairColors[i] = GeneratedHairColors[i - 1];
                 }

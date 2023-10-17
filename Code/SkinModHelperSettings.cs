@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 
+using static Celeste.Mod.SkinModHelper.SkinsSystem;
+using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
+
 namespace Celeste.Mod.SkinModHelper {
     [SettingName("SKIN_MOD_HELPER_SETTINGS_TITLE")]
     public class SkinModHelperSettings : EverestModuleSettings {
@@ -13,7 +16,7 @@ namespace Celeste.Mod.SkinModHelper {
             get => backpack;
             set {
                 backpack = value;
-                SkinModHelperModule.RefreshPlayerSpriteMode();
+                PlayerSkinSystem.RefreshPlayerSpriteMode();
             }
         }
 

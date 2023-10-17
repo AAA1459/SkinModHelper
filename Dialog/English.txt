@@ -46,10 +46,10 @@ SkinModHelper_Sprite__glider= Jellyfish
 
 SkinModHelper_Portraits__portrait_badeline= {+MENU_VARIANT_PLAYASBADELINE}
 
-SkinModHelper_Other__death_particle= Vanilla  -  death particle
-SkinModHelper_Other__dreamblock_particles= DreamBlock  -  particles animation
-SkinModHelper_Other__feather_particles= flyFeather  -  particles texture
-SkinModHelper_Other__Mountain_marker= Mountain  -  climber mark
+SkinModHelper_Other__death_particle= Particles when player dies
+SkinModHelper_Other__dreamblock_particles= Particles inside DreamBlock
+SkinModHelper_Other__feather_particles= Particles when get flyFeather
+SkinModHelper_Other__Mountain_marker= Mountain climber mark
 
 ##---
 
@@ -67,3 +67,5 @@ SkinModHelper_anyOther__SkinTest_TestB= SkinTest_TestB
 
 
 
+SkinModHelper_NewMenu_SkinsExtended= Additional options - Current Player Skin
+SkinModHelper_NewMenu_SkinsExtended_opened= Additional options

@@ -157,18 +157,8 @@ More Miscellaneous
 1. About reskin method mentioned in "OtherSprite", it also can work for Portraits.xml, 
 Just consider the corresponding "Sprites.xml" as "Portraits.xml".
 
-2. A few extra things that can be reskinned
-   * The particles for feathers: "../Gameplay/[OtherSprite_Path]/particles/feather.png"
-   * The particles for dream blocks: "../Gameplay/[OtherSprite_Path]/objects/dreamblock/particles.png"
-      * Use the vanilla image as a guide -- you need to space out the three particle sizes in a specific way for them to be used correctly.
-   * The death particle for All things: "../Gameplay/[OtherSprite_Path]/death_particle.png"
-      * specified the death particle for specified-ID in Sprites.xml: "../Gameplay/[IDself's rootPath]/death_particle.png"
-      * death particle's vanilla image are "characters/player/hair00.png"
-   * The new bangs for specified-ID in Sprites.xml: "../Gameplay/[IDself's rootPath]/bangs[number].png"
-   * The new hair for specified-ID in Sprites.xml: "../Gameplay/[IDself's rootPath]/hair00.png"
-   
-Note: [OtherSprite_Path] in reskin path, can also look as [OtherSprite_ExPath] to do
-
+2. Some more things about special textures, 
+   [clike here for check](https://github.com/AAA1459/SkinModHelper/wiki/Textures-list-of-Various-Type#special-texture-settingreskin)
 
 3. more complicated things
    * [Setting ColorGrade for skin](/docs/guide//skinconfig/ColorGrade.md)

@@ -1,9 +1,15 @@
 ﻿using Celeste.Mod.Entities;
 using Microsoft.Xna.Framework;
 
+using static Celeste.Mod.SkinModHelper.SkinsSystem;
+using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
+
 namespace Celeste.Mod.SkinModHelper {
     [CustomEntity("SkinModHelper/SkinSwapTrigger")]
     internal class SkinSwapTrigger : Trigger {
+        public static SkinModHelperSettings Settings => (SkinModHelperSettings)Instance._Settings;
+        public static SkinModHelperSession Session => (SkinModHelperSession)Instance._Session;
+
         private readonly string skinId;
         private readonly bool revertOnLeave;
 
@@ -11,12 +17,12 @@ namespace Celeste.Mod.SkinModHelper {
         private string oldskinId;
         public SkinSwapTrigger(EntityData data, Vector2 offset) 
             : base(data, offset) {
-            skinId = data.Attr("skinId", SkinModHelperModule.DEFAULT);
+            skinId = data.Attr("skinId", DEFAULT);
             revertOnLeave = data.Bool("revertOnLeave", false);
 
             if (string.IsNullOrEmpty(skinId)) {
                 skinId = "Null";
-            } else if (skinId.EndsWith("_NB") && SkinModHelperModule.skinConfigs.ContainsKey(skinId.Remove(-1, 3))) {
+            } else if (skinId.EndsWith("_NB") && skinConfigs.ContainsKey(skinId.Remove(-1, 3))) {
                 skinId = skinId.Remove(-1, 3);
             }
         }
@@ -24,34 +30,27 @@ namespace Celeste.Mod.SkinModHelper {
         public override void OnEnter(Player player) {
             base.OnEnter(player);
 
-            oldskinId = SkinModHelperModule.Session.SessionPlayerSkin;
+            oldskinId = Session.SessionPlayerSkin;
 
             string hash_object = skinId;
-            if (SkinModHelperModule.skinConfigs.ContainsKey(skinId) || skinId == SkinModHelperModule.DEFAULT) {
-                SkinModHelperModule.Session.SessionPlayerSkin = hash_object;
+            if (skinConfigs.ContainsKey(skinId) || skinId == DEFAULT) {
+                Session.SessionPlayerSkin = hash_object;
             } else if (skinId == "Null")  {
-                SkinModHelperModule.Session.SessionPlayerSkin = null;
+                Session.SessionPlayerSkin = null;
             } else {
                 Logger.Log(LogLevel.Warn, "SkinModHelper/SkinSwapTrigger", $"Tried to swap to unknown SkinID: {skinId}");
                 return;
             }
 
-            if (!SkinModHelperModule.backpackOn && SkinModHelperModule.skinConfigs.ContainsKey(hash_object + "_NB")) {
-                hash_object = hash_object + "_NB";
-            }
-            SkinModHelperModule.RefreshPlayerSpriteMode(hash_object);
+            PlayerSkinSystem.RefreshPlayerSpriteMode();
         }
 
         public override void OnLeave(Player player) {
             base.OnLeave(player);
             if (revertOnLeave) {
-                SkinModHelperModule.Session.SessionPlayerSkin = oldskinId;
+                Session.SessionPlayerSkin = oldskinId;
 
-                string hash_object = oldskinId;
-                if (!SkinModHelperModule.backpackOn && SkinModHelperModule.skinConfigs.ContainsKey(hash_object + "_NB")) {
-                    hash_object = hash_object + "_NB";
-                }
-                SkinModHelperModule.RefreshPlayerSpriteMode(hash_object);
+                PlayerSkinSystem.RefreshPlayerSpriteMode();
             }
         }
     }
