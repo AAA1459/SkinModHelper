@@ -59,7 +59,7 @@ namespace Celeste.Mod.SkinModHelper {
             LoaderHook.Load();
             PlayerSkinSystem.Load();
             ObjectsHook.Load();
-            VanillaPatches.Load();
+            SomePatches.Load();
         }
         public override void Unload() {
             SkinsSystem.Unload();
@@ -67,7 +67,7 @@ namespace Celeste.Mod.SkinModHelper {
             LoaderHook.Unload();
             PlayerSkinSystem.Unload();
             ObjectsHook.Unload();
-            VanillaPatches.Unload();
+            SomePatches.Unload();
 
             foreach (ILHook h in doneILHooks) {
                 h.Dispose();

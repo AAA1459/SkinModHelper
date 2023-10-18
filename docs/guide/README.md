@@ -157,7 +157,7 @@ More Miscellaneous
 1. About reskin method mentioned in "OtherSprite", it also can work for Portraits.xml, 
 Just consider the corresponding "Sprites.xml" as "Portraits.xml".
 
-2. Some more things about special textures, 
+2. SkinModHelper have some introduce of special textures, and collected various sources of IDs animation.
    [clike here for check](https://github.com/AAA1459/SkinModHelper/wiki/Textures-list-of-Various-Type#special-texture-settingreskin)
 
 3. more complicated things

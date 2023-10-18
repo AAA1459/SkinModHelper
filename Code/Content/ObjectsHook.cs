@@ -38,11 +38,11 @@ namespace Celeste.Mod.SkinModHelper {
 
             IL.Celeste.Booster.Added -= Celeste_Booster_ILHook;
             IL.Celeste.FlyFeather.ctor_Vector2_bool_bool -= Celeste_flyFeather_ILHook;
-            On.Celeste.Cloud.Added += Celeste_Cloud_Hook;
+            On.Celeste.Cloud.Added -= Celeste_Cloud_Hook;
 
             IL.Celeste.DreamBlock.ctor_Vector2_float_float_Nullable1_bool_bool_bool -= Celeste_DreamBlock_ILHook;
 
-            On.Celeste.Refill.Added += Celeste_Refill_Hook;
+            On.Celeste.Refill.Added -= Celeste_Refill_Hook;
         }
 
 
