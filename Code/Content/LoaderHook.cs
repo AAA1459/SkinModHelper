@@ -68,12 +68,8 @@ namespace Celeste.Mod.SkinModHelper {
                 backpackOn = Settings.Backpack != SkinModHelperSettings.BackpackMode.Off;
             }
 
-            string skinName = GetPlayerSkin();
-            if (skinName != null) {
-                Player_Skinid_verify = skinConfigs[skinName].hashValues;
-                if (!backpackOn && GetPlayerSkin("_NB") != null) {
-                    Player_Skinid_verify = skinConfigs[skinName + "_NB"].hashValues;
-                }
+            if (GetPlayerSkin() != null) {
+                Player_Skinid_verify = skinConfigs[GetPlayerSkin("_NB")].hashValues;
             }
             Xmls_refresh = null;
             SpecificSprite_LoopReload();

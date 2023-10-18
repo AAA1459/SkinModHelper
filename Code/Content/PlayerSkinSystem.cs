@@ -49,7 +49,7 @@ namespace Celeste.Mod.SkinModHelper {
 
                 // I want use ILHook for this, But i don't know How to do.
                 doneHooks.Add(new Hook(EnforceSkinController.GetMethod("HasLantern", BindingFlags.Public | BindingFlags.Static),
-                                       typeof(SkinModHelperModule).GetMethod("HasLantern", BindingFlags.Public | BindingFlags.Static)));
+                                       typeof(PlayerSkinSystem).GetMethod("HasLantern", BindingFlags.Public | BindingFlags.Static)));
             }
         }
 
@@ -103,6 +103,7 @@ namespace Celeste.Mod.SkinModHelper {
 
             } else if (!isGhost && (mode == (PlayerSpriteMode)444482 || mode == (PlayerSpriteMode)444483)) {
                 hash_object = GetPlayerSkin("_lantern");
+                if (hash_object == GetPlayerSkin()) { hash_object = null; }
 
             } else if (isGhost) {
                 selfData["isGhost"] = true;
