@@ -191,7 +191,7 @@ namespace Celeste.Mod.SkinModHelper {
 
 
 
-
+        //-----------------------------Method-----------------------------
         public static string GetPlayerSkin(string skin_suffix = null, string skinName = null) {
             if (skinName == null) {
                 skinName = Settings.SelectedPlayerSkin;
@@ -208,12 +208,10 @@ namespace Celeste.Mod.SkinModHelper {
                 return null;
             }
         }
-        public static string GetSilhouetteSkin(string skin_suffix = null, string skinName = null) {
-            if (skinName == null) {
-                skinName = Settings.SelectedSilhouetteSkin;
-                if (Session != null && Session.SessionSilhouetteSkin != null) {
-                    skinName = Session.SessionSilhouetteSkin;
-                }
+        public static string GetSilhouetteSkin(string skin_suffix = null) {
+            string skinName = Settings.SelectedSilhouetteSkin;
+            if (Session != null && Session.SessionSilhouetteSkin != null) {
+                skinName = Session.SessionSilhouetteSkin;
             }
 
             if (skinConfigs.ContainsKey(skinName + skin_suffix)) {
