@@ -113,8 +113,14 @@ namespace Celeste.Mod.SkinModHelper {
 
         //-----------------------------Sprites-----------------------------
         private static void PlayerSpritePlayHook(On.Monocle.Sprite.orig_Play orig, Sprite self, string id, bool restart = false, bool randomizeFrame = false) {
-
             if (self is PlayerSprite) {
+                if (id == "duck" && self.LastAnimationID == "duck") {
+                    //Duck¡¯s animation frames keep replaying? Blocks it!
+                    return;
+                } else if (id == "lookUp" && self.LastAnimationID.StartsWith("lookUp")) {
+                    return;
+                }
+
                 DynData<PlayerSprite> selfData = new DynData<PlayerSprite>((PlayerSprite)self);
                 if (selfData["spriteName_orig"] != null) {
                     GFX.SpriteBank.CreateOn(self, (string)selfData["spriteName_orig"]);
