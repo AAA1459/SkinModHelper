@@ -115,7 +115,7 @@ namespace Celeste.Mod.SkinModHelper {
         private static void PlayerSpritePlayHook(On.Monocle.Sprite.orig_Play orig, Sprite self, string id, bool restart = false, bool randomizeFrame = false) {
             if (self is PlayerSprite) {
                 if (id == "duck" && self.LastAnimationID == "duck") {
-                    //Duck¡¯s animation frames keep replaying? Blocks it!
+                    //Duck's animation frames keep replaying? Blocks it!
                     return;
                 } else if (id == "lookUp" && self.LastAnimationID.StartsWith("lookUp")) {
                     return;

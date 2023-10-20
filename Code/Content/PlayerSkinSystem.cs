@@ -28,6 +28,7 @@ namespace Celeste.Mod.SkinModHelper {
             On.Celeste.Player.UpdateHair += PlayerUpdateHairHook;
             On.Celeste.Player.GetTrailColor += PlayerGetTrailColorHook;
             On.Celeste.Player.StartDash += PlayerStartDashHook;
+            IL.Celeste.Player.DashUpdate += PlayerDashUpdateIlHook;
 
             IL.Celeste.Player.Render += PlayerRenderIlHook_Color;
             IL.Celeste.Player.Render += PlayerRenderIlHook_Sprite;
@@ -60,6 +61,7 @@ namespace Celeste.Mod.SkinModHelper {
             On.Celeste.Player.UpdateHair -= PlayerUpdateHairHook;
             On.Celeste.Player.StartDash -= PlayerStartDashHook;
             On.Celeste.Player.GetTrailColor -= PlayerGetTrailColorHook;
+            IL.Celeste.Player.DashUpdate -= PlayerDashUpdateIlHook;
 
             IL.Celeste.Player.Render -= PlayerRenderIlHook_Color;
             IL.Celeste.Player.Render -= PlayerRenderIlHook_Sprite;
@@ -168,9 +170,6 @@ namespace Celeste.Mod.SkinModHelper {
 
         //-----------------------------Player-----------------------------
 
-
-
-
         private static void PlayerUpdateHairHook(On.Celeste.Player.orig_UpdateHair orig, Player self, bool applyGravity) {
             orig(self, applyGravity);
             if (self.StateMachine.State == Player.StStarFly) {
@@ -203,6 +202,24 @@ namespace Celeste.Mod.SkinModHelper {
                 return HairColors[dashCount];
             }
             return orig(self, wasDashB);
+        }
+        public static void PlayerDashUpdateIlHook(ILContext il) {
+            ILCursor cursor = new(il);
+            while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdsfld<Player>("P_DashA") || instr.MatchLdsfld<Player>("P_DashB") || instr.MatchLdsfld<Player>("P_DashBadB"))) {
+                cursor.Emit(OpCodes.Ldarg_0);
+                cursor.EmitDelegate<Func<ParticleType, Player, ParticleType>>((orig, self) => {
+
+                    int dashCount = new DynData<Player>(self)["TrailDashCount"] != null ? (int)new DynData<Player>(self)["TrailDashCount"] : Math.Max(Math.Min(self.Dashes, MAX_DASHES), 0);
+                    List<Color> HairColors = (List<Color>)new DynData<Player>(self)["HairColors"];
+                    if (HairColors != null) {
+                        orig = new(orig);
+
+                        orig.Color = HairColors[dashCount];
+                        orig.Color2 = Color.Multiply(HairColors[dashCount], 1.4f);
+                    }
+                    return orig;
+                });
+            }
         }
 
 
