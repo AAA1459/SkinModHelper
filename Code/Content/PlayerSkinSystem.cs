@@ -329,7 +329,7 @@ namespace Celeste.Mod.SkinModHelper {
                 foreach (string key in OtherskinOldConfig.Keys) {
                     if (spriteName.EndsWith($"{key}")) {
                         atlas = GFX.ColorGrades;
-                        colorGrade_Path = $"{OtherskinConfigs[key].OtherSprite_ExPath}dash";
+                        colorGrade_Path = $"{OtherskinConfigs[key].OtherSprite_ExPath}/dash";
                         break;
                     }
                 }
@@ -370,29 +370,21 @@ namespace Celeste.Mod.SkinModHelper {
             string spriteName = (string)new DynData<PlayerSprite>(self.Sprite)["spriteName"];
             foreach (string key in OtherskinOldConfig.Keys) {
                 if (spriteName.EndsWith($"{key}")) {
-                    spritePath = $"{OtherskinConfigs[key].OtherSprite_ExPath}characters/player/";
+                    spritePath = $"{OtherskinConfigs[key].OtherSprite_ExPath}/characters/player/";
                     break;
                 }
             }
             //---
 
             if (index == 0) {
-                string bangs = spritePath + "bangs";
-
-                string number = "";
-                while (number != "00" && !GFX.Game.Has(bangs + number)) {
-                    number = number + "0";
-                }
-
-                if (GFX.Game.Has(bangs + number)) {
-                    List<MTexture> newbangs = GFX.Game.GetAtlasSubtextures(bangs);
-                    return newbangs.Count > self.Sprite.HairFrame ? newbangs[self.Sprite.HairFrame] : newbangs[0];
-                }
+                spritePath = spritePath + "bangs";
             } else {
-                string newhair = spritePath + "hair00";
-                if (GFX.Game.Has(newhair)) {
-                    return GFX.Game[newhair];
-                }
+                spritePath = spritePath + "hair";
+            }
+
+            if (GFX.Game.Has(spritePath + "00")) {
+                List<MTexture> newhair = GFX.Game.GetAtlasSubtextures(spritePath);
+                return newhair.Count > self.Sprite.HairFrame ? newhair[self.Sprite.HairFrame] : newhair[0];
             }
             return orig(self, index);
         }
