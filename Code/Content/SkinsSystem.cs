@@ -120,7 +120,7 @@ namespace Celeste.Mod.SkinModHelper {
                     foreach (SkinModHelperConfig config in configs) {
                         Regex skinIdRegex = new(@"^[a-zA-Z0-9]+_[a-zA-Z0-9]+$");
 
-                        if (string.IsNullOrEmpty(config.SkinName)) {
+                        if (string.IsNullOrEmpty(config.SkinName) || config.SkinName.EndsWith("_")) {
                             Logger.Log(LogLevel.Warn, "SkinModHelper", $"Invalid skin name {config.SkinName}, will not register.");
                             continue;
 
@@ -192,6 +192,8 @@ namespace Celeste.Mod.SkinModHelper {
                 }
             }
 
+            if (id.EndsWith("_")) { id = id.Remove(id.LastIndexOf("_")); }
+
             if (self.SpriteData.ContainsKey(newId)) {
                 id = newId;
             }
@@ -203,7 +205,13 @@ namespace Celeste.Mod.SkinModHelper {
                 if (SpriteSkin_record.ContainsKey(id)) {
                     newId = id + SpriteSkin_record[id];
                 }
+            } else if (self == GFX.PortraitsSpriteBank) {
+                if (PortraitsSkin_record.ContainsKey(id)) {
+                    newId = id + PortraitsSkin_record[id];
+                }
             }
+
+            if (id.EndsWith("_")) { id = id.Remove(id.LastIndexOf("_")); }
 
             if (self.SpriteData.ContainsKey(newId)) {
                 id = newId;

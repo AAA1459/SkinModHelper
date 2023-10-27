@@ -5,10 +5,10 @@ skinSwapTrigger.placements = {
     {
         name = "normal",
         data = {
-            width = 16,
-            height = 16,
-            skinId = "Default";
-            revertOnLeave = false;
+            width = 32,
+            height = 40,
+            skinId = "Default",
+            revertOnLeave = false,
         }
     }
 }

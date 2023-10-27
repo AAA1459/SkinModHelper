@@ -13,3 +13,12 @@ triggers.SkinModHelper/SkinSwapTrigger.placements.name.normal=Skin Swap Trigger
 triggers.SkinModHelper/SkinSwapTrigger.attributes.description.revertOnLeave=If checked, Player will lose the this skin when exiting the trigger.
 
 triggers.SkinModHelper/SkinSwapTrigger.attributes.description.skinId=The skin ID to apply. This should be the same ID as the one in SkinModHelperConfig.yaml  (use the "Default" for Madeline, not use any for recover the user own skin)
+
+
+# Entity Reskin Trigger
+triggers.SkinModHelper/EntityReskinTrigger.placements.name.normal=Entity Reskin Trigger
+
+triggers.SkinModHelper/EntityReskinTrigger.attributes.description.entityIndex= On the basis of "EntityFullName", further filter the No.X to be reskin
+triggers.SkinModHelper/EntityReskinTrigger.attributes.description.entityFullName= Specify the Entity's TypeFullName to reskin them
+
+triggers.SkinModHelper/EntityReskinTrigger.attributes.description.newSpriteID= Give the entities a new ID from Sprites.xml to finish reskin.

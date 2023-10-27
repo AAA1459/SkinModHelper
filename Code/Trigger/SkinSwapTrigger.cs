@@ -6,7 +6,7 @@ using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 
 namespace Celeste.Mod.SkinModHelper {
     [CustomEntity("SkinModHelper/SkinSwapTrigger")]
-    internal class SkinSwapTrigger : Trigger {
+    public class SkinSwapTrigger : Trigger {
         public static SkinModHelperSettings Settings => (SkinModHelperSettings)Instance._Settings;
         public static SkinModHelperSession Session => (SkinModHelperSession)Instance._Session;
 

@@ -159,7 +159,7 @@ namespace Celeste.Mod.SkinModHelper {
                 string SpritePath = getAnimationRootPath(sprite) + "outline";
                 if (GFX.Game.Has(SpritePath)) {
                     Image outline = selfData["outline"] as Image;
-                    outline = new Image(GFX.Game[SpritePath]);
+                    outline.Texture = GFX.Game[SpritePath];
                 }
             }
         }
