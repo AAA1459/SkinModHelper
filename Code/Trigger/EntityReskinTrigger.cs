@@ -38,7 +38,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
 
 
-        List<Entity> entities = new();
+        private List<Entity> entities = new();
         public override void Added(Scene scene) {
             base.Added(scene);
 
@@ -63,8 +63,8 @@ namespace Celeste.Mod.SkinModHelper {
             int Index = entityIndex;
             int search = -1;
             foreach (Entity entity in entities) {
+                search++;
                 if (Scene.Entities.Contains(entity)) {
-                    search++;
                     Logger.Log(LogLevel.Debug, "SkinModHelper/EntityReskinTrigger", $"trying reskin Entity '{entity.GetType().FullName}' No.{(Index < 0 ? search : Index)}");
                     EntityReskin(entity, newSpriteID);
                 }
