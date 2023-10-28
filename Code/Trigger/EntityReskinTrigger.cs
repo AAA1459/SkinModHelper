@@ -86,6 +86,12 @@ namespace Celeste.Mod.SkinModHelper {
                     sprite = GFX.SpriteBank.CreateOn(sprite, SpriteID);
                     string SpritePath = getAnimationRootPath(sprite);
                     // ----------------
+                    // --------flash--------
+                    var Field_flash = entity.GetType().GetField("flash", BindingFlags.NonPublic | BindingFlags.Instance);
+                    if (Field_flash != null && Field_flash.GetValue(entity) is Sprite flash) {
+                        flash = GFX.SpriteBank.CreateOn(flash, SpriteID);
+                    }
+                    // ----------------
                     // --------outline--------
                     var Field_outline = entity.GetType().GetField("outline", BindingFlags.NonPublic | BindingFlags.Instance);
                     if (Field_outline != null && Field_outline.GetValue(entity) is Entity outline) {

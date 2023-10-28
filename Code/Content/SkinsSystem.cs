@@ -536,7 +536,10 @@ namespace Celeste.Mod.SkinModHelper {
 
             } else {
                 spriteName = $"{type}";
-                if (SpriteSkin_record.ContainsKey(spriteName)) {
+
+                if (spriteName.EndsWith("_")) {
+                    spriteName = spriteName.Remove(spriteName.LastIndexOf("_"));
+                } else if (SpriteSkin_record.ContainsKey(spriteName)) {
                     spriteName = spriteName + SpriteSkin_record[spriteName];
                 }
             }
