@@ -38,39 +38,42 @@ namespace Celeste.Mod.SkinModHelper {
         }
 
 
+        List<Entity> entities = new();
+        public override void Added(Scene scene) {
+            base.Added(scene);
 
+            int Index = entityIndex;
+            int search = -1;
+            foreach (Entity entity in Scene.Entities) {
+                if (entity.GetType().FullName == entityFullName) {
+                    search++;
+                    if (Index < 0) {
+                        entities.Add(entity);
+                    } else if (search == Index) {
+                        entities.Add(entity);
+                        break;
+                    }
+                }
+            }
+        }
 
         public override void OnEnter(Player player) {
             base.OnEnter(player);
 
             int Index = entityIndex;
             int search = -1;
-
-            EntityList entities = Scene.Entities;
             foreach (Entity entity in entities) {
-                if (entity is Actor || entity is Trigger) {
-                    if (entity.GetType().FullName == entityFullName) {
-                        Logger.Log(LogLevel.Warn, "SkinModHelper/EntityReskinTrigger", $"Entity '{entity.GetType().FullName}' shouldn't be reskin.");
-                    }
-                    continue;
-                } else if (entity.GetType().FullName == entityFullName) {
+                if (Scene.Entities.Contains(entity)) {
                     search++;
-                    if (Index < 0) {
-                        EntityReskin(entity, newSpriteID);
-                    } else if (search == Index) {
-                        EntityReskin(entity, newSpriteID);
-                        break;
-                    }
-                } /*else if (search < 0 && newSpriteID == "" && entity.GetType().FullName.IndexOf(entityFullName) > 0) {
-                    Logger.Log(LogLevel.Info, "SkinModHelper/EntityReskinTrigger", $"search-out Entity '{entity.GetType().FullName}', do you want to reskin this?");
-                }*/
+                    Logger.Log(LogLevel.Debug, "SkinModHelper/EntityReskinTrigger", $"trying reskin Entity '{entity.GetType().FullName}' No.{(Index < 0 ? search : Index)}");
+                    EntityReskin(entity, newSpriteID);
+                }
             }
-            if (oneUse && ((Index >= 0 && search == Index) || search >= 0)) {
+            if (oneUse) {
                 Collidable = false;
             }
         }
         public static void EntityReskin(Entity entity, string SpriteID) {
-            Logger.Log(LogLevel.Info, "SkinModHelper/EntityReskinTrigger", $"Entity '{entity.GetType().FullName}' trying reskin");
 
             string search = SpriteID;
             if (search.EndsWith("_")) { search = search.Remove(search.LastIndexOf("_")); }
