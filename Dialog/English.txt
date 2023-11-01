@@ -14,7 +14,7 @@ SkinModHelper_Settings_DefaultSilhouette= Default
 
 
 SkinModHelper_Settings_Otherskin= General Skin
-SkinModHelper_MORE_OPTIONS= More Options
+SkinModHelper_MORE_OPTIONS= Advanced Options
 
 
 
@@ -22,7 +22,7 @@ SkinModHelper_MORE_OPTIONS= More Options
 
 
 
-SkinModHelper_NewMenu_SkinFreeConfig= Detailed & Precisely - skin choose
+SkinModHelper_NewMenu_SkinFreeConfig=:SMH_SubMenu:Detailed & Precisely - skin choose
 SkinModHelper_NewMenu_SkinFreeConfig_opened= Precisely skin choose
 
 SkinModHelper_SkinFreeConfig_OnOff= Enabled
@@ -66,5 +66,5 @@ SkinModHelper_anyOther__SkinTest_TestB= SkinTest_TestB
 
 
 
-SkinModHelper_NewMenu_SkinsExtended= Additional options - Current Player Skin
+SkinModHelper_NewMenu_SkinsExtended=:SMH_SubMenu:Additional options - Current Player Skin
 SkinModHelper_NewMenu_SkinsExtended_opened= Additional options
