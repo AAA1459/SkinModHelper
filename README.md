@@ -49,7 +49,7 @@ Credits
 
 **Code Contributors**:
 * coloursofnoise
-* max480
+* Maddie
 * Viv
 
 **Special Thanks**:
