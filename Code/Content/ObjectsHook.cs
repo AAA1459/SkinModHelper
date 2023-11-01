@@ -130,7 +130,7 @@ namespace Celeste.Mod.SkinModHelper {
 
                     string SpriteID = "dreamblock_particles";
                     if (OtherSkins_records.ContainsKey(SpriteID)) {
-                        Update_FreeCollocations_OtherExtra(SpriteID, null, true, true);
+                        RefreshSkinValues_OtherExtra(SpriteID, null, true, false);
                         return getOtherSkin_ReskinPath(GFX.Game, "objects/dreamblock/particles", SpriteID, OtherSkin_record[SpriteID]);
                     }
                     return orig;

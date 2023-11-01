@@ -49,6 +49,7 @@ namespace Celeste.Mod.SkinModHelper {
                 }
             }
         }
+        // loading if Game starts.
         private static void GameLoaderLoadThreadHook(On.Celeste.GameLoader.orig_LoadThread orig, GameLoader self) {
             orig(self);
             RecordSpriteBanks_Start();
@@ -60,7 +61,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
 
 
-        // Wait until the main sprite bank is created, then combine with our skin mod banks
+        // loading if Enter the maps.
         private static void LevelLoaderLoadingThreadHook(On.Celeste.LevelLoader.orig_LoadingThread orig, LevelLoader self) {
 
             //at this Hooking time, The level data has not established, cannot get Default backpack state of Level 
@@ -71,28 +72,24 @@ namespace Celeste.Mod.SkinModHelper {
             if (GetPlayerSkin() != null) {
                 Player_Skinid_verify = skinConfigs[GetPlayerSkin("_NB")].hashValues;
             }
-            Xmls_refresh = null;
-            SpecificSprite_LoopReload();
+            RefreshSkins(null);
             orig(self);
         }
 
 
 
-
+        // loading if OverWorld loaded.
         private static void OuiFileSelectSlotSetupHook(On.Celeste.OuiFileSelectSlot.orig_Setup orig, OuiFileSelectSlot self) {
             if (self.FileSlot == 0) {
-                Xmls_refresh = null;
-                SpecificSprite_LoopReload();
-
-                foreach (string SpriteID in SpriteSkins_records.Keys) {
-                    SpriteSkin_record[SpriteID] = null;
-                }
-                foreach (string SpriteID in PortraitsSkins_records.Keys) {
-                    PortraitsSkin_record[SpriteID] = null;
-                }
+                RefreshSkins(null);
 
                 if (SaveFilePortraits) {
-                    //Reload the SpriteID registration code of "SaveFilePortraits"
+                    // Not return the madeline's portrait to orig if SaveFilePortraits not installed
+                    foreach (string SpriteID in PortraitsSkins_records.Keys) {
+                        PortraitsSkin_record[SpriteID] = null;
+                    }
+
+                    // Reload the SpriteID registration code of "SaveFilePortraits"
                     Logger.Log("SkinModHelper", $"SaveFilePortraits reload start");
                     SaveFilePortraits_Reload();
                 }

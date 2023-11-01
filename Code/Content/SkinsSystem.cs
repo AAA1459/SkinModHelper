@@ -72,8 +72,6 @@ namespace Celeste.Mod.SkinModHelper {
         public static readonly string ORIGINAL = "Original";
         public static readonly string LockedToPlayer = "LockedToPlayer";
 
-        public static bool? Xmls_refresh;
-
         public static int Player_Skinid_verify;
         public static bool backpackOn = true;
 
@@ -369,7 +367,7 @@ namespace Celeste.Mod.SkinModHelper {
 
             string SpriteID = "feather_particles";
             if (OtherSkins_records.ContainsKey(SpriteID)) {
-                Update_FreeCollocations_OtherExtra(SpriteID, null, true, true);
+                RefreshSkinValues_OtherExtra(SpriteID, null, true, false);
                 CustomPath = getOtherSkin_ReskinPath(GFX.Game, "particles/feather", SpriteID, OtherSkin_record[SpriteID]);
             }
 
@@ -392,14 +390,14 @@ namespace Celeste.Mod.SkinModHelper {
 
 
             if (SpriteID != null && OtherSkins_records.ContainsKey(SpriteID)) {
-                Update_FreeCollocations_OtherExtra(SpriteID, null, true, true);
+                RefreshSkinValues_OtherExtra(SpriteID, null, true, false);
                 path = getOtherSkin_ReskinPath(self, SpritePath, SpriteID, OtherSkin_record[SpriteID], number_search);
             }
             return orig(self, path);
         }
 
-        //-----------------------------Skins refresh-----------------------------
-        public static void SpecificSprite_LoopReload() {
+        //-----------------------------Skins Refresh-----------------------------
+        public static void RefreshSkins(bool? Xmls_refresh) {
             if (Xmls_refresh == null) {
 
                 bool Enabled = false;
@@ -431,12 +429,7 @@ namespace Celeste.Mod.SkinModHelper {
                 Xmls_refresh = false;
 
                 UpdateParticles();
-                foreach (string SpriteID in SpriteSkins_records.Keys) {
-                    Update_FreeCollocations_Sprites(SpriteID, null, true, true);
-                }
-                foreach (string SpriteID in PortraitsSkins_records.Keys) {
-                    Update_FreeCollocations_Portraits(SpriteID, null, true, true);
-                }
+                RefreshSkinValues(null, true);
             }
         }
 
@@ -486,10 +479,9 @@ namespace Celeste.Mod.SkinModHelper {
                 }
             }
             if (Player_Skinid_verify != player_skinid_verify) {
-                Xmls_refresh = true;
+                RefreshSkins(true);
                 Player_Skinid_verify = player_skinid_verify;
             }
-            SpecificSprite_LoopReload();
         }
 
 

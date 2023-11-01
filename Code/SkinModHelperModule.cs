@@ -104,47 +104,51 @@ namespace Celeste.Mod.SkinModHelper {
                 Session.SessionPlayerSkin = null;
             }
             Settings.SelectedPlayerSkin = newSkinId;
-            PlayerSkinSystem.RefreshPlayerSpriteMode();
-            if (!inGame) {
+            if (inGame) {
+                PlayerSkinSystem.RefreshPlayerSpriteMode();
+            } else if (!inGame) {
                 if (skinConfigs.ContainsKey(newSkinId)) {
                     Player_Skinid_verify = skinConfigs[newSkinId].hashValues;
                 } else {
                     Player_Skinid_verify = 0;
                 }
+                RefreshSkins(true);
             }
         }
-        public static void UpdateSilhouetteSkin(string newSkinId) {
+        public static void UpdateSilhouetteSkin(string newSkinId, bool inGame) {
             if (Session != null) {
                 Session.SessionSilhouetteSkin = null;
             }
 
             Settings.SelectedSilhouetteSkin = newSkinId;
         }
-        public static void UpdateExtraXml(string SkinId, bool OnOff) {
+        public static void UpdateExtraXml(string SkinId, bool OnOff, bool inGame) {
             if (Session != null && Session.SessionExtraXml.ContainsKey(SkinId)) {
                 Session.SessionExtraXml.Remove(SkinId);
             }
-            Xmls_refresh = true;
             Settings.ExtraXmlList[SkinId] = OnOff;
+            RefreshSkins(true);
         }
 
-        //-----------------------------FreeCollocations Update-----------------------------
-        public static void Update_FreeCollocations_OnOff(bool OnOff, bool inGame) {
-            Settings.FreeCollocations_OffOn = OnOff;
+        //-----------------------------FreeCollocations Update / Skins Refresh-----------------------------
+        public static void RefreshSkinValues(bool? OnOff, bool inGame) {
+            if (OnOff != null) {
+                Settings.FreeCollocations_OffOn = (bool)OnOff;
+            }
 
             foreach (string SpriteID in SpriteSkins_records.Keys) {
-                Update_FreeCollocations_Sprites(SpriteID, null, inGame, true);
+                RefreshSkinValues_Sprites(SpriteID, null, inGame, false);
             }
             foreach (string SpriteID in PortraitsSkins_records.Keys) {
-                Update_FreeCollocations_Portraits(SpriteID, null, inGame, true);
+                RefreshSkinValues_Portraits(SpriteID, null, inGame, false);
             }
             foreach (string SpriteID in OtherSkins_records.Keys) {
-                Update_FreeCollocations_OtherExtra(SpriteID, null, inGame, true);
+                RefreshSkinValues_OtherExtra(SpriteID, null, inGame, false);
             }
         }
 
-        public static void Update_FreeCollocations_Sprites(string SpriteID, string SkinId, bool inGame, bool OnOff = false) {
-            if (!OnOff) {
+        public static void RefreshSkinValues_Sprites(string SpriteID, string SkinId, bool inGame, bool Setting = true) {
+            if (Setting) {
                 Settings.FreeCollocations_Sprites[SpriteID] = SkinId;
             }
             var value = Settings.FreeCollocations_Sprites;
@@ -159,8 +163,8 @@ namespace Celeste.Mod.SkinModHelper {
             }
         }
 
-        public static void Update_FreeCollocations_Portraits(string SpriteID, string SkinId, bool inGame, bool OnOff = false) {
-            if (!OnOff) {
+        public static void RefreshSkinValues_Portraits(string SpriteID, string SkinId, bool inGame, bool Setting = true) {
+            if (Setting) {
                 Settings.FreeCollocations_Portraits[SpriteID] = SkinId;
             }
             var value = Settings.FreeCollocations_Portraits;
@@ -174,8 +178,8 @@ namespace Celeste.Mod.SkinModHelper {
                 PortraitsSkin_record[SpriteID] = value[SpriteID];
             }
         }
-        public static void Update_FreeCollocations_OtherExtra(string SpriteID, string SkinId, bool inGame, bool OnOff = false) {
-            if (!OnOff) {
+        public static void RefreshSkinValues_OtherExtra(string SpriteID, string SkinId, bool inGame, bool Setting = true) {
+            if (Setting) {
                 Settings.FreeCollocations_OtherExtra[SpriteID] = SkinId;
             }
             var value = Settings.FreeCollocations_OtherExtra;

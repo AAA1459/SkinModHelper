@@ -163,7 +163,7 @@ namespace Celeste.Mod.SkinModHelper {
                 if (self.Entity is PlayerDeadBody) {
                     string SpriteID = "death_particle";
                         if (OtherSkins_records.ContainsKey(SpriteID)) {
-                            Update_FreeCollocations_OtherExtra(SpriteID, null, true, true);
+                            RefreshSkinValues_OtherExtra(SpriteID, null, true, false);
                             string overridePath = getOtherSkin_ReskinPath(GFX.Game, "death_particle", SpriteID, OtherSkin_record[SpriteID]);
 
                             spritePath = overridePath == "death_particle" ? spritePath : overridePath;
@@ -212,7 +212,7 @@ namespace Celeste.Mod.SkinModHelper {
                     if (spritePath == orig) {
                         string SpriteID = "death_particle";
                         if (OtherSkins_records.ContainsKey(SpriteID)) {
-                            Update_FreeCollocations_OtherExtra(SpriteID, null, true, true);
+                            RefreshSkinValues_OtherExtra(SpriteID, null, true, false);
                             string SkinId = getOtherSkin_ReskinPath(GFX.Game, "death_particle", SpriteID, OtherSkin_record[SpriteID]);
 
                             spritePath = SkinId == "death_particle" ? spritePath : SkinId;

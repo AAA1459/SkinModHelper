@@ -98,7 +98,7 @@ namespace Celeste.Mod.SkinModHelper
                 }
             }
 
-            skinSelectMenu.Change(skinId => UpdateSilhouetteSkin(skinId));
+            skinSelectMenu.Change(skinId => UpdateSilhouetteSkin(skinId, inGame));
 
             menu.Add(skinSelectMenu);
         }
@@ -123,7 +123,7 @@ namespace Celeste.Mod.SkinModHelper
                     if (config.General_List != false) {
                         Options_name = !string.IsNullOrEmpty(config.SkinDialogKey) ? config.SkinDialogKey : Options_name;
                         TextMenu.OnOff Options = new TextMenu.OnOff(Dialog.Clean(Options_name), Options_OnOff);
-                        Options.Change(OnOff => UpdateExtraXml(config.SkinName, OnOff));
+                        Options.Change(OnOff => UpdateExtraXml(config.SkinName, OnOff, inGame));
 
                         subMenu.Add(Options);
                     }
@@ -155,7 +155,7 @@ namespace Celeste.Mod.SkinModHelper
         public void Build_SkinFreeConfig_NewMenu(TextMenu menu, bool inGame) {
 
             TextMenu.OnOff SkinFreeConfig_OnOff = new TextMenu.OnOff(Dialog.Clean("SkinModHelper_SkinFreeConfig_OnOff"), Settings.FreeCollocations_OffOn);
-            SkinFreeConfig_OnOff.Change(OnOff => Update_FreeCollocations_OnOff(OnOff, inGame));
+            SkinFreeConfig_OnOff.Change(OnOff => RefreshSkinValues(OnOff, inGame));
 
             if (Disabled(inGame)) {
                 SkinFreeConfig_OnOff.Disabled = true;
@@ -189,7 +189,7 @@ namespace Celeste.Mod.SkinModHelper
                     }
                     skinSelectMenu.Add(SkinText, SkinName, (SkinName == selected));
                 }
-                skinSelectMenu.Change(skinId => Update_FreeCollocations_Sprites(SpriteID, skinId, inGame));
+                skinSelectMenu.Change(skinId => RefreshSkinValues_Sprites(SpriteID, skinId, inGame));
                 menu.Add(skinSelectMenu);
             }
 
@@ -221,7 +221,7 @@ namespace Celeste.Mod.SkinModHelper
                     }
                     skinSelectMenu.Add(SkinText, SkinName, (SkinName == selected));
                 }
-                skinSelectMenu.Change(skinId => Update_FreeCollocations_Portraits(SpriteID, skinId, inGame));
+                skinSelectMenu.Change(skinId => RefreshSkinValues_Portraits(SpriteID, skinId, inGame));
                 menu.Add(skinSelectMenu);
             }
 
@@ -257,7 +257,7 @@ namespace Celeste.Mod.SkinModHelper
                 }
 
 
-                skinSelectMenu.Change(skinId => Update_FreeCollocations_OtherExtra(SpriteID, skinId, inGame));
+                skinSelectMenu.Change(skinId => RefreshSkinValues_OtherExtra(SpriteID, skinId, inGame));
                 menu.Add(skinSelectMenu);
             }
         }
