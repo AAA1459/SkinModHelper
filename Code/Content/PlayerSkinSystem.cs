@@ -11,6 +11,7 @@ using System.Reflection;
 using Mono.Cecil.Cil;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
@@ -390,16 +391,24 @@ namespace Celeste.Mod.SkinModHelper {
         }
         private static void PlayerHairRenderHook(On.Celeste.PlayerHair.orig_Render orig, PlayerHair self) {
 
+            // Memo: remind myself, Don't forget to restore ColorGrade should working on PlayerHair
+
+            // Recolor hair's outline
+            string rootPath = getAnimationRootPath(self.Sprite);
+            HairConfig hairConfig = searchSkinConfig<HairConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "HairConfig");
+            if (hairConfig != null && hairConfig.OutlineColor != null && new Regex(@"^[a-fA-F0-9]{6}$").IsMatch(hairConfig.OutlineColor)) {
+                self.Border = Calc.HexToColor(hairConfig.OutlineColor);
+            } else {
+                self.Border = Color.Black;
+            }
+
             // used for All Badelines Related Entitys
             if (self.Entity is Player || self.Entity is PlayerPlayback || (bool?)new DynData<PlayerHair>(self)["Update_firstHook_SMH"] == false) {
                 orig(self);
                 return;
             }
             new DynData<PlayerHair>(self)["Update_firstHook_SMH"] = false;
-
             int? get_dashCount = null;
-
-            string rootPath = getAnimationRootPath(self.Sprite);
 
             if (self.Entity is BadelineOldsite badelineOldsite) {
                 get_dashCount = (int)new DynData<BadelineOldsite>(badelineOldsite)["index"];
@@ -410,7 +419,6 @@ namespace Celeste.Mod.SkinModHelper {
             if (get_dashCount != null) {
                 int dashCount = Math.Max(Math.Min((int)get_dashCount, MAX_DASHES), 0);
 
-                HairConfig hairConfig = searchSkinConfig<HairConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "HairConfig");
                 CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "CharacterConfig");
 
                 if (self.Sprite.Mode == (PlayerSpriteMode)2 && ModeConfig != null && ModeConfig.BadelineMode == null) {
@@ -452,7 +460,7 @@ namespace Celeste.Mod.SkinModHelper {
 
         private static void patch_SpriteMode_Badeline(ILContext il) {
             ILCursor cursor = new ILCursor(il);
-            while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchCallvirt<PlayerSprite>("get_Mode"))) {
+            if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchCallvirt<PlayerSprite>("get_Mode"))) {
                 cursor.Emit(OpCodes.Ldarg_0);
                 cursor.EmitDelegate<Func<PlayerSpriteMode, Player, PlayerSpriteMode>>((orig, self) => {
                     string ConfigPath = $"Graphics/Atlases/Gameplay/{getAnimationRootPath(self.Sprite)}skinConfig/" + "CharacterConfig";
@@ -471,7 +479,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         private static void patch_SpriteMode_Silhouette(ILContext il) {
             ILCursor cursor = new ILCursor(il);
-            while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchCallvirt<PlayerSprite>("get_Mode"))) {
+            if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchCallvirt<PlayerSprite>("get_Mode"))) {
                 cursor.Emit(OpCodes.Ldarg_0);
                 cursor.EmitDelegate<Func<PlayerSpriteMode, PlayerPlayback, PlayerSpriteMode>>((orig, self) => {
                     string ConfigPath = $"Graphics/Atlases/Gameplay/{getAnimationRootPath(self.Sprite)}skinConfig/" + "CharacterConfig";

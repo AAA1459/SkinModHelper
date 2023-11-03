@@ -51,6 +51,7 @@ namespace Celeste.Mod.SkinModHelper {
 
     public class HairConfig {
 
+        public string OutlineColor { get; set; }
 
         public List<HairColor> HairColors { get; set; }
         public class HairColor {

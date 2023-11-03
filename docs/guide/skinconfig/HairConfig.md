@@ -11,8 +11,8 @@ Each of the fields will be explained below.
 ```yaml
   HairColors:
   - < HairColors >
+  OutlineColor: [use six digit RGB hex code]
 ```
-
 
 
 HairColors
@@ -24,8 +24,14 @@ Then you can use this:
   - Dashes: [use 0 to 5]
     Color: [use six digit RGB hex code]     # such as: ["9B3FB5"], that is baddy's 1-dash color
 ```
-that object-ID also can is NPC badeline, As long as you want.
 
+
+OutlineColor
+-----------------------------------
+If you want to recolor hair border of object-ID, so you can use this:
+```
+  OutlineColor: [use six digit RGB hex code]
+```
 
 
 [previous page](/docs/guide/README.md#more-miscellaneous)
