@@ -183,7 +183,7 @@ namespace Celeste.Mod.SkinModHelper {
             bool? has_ColorGrade = (bool?)new DynData<Player>(self)["has_ColorGrade"];
             List<Color> HairColors = (List<Color>)new DynData<Player>(self)["HairColors"];
             if ((HairColors != null && self.Hair.Color != Color.White) || has_ColorGrade == true) {
-                if (MaxDashZero) {
+                if (MaxDashZero && dashCount < 2) {
                     self.Hair.Color = HairColors[1];
                 } else {
                     self.Hair.Color = HairColors[dashCount];
@@ -316,7 +316,7 @@ namespace Celeste.Mod.SkinModHelper {
                 var Dashes = self.Entity.GetType().GetField("Dashes");
                 get_dashCount = Dashes != null ? (int?)Dashes.GetValue(self.Entity) : null;
 
-                if (self.Entity is Player player && player.MaxDashes <= 0) {
+                if (self.Entity is Player player && player.MaxDashes <= 0 && player.Dashes < 2) {
                     get_dashCount = 1;
                 }
             }
@@ -361,7 +361,7 @@ namespace Celeste.Mod.SkinModHelper {
             }
             return;
         }
-
+        
         //-----------------------------PlayerHair-----------------------------
         private static MTexture PlayerHairGetHairTextureHook(On.Celeste.PlayerHair.orig_GetHairTexture orig, PlayerHair self, int index) {
 
@@ -391,8 +391,6 @@ namespace Celeste.Mod.SkinModHelper {
         }
         private static void PlayerHairRenderHook(On.Celeste.PlayerHair.orig_Render orig, PlayerHair self) {
 
-            // Memo: remind myself, Don't forget to restore ColorGrade should working on PlayerHair
-
             // Recolor hair's outline
             string rootPath = getAnimationRootPath(self.Sprite);
             HairConfig hairConfig = searchSkinConfig<HairConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "HairConfig");
@@ -402,41 +400,68 @@ namespace Celeste.Mod.SkinModHelper {
                 self.Border = Color.Black;
             }
 
-            // used for All Badelines Related Entitys
-            if (self.Entity is Player || self.Entity is PlayerPlayback || (bool?)new DynData<PlayerHair>(self)["Update_firstHook_SMH"] == false) {
-                orig(self);
-                return;
-            }
-            new DynData<PlayerHair>(self)["Update_firstHook_SMH"] = false;
-            int? get_dashCount = null;
+            if ((bool?)new DynData<PlayerHair>(self)["Update_firstHook_SMH"] != false) {
+                new DynData<PlayerHair>(self)["Update_firstHook_SMH"] = false;
 
-            if (self.Entity is BadelineOldsite badelineOldsite) {
-                get_dashCount = (int)new DynData<BadelineOldsite>(badelineOldsite)["index"];
-            } else if (self.Sprite.Mode == (PlayerSpriteMode)2) {
-                get_dashCount = 0;
-            }
+                if (self.Entity is Player || self.Entity is PlayerPlayback) {
+                    int? get_dashCount = null;
 
-            if (get_dashCount != null) {
-                int dashCount = Math.Max(Math.Min((int)get_dashCount, MAX_DASHES), 0);
+                    if (self.Entity is BadelineOldsite badelineOldsite) {
+                        get_dashCount = (int)new DynData<BadelineOldsite>(badelineOldsite)["index"];
+                    } else if (self.Sprite.Mode == (PlayerSpriteMode)2) {
+                        get_dashCount = 0;
+                    }
 
-                CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "CharacterConfig");
+                    if (get_dashCount != null) {
+                        int dashCount = Math.Max(Math.Min((int)get_dashCount, MAX_DASHES), 0);
 
-                if (self.Sprite.Mode == (PlayerSpriteMode)2 && ModeConfig != null && ModeConfig.BadelineMode == null) {
-                    ModeConfig.BadelineMode = true;
-                }
+                        CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "CharacterConfig");
 
-                if (hairConfig != null && hairConfig.HairColors != null) {
-                    self.Color = HairConfig.BuildHairColors(hairConfig, ModeConfig)[dashCount];
-                }
-                if (ModeConfig != null) {
-                    if (ModeConfig.SilhouetteMode == true) {
-                        self.Sprite.Color = self.Color;
-                    } else if (ModeConfig.SilhouetteMode == false) {
-                        self.Sprite.Color = Color.White;
+                        if (self.Sprite.Mode == (PlayerSpriteMode)2 && ModeConfig != null && ModeConfig.BadelineMode == null) {
+                            ModeConfig.BadelineMode = true;
+                        }
+
+                        if (hairConfig != null && hairConfig.HairColors != null) {
+                            self.Color = HairConfig.BuildHairColors(hairConfig, ModeConfig)[dashCount];
+                        }
+                        if (ModeConfig != null) {
+                            if (ModeConfig.SilhouetteMode == true) {
+                                self.Sprite.Color = self.Color;
+                            } else if (ModeConfig.SilhouetteMode == false) {
+                                self.Sprite.Color = Color.White;
+                            }
+                        }
                     }
                 }
             }
             orig(self);
+
+            Atlas atlas = GFX.Game;
+            string colorGrade_Path = (string)new DynData<PlayerSprite>(self.Sprite)["ColorGrade_Path"];
+
+            //Check if config from v0.7 Before---
+            string spriteName = (string)new DynData<PlayerSprite>(self.Sprite)["spriteName"];
+            foreach (string key in OtherskinOldConfig.Keys) {
+                if (spriteName.EndsWith($"{key}")) {
+                    atlas = GFX.ColorGrades;
+                    break;
+                }
+            }
+
+            if (colorGrade_Path != null && atlas.Has(colorGrade_Path)) {
+                Effect colorGradeEffect = GFX.FxColorGrading;
+                colorGradeEffect.CurrentTechnique = colorGradeEffect.Techniques["ColorGradeSingle"];
+                Engine.Graphics.GraphicsDevice.Textures[1] = atlas[colorGrade_Path].Texture.Texture_Safe;
+
+                DynData<SpriteBatch> spriteData = new DynData<SpriteBatch>(Draw.SpriteBatch);
+                Matrix matrix = (Matrix)spriteData["transformMatrix"];
+
+                GameplayRenderer.End();
+                Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, colorGradeEffect, matrix);
+                orig(self);
+                GameplayRenderer.End();
+                Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, null, matrix);
+            }
         }
 
         //-----------------------------PlayerSpriteMode-----------------------------
