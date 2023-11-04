@@ -302,7 +302,6 @@ namespace Celeste.Mod.SkinModHelper {
 
         //-----------------------------ColorGrade-----------------------------
         private static void OnPlayerSpriteRender(On.Celeste.PlayerSprite.orig_Render orig, PlayerSprite self) {
-            orig(self);
             DynData<PlayerSprite> selfData = new DynData<PlayerSprite>(self);
 
             int? get_dashCount;
@@ -358,8 +357,9 @@ namespace Celeste.Mod.SkinModHelper {
                 orig(self);
                 GameplayRenderer.End();
                 Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, null, matrix);
+                return;
             }
-            return;
+            orig(self);
         }
         
         //-----------------------------PlayerHair-----------------------------
@@ -403,7 +403,7 @@ namespace Celeste.Mod.SkinModHelper {
             if ((bool?)new DynData<PlayerHair>(self)["Update_firstHook_SMH"] != false) {
                 new DynData<PlayerHair>(self)["Update_firstHook_SMH"] = false;
 
-                if (self.Entity is Player || self.Entity is PlayerPlayback) {
+                if (self.Entity is not Player && self.Entity is not PlayerPlayback) {
                     int? get_dashCount = null;
 
                     if (self.Entity is BadelineOldsite badelineOldsite) {
@@ -434,8 +434,6 @@ namespace Celeste.Mod.SkinModHelper {
                     }
                 }
             }
-            orig(self);
-
             Atlas atlas = GFX.Game;
             string colorGrade_Path = (string)new DynData<PlayerSprite>(self.Sprite)["ColorGrade_Path"];
 
@@ -461,7 +459,9 @@ namespace Celeste.Mod.SkinModHelper {
                 orig(self);
                 GameplayRenderer.End();
                 Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, null, matrix);
+                return;
             }
+            orig(self);
         }
 
         //-----------------------------PlayerSpriteMode-----------------------------
