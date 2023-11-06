@@ -1,0 +1,18 @@
+
+HairColors:
+- Dashes: 0
+  Color: "fb9523"
+- Dashes: 1
+  Color: "eef656"
+- Dashes: 2
+  Color: "41dc2e"
+- Dashes: 3
+  Color: "64b4d6"
+- Dashes: 4
+  Color: "3f6ed4"
+- Dashes: 5
+  Color: "8a50be"
+- Dashes: 6
+  Color: "ffffff"
+
+OutlineColor: "47097d"
