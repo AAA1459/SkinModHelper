@@ -445,7 +445,7 @@ namespace Celeste.Mod.SkinModHelper {
             foreach (string key in OtherskinOldConfig.Keys) {
                 if (spriteName.EndsWith($"{key}")) {
                     new DynData<Player>(self)["HairColors"] = SkinModHelperOldConfig.BuildHairColors(OtherskinOldConfig[key]);
-                    new DynData<Player>(self)["has_ColorGrade"] = true;
+                    new DynData<Player>(self)["HairFlashing"] = false;
                     isOld = true;
                     break;
                 }
@@ -459,7 +459,6 @@ namespace Celeste.Mod.SkinModHelper {
                     number_search++;
                 }
                 bool? Build_switch = GFX.Game.Has($"{rootPath}ColorGrading/dash{number_search}");
-                new DynData<Player>(self)["has_ColorGrade"] = Build_switch;
 
                 HairConfig hairConfig = searchSkinConfig<HairConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "HairConfig");
                 CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "CharacterConfig");

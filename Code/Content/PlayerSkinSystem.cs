@@ -180,9 +180,9 @@ namespace Celeste.Mod.SkinModHelper {
             int dashCount = Math.Max(Math.Min(self.Dashes, MAX_DASHES), 0);
             bool MaxDashZero = self.MaxDashes <= 0;
 
-            bool? has_ColorGrade = (bool?)new DynData<Player>(self)["has_ColorGrade"];
+            bool? HairFlashing = (bool?)new DynData<Player>(self)["HairFlashing"];
             List<Color> HairColors = (List<Color>)new DynData<Player>(self)["HairColors"];
-            if ((HairColors != null && self.Hair.Color != Color.White) || has_ColorGrade == true) {
+            if ((HairColors != null && self.Hair.Color != Color.White) || HairFlashing == false) {
                 if (MaxDashZero && dashCount < 2) {
                     self.Hair.Color = HairColors[1];
                 } else {
