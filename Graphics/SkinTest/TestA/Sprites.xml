@@ -27,6 +27,14 @@
     <Anim id="collect" path="idle" delay=".07" frames="7-11"/>
     <Loop id="flap" path="wings" delay=".08" frames="0-8,0-8,0-7,9" />
   </goldberry>
+  
+  <refill path="SkinTest/TestA/refill/" start="idle">
+    <Justify x="0.5" y="0.5"/>
+    <Loop id="idle" path="idle" delay="0.1"/>
+	<Anim id="flash" path="flash" delay="0.05"/>
+  </refill>
+  
+  <refillTwo path="SkinTest/TestA/refillTwo/" copy="refill"/>
 </Sprites>
 
 

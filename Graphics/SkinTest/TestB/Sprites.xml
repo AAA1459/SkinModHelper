@@ -24,6 +24,18 @@
     <Anim id="pop" path="boosterRed" delay="0.08" frames="9-17"/>
   </boosterRed>
   
+  
+  
+  <cloud path="SkinTest/TestB/clouds/" start="idle">
+    <Justify x="0.5" y="0.5"/>
+    <Loop id="idle" path="cloud" delay="0.08" frames="0"/>
+  </cloud>
+  
+  <cloudRemix path="SkinTest/TestB/clouds/" start="idle">
+    <Justify x="0.5" y="0.5"/>
+    <Loop id="idle" path="cloudRemix" delay="0.08" frames="0"/>
+  </cloudRemix>
+  
 
 </Sprites>
 
