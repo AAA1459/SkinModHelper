@@ -127,9 +127,9 @@ Note: special-jump to other skin after, you used skin's info will all is from th
 
 Standard example of config file
 -----------------------------------
-The following content can be copied directly into your config file for test: 
-[Touhou-cirno](https://gamebanana.com/mods/316584)
-[OshiroBoss But Badeline](https://gamebanana.com/mods/444994)
+You can download them as examples for making skins: 
+* [Touhou-cirno](https://gamebanana.com/mods/316584)
+* [OshiroBoss But Badeline](https://gamebanana.com/mods/444994)
 
 
 More Miscellaneous
