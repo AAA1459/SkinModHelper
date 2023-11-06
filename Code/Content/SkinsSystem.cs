@@ -66,7 +66,7 @@ namespace Celeste.Mod.SkinModHelper {
             "player_playback"
         };
 
-        public static readonly int MAX_DASHES = 5;
+        public static readonly int MAX_DASHES = 32;
 
         public static readonly string DEFAULT = "Default";
         public static readonly string ORIGINAL = "Original";

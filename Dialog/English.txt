@@ -52,19 +52,29 @@ SkinModHelper_Other__feather_particles= Particles when get flyFeather
 SkinModHelper_Other__Mountain_marker= Mountain climber mark
 ##---
 
+SkinModHelper_NewMenu_SkinsExtended=:SMH_SubMenu:Additional options - Current Player Skin
+SkinModHelper_NewMenu_SkinsExtended_opened= Additional options
+
+
+
+
+
+
+
+
+
+
 
 SkinModHelper_ExSprite__SkinTest_TestA= SkinTest_TestA (SkinModHelper)
 SkinModHelper_ExSprite__SkinTest_TestB= SkinTest_TestB (SkinModHelper)
+SkinModHelper_ExSprite__SkinTest_TestC= SkinTest_TestC (SkinModHelper)
 
 SkinModHelper_anySprite__SkinTest_TestA= SkinTest_TestA
 SkinModHelper_anySprite__SkinTest_TestB= SkinTest_TestB
+SkinModHelper_anySprite__SkinTest_TestC= SkinTest_TestC
 
 SkinModHelper_anyOther__SkinTest_TestA= SkinTest_TestA
 SkinModHelper_anyOther__SkinTest_TestB= SkinTest_TestB
+SkinModHelper_anyOther__SkinTest_TestC= SkinTest_TestC
 
-
-
-
-
-SkinModHelper_NewMenu_SkinsExtended=:SMH_SubMenu:Additional options - Current Player Skin
-SkinModHelper_NewMenu_SkinsExtended_opened= Additional options
+SkinModHelper_Sprite__badeline__SkinTest_TestC= badeline's Colorful hair (SkinTest_TestC)

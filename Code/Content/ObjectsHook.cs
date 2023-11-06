@@ -31,6 +31,9 @@ namespace Celeste.Mod.SkinModHelper {
             IL.Celeste.DreamBlock.ctor_Vector2_float_float_Nullable1_bool_bool_bool += Celeste_DreamBlock_ILHook;
 
             On.Celeste.Refill.Added += Celeste_Refill_Hook;
+
+            // Hooking an anonymous delegate of Seeker
+            doneILHooks.Add(new ILHook(typeof(Seeker).GetMethod("<.ctor>b__58_2", BindingFlags.NonPublic | BindingFlags.Instance), Celeste_Seeker_ILHook));
         }
 
         public static void Unload() {
@@ -163,6 +166,19 @@ namespace Celeste.Mod.SkinModHelper {
                 }
             }
         }
+        //-----------------------------Seeker-----------------------------
+        public static void Celeste_Seeker_ILHook(ILContext il) {
+            ILCursor cursor = new(il);
+            while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchNewobj("Celeste.DeathEffect"))) {
+                cursor.Emit(OpCodes.Ldarg_0);
+                cursor.EmitDelegate<Func<DeathEffect, Seeker, DeathEffect>>((orig, self) => {
 
+                    // 'Celeste.Seeker' Created new 'Monocle.Entity' to made an 'Celeste.DeathEffect'
+                    // But that let we cannot get Seeker's data by {orig.Entity} in DeathEffect, so we self to add that data
+                    new DynData<DeathEffect>(orig)["spritePath"] = getAnimationRootPath(new DynData<Seeker>(self)["sprite"] as Sprite) + "death_particle";
+                    return orig;
+                });
+            }
+        }
     }
 }

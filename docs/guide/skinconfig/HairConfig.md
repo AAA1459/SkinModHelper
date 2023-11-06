@@ -21,7 +21,7 @@ If you want object-ID to have a new hair color, other than the default maddy's c
 Then you can use this:
 ```
   HairColors:     # The following content can be set multiple times, but do not let [Dashes] repeat same number
-  - Dashes: [use 0 to 5]
+  - Dashes: [use 0 to 32]
     Color: [use six digit RGB hex code]     # such as: ["9B3FB5"], that is baddy's 1-dash color
 ```
 

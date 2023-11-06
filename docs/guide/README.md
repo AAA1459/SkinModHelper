@@ -128,28 +128,8 @@ Note: special-jump to other skin after, you used skin's info will all is from th
 Standard example of config file
 -----------------------------------
 The following content can be copied directly into your config file for test: 
-```
-- SkinName: "SkinTest_TestA"
-  OtherSprite_ExPath: "SkinTest/TestA"
-
-- SkinName: "SkinTest_TestB"
-  OtherSprite_ExPath: "SkinTest/TestB"
-
-
-- SkinName: "vanilla_player"
-  Player_List: true
-  Character_ID: "player"
-  OtherSprite_Path: "SkinTest/TestA"
-
-- SkinName: "vanilla_player_NB"
-  Character_ID: "player_no_backpack"
-  OtherSprite_Path: "SkinTest/TestA"
-
-- SkinName: "vanilla_Silhouette"
-  Silhouette_List: true
-  Character_ID: "player_badeline"
-```
-(Regarding the files and sprites required for the above configurations, SkinModHelper's own files already contain them, you can refer to those files)
+[Touhou-cirno](https://gamebanana.com/mods/316584)
+[OshiroBoss But Badeline](https://gamebanana.com/mods/444994)
 
 
 More Miscellaneous
