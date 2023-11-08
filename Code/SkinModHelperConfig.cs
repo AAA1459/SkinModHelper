@@ -50,8 +50,8 @@ namespace Celeste.Mod.SkinModHelper {
 
 
     public class HairConfig {
-
         public string OutlineColor { get; set; }
+        public bool? HairFlash { get; set; }
 
         public List<HairColor> HairColors { get; set; }
         public class HairColor {
@@ -70,7 +70,7 @@ namespace Celeste.Mod.SkinModHelper {
                 [2] = Calc.HexToColor("FF6DEF")
             };
 
-            if (build_object != null) {
+            if (build_object != null && build_object.HairColors != null) {
                 foreach (HairColor hairColor in build_object.HairColors) {
 
                     Regex hairColorRegex = new(@"^[a-fA-F0-9]{6}$");

@@ -129,6 +129,8 @@ namespace Celeste.Mod.SkinModHelper {
                         }
 
                         if (!string.IsNullOrEmpty(config.OtherSprite_ExPath)) {
+                            if (config.OtherSprite_ExPath.EndsWith("/")) { config.OtherSprite_ExPath = config.OtherSprite_ExPath.Remove(config.OtherSprite_ExPath.LastIndexOf("/")); }
+
                             Logger.Log(LogLevel.Info, "SkinModHelper", $"Registered new General skin: {config.SkinName}");
                             OtherskinConfigs.Add(config.SkinName, config);
                         }
@@ -152,6 +154,10 @@ namespace Celeste.Mod.SkinModHelper {
 
                             if (!spritesWithHair.Contains(config.Character_ID)) {
                                 spritesWithHair.Add(config.Character_ID);
+                            }
+
+                            if (!string.IsNullOrEmpty(config.OtherSprite_Path)) {
+                                if (config.OtherSprite_Path.EndsWith("/")) { config.OtherSprite_Path = config.OtherSprite_Path.Remove(config.OtherSprite_Path.LastIndexOf("/")); }
                             }
 
                             Logger.Log(LogLevel.Info, "SkinModHelper", $"Registered new player skin: {config.SkinName} and {config.hashValues}");
@@ -463,9 +469,14 @@ namespace Celeste.Mod.SkinModHelper {
                 HairConfig hairConfig = searchSkinConfig<HairConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "HairConfig");
                 CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "CharacterConfig");
 
+                if (hairConfig != null && hairConfig.HairFlash == false) {
+                    new DynData<Player>(self)["HairFlashing"] = hairConfig.HairFlash != false;
+                    Build_switch = true;
+                }
+
                 if ((hairConfig != null && hairConfig.HairColors != null) || Build_switch == true) {
                     new DynData<Player>(self)["HairColors"] = HairConfig.BuildHairColors(hairConfig, ModeConfig);
-                } else if (Build_switch != null) {
+                } else {
                     new DynData<Player>(self)["HairColors"] = null;
                 }
             }

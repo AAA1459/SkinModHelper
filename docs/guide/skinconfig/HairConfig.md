@@ -11,9 +11,9 @@ Each of the fields will be explained below.
 ```yaml
   HairColors:
   - < HairColors >
+  HairFlash: [true/false]
   OutlineColor: [use six digit RGB hex code]
 ```
-
 
 HairColors
 -----------------------------------
@@ -25,6 +25,14 @@ Then you can use this:
     Color: [use six digit RGB hex code]     # such as: ["9B3FB5"], that is baddy's 1-dash color
 ```
 
+
+HairFlash
+-----------------------------------
+player's hair will flashing when player's dashes be used or refill.
+but if you not want it will flashing, Then you can use this.
+```
+  HairFlash: false
+```
 
 OutlineColor
 -----------------------------------
