@@ -442,45 +442,6 @@ namespace Celeste.Mod.SkinModHelper {
         private static void PlayerUpdateHook(On.Celeste.Player.orig_Update orig, Player self) {
             orig(self);
 
-            int dashCount = Math.Max(Math.Min(self.Dashes, MAX_DASHES), 0);
-            bool MaxDashZero = self.MaxDashes <= 0;
-
-            bool isOld = false;
-            //Check if config from v0.7 Before---
-            string spriteName = (string)new DynData<PlayerSprite>(self.Sprite)["spriteName"];
-            foreach (string key in OtherskinOldConfig.Keys) {
-                if (spriteName.EndsWith($"{key}")) {
-                    new DynData<Player>(self)["HairColors"] = SkinModHelperOldConfig.BuildHairColors(OtherskinOldConfig[key]);
-                    new DynData<Player>(self)["HairFlashing"] = false;
-                    isOld = true;
-                    break;
-                }
-            }
-            //---
-
-            if (!isOld) {
-                string rootPath = getAnimationRootPath(self.Sprite);
-                int number_search = 0;
-                while (number_search < MAX_DASHES && !GFX.Game.Has($"{rootPath}ColorGrading/dash{number_search}")) {
-                    number_search++;
-                }
-                bool? Build_switch = GFX.Game.Has($"{rootPath}ColorGrading/dash{number_search}");
-
-                HairConfig hairConfig = searchSkinConfig<HairConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "HairConfig");
-                CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "CharacterConfig");
-
-                if (hairConfig != null && hairConfig.HairFlash == false) {
-                    new DynData<Player>(self)["HairFlashing"] = hairConfig.HairFlash != false;
-                    Build_switch = true;
-                }
-
-                if ((hairConfig != null && hairConfig.HairColors != null) || Build_switch == true) {
-                    new DynData<Player>(self)["HairColors"] = HairConfig.BuildHairColors(hairConfig, ModeConfig);
-                } else {
-                    new DynData<Player>(self)["HairColors"] = null;
-                }
-            }
-
             int player_skinid_verify = 0;
             foreach (SkinModHelperConfig config in skinConfigs.Values) {
                 if ((int)self.Sprite.Mode == config.hashValues) {
