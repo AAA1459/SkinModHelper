@@ -480,7 +480,7 @@ namespace Celeste.Mod.SkinModHelper {
         private static Color PlayerHairGetHairColorHook(On.Celeste.PlayerHair.orig_GetHairColor orig, PlayerHair self, int index) {
             DynData<PlayerSprite> selfData = new DynData<PlayerSprite>(self.Sprite);
 
-            int? get_dashCount = GetDashCount(self);
+            int? get_dashCount = null;
             bool? HairFlashing = (bool?)selfData["HairFlashing"];
             List<Color> HairColors = (List<Color>)selfData["HairColors"];
 
