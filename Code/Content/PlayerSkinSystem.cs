@@ -285,14 +285,9 @@ namespace Celeste.Mod.SkinModHelper {
 
                 cursor.Emit(OpCodes.Ldarg_0);
                 cursor.EmitDelegate<Func<string, Player, string>>((orig, self) => {
-
                     string spritePath = getAnimationRootPath(self.Sprite) + "startStarFlyWhite";
-                    string number = "";
-                    while (number != "00" && !GFX.Game.Has(spritePath + number)) {
-                        number = number + "0";
-                    }
 
-                    if (GFX.Game.Has(spritePath + number)) {
+                    if (GFX.Game.HasAtlasSubtexturesAt(spritePath, 0)) {
                         return spritePath;
                     }
                     return orig;
@@ -377,15 +372,28 @@ namespace Celeste.Mod.SkinModHelper {
             }
             //---
 
+            int HairFrame = self.Sprite.HairFrame;
             if (index == 0) {
                 spritePath = spritePath + "bangs";
             } else {
                 spritePath = spritePath + "hair";
             }
 
-            if (GFX.Game.Has(spritePath + "00")) {
+            if (GFX.Game.HasAtlasSubtexturesAt(spritePath, 0)) {
                 List<MTexture> newhair = GFX.Game.GetAtlasSubtextures(spritePath);
-                return newhair.Count > self.Sprite.HairFrame ? newhair[self.Sprite.HairFrame] : newhair[0];
+                spriteName = $"{(newhair.Count > self.Sprite.HairFrame ? newhair[self.Sprite.HairFrame] : newhair[0])}";
+
+                if (index != 0) {
+                    if (GFX.Game.Has($"{spriteName}_{index}")) {
+                        //Set the texture for hair of each section
+                        spriteName = $"{spriteName}_{index}";
+
+                    } else if (GFX.Game.Has($"{spriteName}_{index - self.Sprite.HairCount}")) {
+                        //Set the texture for hair of each section from back to front
+                        spriteName = $"{spriteName}_{index - self.Sprite.HairCount}";
+                    }
+                }
+                return GFX.Game[spriteName];
             }
             return orig(self, index);
         }

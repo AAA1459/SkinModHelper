@@ -277,7 +277,7 @@ namespace Celeste.Mod.SkinModHelper {
                     RecordOtherSprite(GFX.Game, $"{config.OtherSprite_Path}/death_particle", "death_particle", DEFAULT);
                     RecordOtherSprite(GFX.Game, $"{config.OtherSprite_Path}/objects/dreamblock/particles", "dreamblock_particles", DEFAULT);
                     RecordOtherSprite(GFX.Game, $"{config.OtherSprite_Path}/particles/feather", "feather_particles", DEFAULT);
-                    RecordOtherSprite(MTN.Mountain, $"{config.OtherSprite_Path}/marker/runBackpack00000", "Mountain_marker", DEFAULT);
+                    RecordOtherSprite(MTN.Mountain, $"{config.OtherSprite_Path}/marker/runBackpack", "Mountain_marker", DEFAULT, true);
                 }
             }
 
@@ -293,12 +293,12 @@ namespace Celeste.Mod.SkinModHelper {
                     RecordOtherSprite(GFX.Game, $"{config.OtherSprite_ExPath}/death_particle", "death_particle", config.SkinName);
                     RecordOtherSprite(GFX.Game, $"{config.OtherSprite_ExPath}/objects/dreamblock/particles", "dreamblock_particles", config.SkinName);
                     RecordOtherSprite(GFX.Game, $"{config.OtherSprite_ExPath}/particles/feather", "feather_particles", config.SkinName);
-                    RecordOtherSprite(MTN.Mountain, $"{config.OtherSprite_ExPath}/marker/runBackpack00000", "Mountain_marker", config.SkinName);
+                    RecordOtherSprite(MTN.Mountain, $"{config.OtherSprite_ExPath}/marker/runBackpack", "Mountain_marker", config.SkinName, true);
                 }
             }
         }
-        public static void RecordOtherSprite(Atlas atlas, string spritePath, string otherSkin, string skinId) {
-            if (atlas.Has(spritePath)) {
+        public static void RecordOtherSprite(Atlas atlas, string spritePath, string otherSkin, string skinId, bool number_search = false) {
+            if ((number_search && atlas.HasAtlasSubtexturesAt(spritePath, 0)) || atlas.Has(spritePath)) {
                 RecordSpriteBanks(null, skinId, null, otherSkin);
             }
         }
@@ -528,14 +528,12 @@ namespace Celeste.Mod.SkinModHelper {
             return SkinID;
         }
         public static string getAnimationRootPath(object type) {
-            string spriteName;
+            string spriteName = "";
             if (type is PlayerSprite playerSprite) {
                 spriteName = (string)new DynData<PlayerSprite>(playerSprite)["spriteName"];
 
             } else if (type is Sprite sprite) {
-                string RootPath = $"{(sprite.Has("idle") ? sprite.GetFrame("idle", 0) : sprite.Texture)}";
-                return RootPath.Remove(RootPath.LastIndexOf("/") + 1);
-
+                type = sprite.Has("idle") ? sprite.GetFrame("idle", 0) : sprite.Texture;
             } else {
                 spriteName = $"{type}";
 
@@ -546,7 +544,11 @@ namespace Celeste.Mod.SkinModHelper {
                 }
             }
 
-            if (GFX.SpriteBank.SpriteData.ContainsKey(spriteName)) {
+            if (type is MTexture) {
+                spriteName = $"{type}";
+                return spriteName.Remove(spriteName.LastIndexOf("/") + 1);
+
+            } else if (GFX.SpriteBank.SpriteData.ContainsKey(spriteName)) {
                 SpriteData spriteData = GFX.SpriteBank.SpriteData[spriteName];
 
                 if (!string.IsNullOrEmpty(spriteData.Sources[0].OverridePath)) {
@@ -567,13 +569,7 @@ namespace Celeste.Mod.SkinModHelper {
                     if (Player_Skinid_verify == config.hashValues) {
                         if (!string.IsNullOrEmpty(config.OtherSprite_Path)) {
                             CustomPath = $"{config.OtherSprite_Path}/{origPath}";
-                        }
-
-                        if (CustomPath != null) {
-                            while (number_search && get_number != "00000" && !atlas.Has(CustomPath + get_number)) {
-                                get_number = get_number + "0";
-                            }
-                            if (atlas.Has(CustomPath + get_number)) {
+                            if ((number_search && atlas.HasAtlasSubtexturesAt(CustomPath, 0)) || atlas.Has(CustomPath)) {
                                 return CustomPath;
                             }
                         }
@@ -585,16 +581,12 @@ namespace Celeste.Mod.SkinModHelper {
             CustomPath = null;
             foreach (SkinModHelperConfig config in OtherskinConfigs.Values) {
                 if (!string.IsNullOrEmpty(config.OtherSprite_ExPath)) {
+                    string spritePath = $"{config.OtherSprite_ExPath}/{origPath}";
+
                     if (SkinId == config.SkinName ||
                        (Default && Settings.ExtraXmlList.ContainsKey(config.SkinName) && Settings.ExtraXmlList[config.SkinName])) {
-
-                        string number = "";
-                        while (number_search && number != "00000" && !atlas.Has($"{config.OtherSprite_ExPath}/{origPath}{number}")) {
-                            number = number + "0";
-                        }
-                        if (atlas.Has($"{config.OtherSprite_ExPath}/{origPath}{number}")) {
-                            get_number = number;
-                            CustomPath = $"{config.OtherSprite_ExPath}/{origPath}";
+                        if ((number_search && atlas.HasAtlasSubtexturesAt(spritePath, 0)) || atlas.Has(spritePath)) {
+                            CustomPath = spritePath;
                         }
                     }
                 }
