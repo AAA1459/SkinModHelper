@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Monocle;
 using YamlDotNet.Serialization;
 using System.Text.RegularExpressions;
+using FMOD.Studio;
+using System;
 
 using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
@@ -58,9 +60,13 @@ namespace Celeste.Mod.SkinModHelper {
             public int Dashes { get; set; }
             public string Color { get; set; }
         }
+        public List<HairLength> HairLengths { get; set; }
+        public class HairLength {
+            public int Dashes { get; set; }
+            public int Length { get; set; }
+        }
 
-        public static List<Color> BuildHairColors(HairConfig build_object, CharacterConfig ModeConfig = null) {
-
+        public static Dictionary<int, List<Color>> BuildHairColors(HairConfig build_object, CharacterConfig ModeConfig = null) {
             List<bool> changed = new(new bool[MAX_DASHES + 1]);
 
             // Default colors taken from vanilla
@@ -86,7 +92,37 @@ namespace Celeste.Mod.SkinModHelper {
                     GeneratedHairColors[i] = GeneratedHairColors[i - 1];
                 }
             }
-            return GeneratedHairColors;
+
+            Dictionary<int, List<Color>> HairColors = new(); // 0-99 as specify-segment Hair's color.
+            HairColors[100] = GeneratedHairColors; // 100 as each-segment Hair's Default color, or as Player's Dash Color etc.
+
+            return HairColors;
+        }
+        public static int? GetHairLength(HairConfig build_object, int? DashCount) {
+            if (DashCount == null || build_object == null) {
+                return null;
+            }
+            int? HairLength = null;
+
+            DashCount = Math.Max(Math.Min((int)DashCount, MAX_DASHES), -1);
+
+            // -1 for when player into flyFeathers state.
+
+            if (build_object.HairLengths != null) {
+                foreach (HairLength hairLength in build_object.HairLengths) {
+                    if (DashCount == hairLength.Dashes) {
+                        HairLength = hairLength.Length;
+                        break;
+                    } else if (DashCount > 2 && hairLength.Dashes > 1 && DashCount > hairLength.Dashes) {
+                        // Autofill HairLength if DashCount over config setted
+                        HairLength = hairLength.Length;
+                    }
+                }
+            }
+            if (HairLength != null) {
+                HairLength = Math.Max(Math.Min((int)HairLength, MAX_HAIRLENGTH), 1);
+            }
+            return HairLength;
         }
     }
 
@@ -103,8 +139,7 @@ namespace Celeste.Mod.SkinModHelper {
 
         public List<Color> GeneratedHairColors { get; set; }
 
-        public static List<Color> BuildHairColors(SkinModHelperOldConfig config) {
-
+        public static Dictionary<int, List<Color>> BuildHairColors(SkinModHelperOldConfig config) {
             List<bool> changed = new(new bool[MAX_DASHES + 1]);
 
             // Default colors taken from vanilla
@@ -125,14 +160,16 @@ namespace Celeste.Mod.SkinModHelper {
                     }
                 }
             }
-
             // Fill upper dash range with the last customized dash color
             for (int i = 3; i <= MAX_DASHES; i++) {
                 if (!changed[i]) {
                     GeneratedHairColors[i] = GeneratedHairColors[i - 1];
                 }
             }
-            return GeneratedHairColors;
+            Dictionary<int, List<Color>> HairColors = new(); // int as specify-segment Hair's color.
+            HairColors[100] = GeneratedHairColors; // 100 as each-segment Hair's Default color, or as Player's Dash Color etc.
+
+            return HairColors;
         }
     }
 }

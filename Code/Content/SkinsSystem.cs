@@ -67,6 +67,7 @@ namespace Celeste.Mod.SkinModHelper {
         };
 
         public static readonly int MAX_DASHES = 32;
+        public static readonly int MAX_HAIRLENGTH = 99;
 
         public static readonly string DEFAULT = "Default";
         public static readonly string ORIGINAL = "Original";

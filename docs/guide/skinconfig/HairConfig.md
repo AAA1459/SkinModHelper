@@ -10,21 +10,33 @@ Here is a skeleton of that new config file.
 Each of the fields will be explained below.
 ```yaml
   HairColors:
-  - < HairColors >
+  - < HairColor >
+  HairLengths:
+  - < HairLength >
   HairFlash: [true/false]
   OutlineColor: [use six digit RGB hex code]
 ```
 
 HairColors
 -----------------------------------
-If you want object-ID to have a new hair color, other than the default maddy's color, 
+If you want object-ID to get a new hair color, other than the default maddy's color, 
 Then you can use this:
 ```
-  HairColors:     # The following content can be set multiple times, but do not let [Dashes] repeat same number
+  HairColors:
   - Dashes: [use 0 to 32]
     Color: [use six digit RGB hex code]     # such as: ["9B3FB5"], that is baddy's 1-dash color
 ```
 
+HairLengths
+-----------------------------------
+If you want object-ID's hair to be longer or shorter,
+Then you can use this:
+```
+  HairLengths:
+  - Dashes: [use -1 to 32]     
+      # using [-1] mean apply this length to player in feather status
+    Length: [use 1 to 99]
+```
 
 HairFlash
 -----------------------------------

@@ -18,7 +18,8 @@ At this point, color grades for specified-ID is done
 
 more things
 -----------------------------------
-* color grades can work to NPC badeline, if you want do, you can to test it
+* color grades can work to NPC badeline, if you want do, you can to test it.
+* color grades not supported CelesteNet yet.
 
 
 [previous page](/docs/guide/README.md#more-miscellaneous)
