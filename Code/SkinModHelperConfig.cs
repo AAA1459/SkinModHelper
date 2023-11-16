@@ -59,7 +59,14 @@ namespace Celeste.Mod.SkinModHelper {
         public class HairColor {
             public int Dashes { get; set; }
             public string Color { get; set; }
+            public List<SegmentsColor> SegmentsColors { get; set; }
+            public class SegmentsColor {
+                public int Segment { get; set; }
+                public string Color { get; set; }
+            }
         }
+
+
         public List<HairLength> HairLengths { get; set; }
         public class HairLength {
             public int Dashes { get; set; }
@@ -68,6 +75,7 @@ namespace Celeste.Mod.SkinModHelper {
 
         public static Dictionary<int, List<Color>> BuildHairColors(HairConfig build_object, CharacterConfig ModeConfig = null) {
             List<bool> changed = new(new bool[MAX_DASHES + 1]);
+            Regex hairColorRegex = new(@"^[a-fA-F0-9]{6}$");
 
             // Default colors taken from vanilla
             List<Color> GeneratedHairColors = new List<Color>(new Color[MAX_DASHES + 1]) {
@@ -78,8 +86,6 @@ namespace Celeste.Mod.SkinModHelper {
 
             if (build_object != null && build_object.HairColors != null) {
                 foreach (HairColor hairColor in build_object.HairColors) {
-
-                    Regex hairColorRegex = new(@"^[a-fA-F0-9]{6}$");
                     if (hairColor.Dashes >= 0 && hairColor.Dashes <= MAX_DASHES && hairColorRegex.IsMatch(hairColor.Color)) {
                         GeneratedHairColors[hairColor.Dashes] = Calc.HexToColor(hairColor.Color);
                         changed[hairColor.Dashes] = true;
@@ -96,8 +102,25 @@ namespace Celeste.Mod.SkinModHelper {
             Dictionary<int, List<Color>> HairColors = new(); // 0-99 as specify-segment Hair's color.
             HairColors[100] = GeneratedHairColors; // 100 as each-segment Hair's Default color, or as Player's Dash Color etc.
 
+            if (build_object != null && build_object.HairColors != null) {
+                foreach (HairColor hairColor in build_object.HairColors) {
+                    if (hairColor.Dashes >= 0 && hairColor.Dashes <= MAX_DASHES && hairColor.SegmentsColors != null) {
+
+                        foreach (HairColor.SegmentsColor SegmentColor in hairColor.SegmentsColors) {
+                            if (SegmentColor.Segment <= MAX_HAIRLENGTH && hairColorRegex.IsMatch(SegmentColor.Color)) {
+                                if (!HairColors.ContainsKey(SegmentColor.Segment)) {
+                                    HairColors[SegmentColor.Segment] = new(GeneratedHairColors); // Don't try to throw away this clone.
+                                }
+                                HairColors[SegmentColor.Segment][hairColor.Dashes] = Calc.HexToColor(SegmentColor.Color);
+                            }
+                        }
+                    }
+                }
+            }
+
             return HairColors;
         }
+
         public static int? GetHairLength(HairConfig build_object, int? DashCount) {
             if (DashCount == null || build_object == null) {
                 return null;
@@ -166,8 +189,8 @@ namespace Celeste.Mod.SkinModHelper {
                     GeneratedHairColors[i] = GeneratedHairColors[i - 1];
                 }
             }
-            Dictionary<int, List<Color>> HairColors = new(); // int as specify-segment Hair's color.
-            HairColors[100] = GeneratedHairColors; // 100 as each-segment Hair's Default color, or as Player's Dash Color etc.
+            Dictionary<int, List<Color>> HairColors = new();
+            HairColors[100] = GeneratedHairColors;
 
             return HairColors;
         }
