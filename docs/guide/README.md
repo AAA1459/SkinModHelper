@@ -114,6 +114,7 @@ We will introduce those special jumps and their jump conditions:
    * conditions: When the player get lantern from JungleHelper
 * "[SkinName] + _lantern_NB"
    * conditions: When the player get lantern from JungleHelper and is no_backpack state
+
 Note: special-jump to other skin after, you used skin's info will all is from that other skin's config info
 
 
