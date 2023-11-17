@@ -92,15 +92,11 @@ namespace Celeste.Mod.SkinModHelper {
                     }
                 }
             }
-            // Fill upper dash range with the last customized dash color
-            for (int i = 3; i <= MAX_DASHES; i++) {
-                if (!changed[i]) {
-                    GeneratedHairColors[i] = GeneratedHairColors[i - 1];
-                }
-            }
 
-            Dictionary<int, List<Color>> HairColors = new(); // 0-99 as specify-segment Hair's color.
-            HairColors[100] = GeneratedHairColors; // 100 as each-segment Hair's Default color, or as Player's Dash Color etc.
+            Dictionary<int, List<Color>> HairColors = new();
+            // 0~99 as specify-segment Hair's color.
+            // -100~-1 as reverse-order of hair.
+            HairColors[100] = GeneratedHairColors; // 100 as each-segment Hair's Default color, or as Player's Dash Color and Silhouette color.
 
             if (build_object != null && build_object.HairColors != null) {
                 foreach (HairColor hairColor in build_object.HairColors) {
@@ -109,11 +105,20 @@ namespace Celeste.Mod.SkinModHelper {
                         foreach (HairColor.SegmentsColor SegmentColor in hairColor.SegmentsColors) {
                             if (SegmentColor.Segment <= MAX_HAIRLENGTH && hairColorRegex.IsMatch(SegmentColor.Color)) {
                                 if (!HairColors.ContainsKey(SegmentColor.Segment)) {
-                                    HairColors[SegmentColor.Segment] = new(GeneratedHairColors); // Don't try to throw away this clone.
+                                    HairColors[SegmentColor.Segment] = new(GeneratedHairColors); // i never knew this work like a the variable or entity of static,  clone it.
                                 }
                                 HairColors[SegmentColor.Segment][hairColor.Dashes] = Calc.HexToColor(SegmentColor.Color);
                             }
                         }
+                    }
+                }
+            }
+
+            foreach (List<Color> hairColor in HairColors.Values) {
+                // Fill upper dash range with the last customized dash color
+                for (int i = 3; i <= MAX_DASHES; i++) {
+                    if (!changed[i]) {
+                        hairColor[i] = hairColor[i - 1];
                     }
                 }
             }
@@ -128,7 +133,6 @@ namespace Celeste.Mod.SkinModHelper {
             int? HairLength = null;
 
             DashCount = Math.Max(Math.Min((int)DashCount, MAX_DASHES), -1);
-
             // -1 for when player into flyFeathers state.
 
             if (build_object.HairLengths != null) {

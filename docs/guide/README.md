@@ -41,40 +41,31 @@ In the config file, we first need to write this information:
 If your skin type is "Player Skin",
 Then, you need to set a PlayerSkin ID for the SkinName information you wrote, use this to do it:
 ```
-  Character_ID: [your new Player ID]     # this also needs you to Create a "Sprites.Xml", will be detailed description later
+  Character_ID: [your new PlayerID]
 ```
 
-A brief introduction to Sprites.xml
+OtherSprite / Some thing about skin's Xml
 -----------------------------------
-If you want to know more about config file, you may need to know a little about XMLs first
-
-SkinModHelper can replace sprites included in the default Sprites.xml location. 
-("Celeste/Mods/[mod_name]/Graphics/Sprites.xml" or Vanilla's "Celeste/Content/Graphics/Sprites.xml")
-
-If, the skin you make is a player skin. then we have these things: 
-1. SkinModHelper will make player get your "[Character_ID]", no longer get Player IDs in vanilla.
-2. So we need to create a Sprites.xml of default location.
-3. inside it create a new ID called "[Character_ID]".
-   * Use the "player_badeline" ID of vanilla as a guide -- that new ID should have all animations
-   * Note: If the new ID does not match "[Character_ID]". Then it will directly crash the game
-
-
-
-OtherSprite
------------------------------------
-Regarding the Player IDs in Sprites.xml, there are many IDs that are not classified as player IDs, 
-but maddy appears in the animation texture of those IDs.
-
-Such as "lookout", "payphone" and other IDs, or the "HonlyHelper_Petter" ID from HonlyHelper.
-Below we will introduce a method to let SkinModHelper reskin them with the same ID:
+Skin will need you to have an Xml file, 
+Now let we first set root directory for those Xml, or called them is skin's xml.
 ```
-  OtherSprite_Path: [Root directory path of non-default Sprites.xml]    # Path's starting point is "Graphics/".
+# The starting point of below path: "Graphics/"
+  OtherSprite_Path: [Root directory path]     # for paleyr skin
+  OtherSprite_ExPath: [Root directory path]     # for general skin
 ```
-
-If your skin type is "General Skin", you just want to simply reskin some IDs. Then use this:
-```
-  OtherSprite_ExPath: [same as OtherSprite_Path]
-```
+For information about those Xml files, we quote some [everest's wiki](https://github.com/EverestAPI/Resources/wiki/Reskinning-Entities#reskinning-entities-through-spritesxml).
+After viewing, we need to do those:
+* Remove the some content, or called ID in the skin's Xml that you not have or not want reskin.
+  * ! SkinModHelper has a menu to listing all of them, so this very important.
+* Then if your skin type is "Player Skin":
+  1. Create another file calls "Sprites.xml" in "Graphics/" directory
+  2. Copy some PlayerID in the skin's xml to that another xml.
+  3. Renaming that PlayerID to [Character_ID] that comes from you setted in this config
+    * ! If you do this wrong, the game will crash when you enter the map
+  4. If you have some questions about playerID is what, so [check here](https://github.com/AAA1459/SkinModHelper/wiki/Textures-list-of-Various-Type#maddy-or-baddy-related)
+*  Skin's xml not only include "Sprites.xml", it also can include "Portraits.xml"
+  * The specific operation is as above.
+now you have finished them, Let's check out the other parts.
 
 
 let your skin appear in Mod-Options
@@ -106,11 +97,13 @@ this just need repeats everything above steps.
 
 
 
-Special Jump of config files
+Special Jump of Player skin
 -----------------------------------
-You select a skin in SkinModHelper. 
-If there are some special names close to that skin in the config file, and you meet some conditions.
+If there are some special names close to that player skin in the config file, and you meet some conditions.
 Then SkinModHelper will try to do a special jump.
+
+The purpose of Those Special Jump are, 
+for let player(maddy) looks different in the same entity. such as "payphone" ID of Sprites.xml.
 
 We will introduce those special jumps and their jump conditions:
 * "[SkinName] + _NB" 
@@ -120,7 +113,6 @@ We will introduce those special jumps and their jump conditions:
    * conditions: When the player get lantern from JungleHelper
 * "[SkinName] + _lantern_NB"
    * conditions: When the player get lantern from JungleHelper and is no_backpack state
-
 Note: special-jump to other skin after, you used skin's info will all is from that other skin's config info
 
 
@@ -134,13 +126,10 @@ You can download them as examples for making skins:
 
 More Miscellaneous
 ---------------------
-1. About reskin method mentioned in "OtherSprite", it also can work for Portraits.xml, 
-Just consider the corresponding "Sprites.xml" as "Portraits.xml".
-
-2. SkinModHelper have some introduce of special textures, and collected various sources of IDs animation.
+1. SkinModHelper have some introduce of special textures, and collected various sources of IDs animation.
    [clike here for check](https://github.com/AAA1459/SkinModHelper/wiki/Textures-list-of-Various-Type#special-texture-settingreskin)
 
-3. more complicated things
+2. more complicated things
    * [Setting ColorGrade for skin](/docs/guide//skinconfig/ColorGrade.md)
    * [Setting HairConfig for skin](/docs/guide//skinconfig/HairConfig.md)
    * [Setting some effects for skin](/docs/guide/skinconfig/CharacterConfig.md)
