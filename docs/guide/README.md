@@ -59,7 +59,7 @@ After viewing, we need to do those:
   * ! SkinModHelper has a menu to listing all of them, so this very important.
 * Then if your skin type is "Player Skin":
   * Create another file calls "Sprites.xml" in "Graphics/" directory
-  * Copy some PlayerID in the skin's xml to that another xml.
+  * Move some PlayerID in the skin's xml to that another xml.
   * Renaming that PlayerID to [Character_ID] that comes from you setted in this config
     * ! If you do this wrong, the game will crash when you enter the map
   * If you have some questions about playerID is what, so [check here](https://github.com/AAA1459/SkinModHelper/wiki/Textures-list-of-Various-Type#maddy-or-baddy-related)
