@@ -58,13 +58,14 @@ After viewing, we need to do those:
 * Remove the some content, or called ID in the skin's Xml that you not have or not want reskin.
   * ! SkinModHelper has a menu to listing all of them, so this very important.
 * Then if your skin type is "Player Skin":
-  1. Create another file calls "Sprites.xml" in "Graphics/" directory
-  2. Copy some PlayerID in the skin's xml to that another xml.
-  3. Renaming that PlayerID to [Character_ID] that comes from you setted in this config
+  * Create another file calls "Sprites.xml" in "Graphics/" directory
+  * Copy some PlayerID in the skin's xml to that another xml.
+  * Renaming that PlayerID to [Character_ID] that comes from you setted in this config
     * ! If you do this wrong, the game will crash when you enter the map
-  4. If you have some questions about playerID is what, so [check here](https://github.com/AAA1459/SkinModHelper/wiki/Textures-list-of-Various-Type#maddy-or-baddy-related)
+  * If you have some questions about playerID is what, so [check here](https://github.com/AAA1459/SkinModHelper/wiki/Textures-list-of-Various-Type#maddy-or-baddy-related)
 *  Skin's xml not only include "Sprites.xml", it also can include "Portraits.xml"
-  * The specific operation is as above.
+   * The specific operation is as above.
+   
 now you have finished them, Let's check out the other parts.
 
 
