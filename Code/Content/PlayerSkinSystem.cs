@@ -413,7 +413,10 @@ namespace Celeste.Mod.SkinModHelper {
                     if (spriteName.EndsWith($"{key}")) {
                         selfData["HairColors"] = SkinModHelperOldConfig.BuildHairColors(OtherskinOldConfig[key]);
                         selfData["HairFlashing"] = false;
-                        break;
+
+                        orig(self);
+                        new DynData<PlayerHair>(self)["SMH_OncePerFrame"] = true;
+                        return;
                     }
                 }
                 //---

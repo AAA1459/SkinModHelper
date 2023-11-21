@@ -193,6 +193,7 @@ namespace Celeste.Mod.SkinModHelper {
                     GeneratedHairColors[i] = GeneratedHairColors[i - 1];
                 }
             }
+
             Dictionary<int, List<Color>> HairColors = new();
             HairColors[100] = GeneratedHairColors;
 
