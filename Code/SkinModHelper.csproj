@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>net452</TargetFramework>
-        <AssemblyName>SkinModHelper</AssemblyName>
+        <AssemblyName>SkinModHelperPlus</AssemblyName>
         <RootNamespace>Celeste.Mod.SkinModHelper</RootNamespace>
         <LangVersion>latest</LangVersion>
         <CelestePrefix Condition="'$(CelestePrefix)' == '' And Exists('..\..\Celeste.exe')">..\..</CelestePrefix>
@@ -66,7 +66,7 @@
     </Target>
     
     <PropertyGroup>
-        <PathMap>$(MSBuildProjectDirectory)=SkinModHelper/</PathMap>
+        <PathMap>$(MSBuildProjectDirectory)=SkinModHelperPlus/</PathMap>
     </PropertyGroup>
     
     <PropertyGroup>

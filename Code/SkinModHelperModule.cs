@@ -39,6 +39,7 @@ namespace Celeste.Mod.SkinModHelper {
         //-----------------------------
         public static bool JungleHelperInstalled = false;
         public static bool SaveFilePortraits = false;
+        public static bool OrigSkinModHelper_loaded = false;
 
         public SkinModHelperModule() {
             Instance = this;
@@ -49,6 +50,9 @@ namespace Celeste.Mod.SkinModHelper {
             }
             if (Everest.Loader.DependencyLoaded(new EverestModuleMetadata { Name = "SaveFilePortraits", Version = new Version(1, 0, 0) })) {
                 SaveFilePortraits = true;
+            }
+            if (Everest.Loader.DependencyLoaded(new EverestModuleMetadata { Name = "SkinModHelper", Version = new Version(0, 0, 0) })) {
+                OrigSkinModHelper_loaded = true;
             }
         }
 
@@ -61,6 +65,8 @@ namespace Celeste.Mod.SkinModHelper {
             ObjectsHook.Load();
             SomePatches.Load();
         }
+
+
         public override void Unload() {
             SkinsSystem.Unload();
 
