@@ -1,4 +1,8 @@
 
+modname_SkinModHelperPlus= Skin Mod Helper
+SKIN_MOD_HELPER_SETTINGS_TITLE= Skin Mod Helper
+
+
 SkinModHelper_options_Backpack= Backpack
 
 SkinModHelper_options_BackpackMode_Default= Default
@@ -77,4 +81,4 @@ SkinModHelper_anyOther__SkinTest_TestA= SkinTest_TestA
 SkinModHelper_anyOther__SkinTest_TestB= SkinTest_TestB
 SkinModHelper_anyOther__SkinTest_TestC= SkinTest_TestC
 
-SkinModHelper_Sprite__badeline__SkinTest_TestC= badeline's Colorful hair (SkinTest_TestC)
+SkinModHelper_Sprite__badeline__SkinTest_TestC= Colorful hair (SkinTest_TestC)
