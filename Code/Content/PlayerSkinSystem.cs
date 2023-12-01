@@ -324,12 +324,14 @@ namespace Celeste.Mod.SkinModHelper {
                 colorGrade_Path = $"{getAnimationRootPath(self)}ColorGrading/dash";
 
                 //Check if config from v0.7 Before---
-                string spriteName = (string)new DynData<PlayerSprite>(self)["spriteName"];
-                foreach (string key in OtherskinOldConfig.Keys) {
-                    if (spriteName.EndsWith($"{key}")) {
-                        atlas = GFX.ColorGrades;
-                        colorGrade_Path = $"{OtherskinConfigs[key].OtherSprite_ExPath}/dash";
-                        break;
+                if (self.Entity is Player || self.Entity is PlayerDeadBody) {
+                    string spriteName = (string)new DynData<PlayerSprite>(self)["spriteName"];
+                    foreach (string key in OtherskinOldConfig.Keys) {
+                        if (spriteName.EndsWith($"{key}")) {
+                            atlas = GFX.ColorGrades;
+                            colorGrade_Path = $"{OtherskinConfigs[key].OtherSprite_ExPath}/dash";
+                            break;
+                        }
                     }
                 }
                 //---
@@ -365,11 +367,13 @@ namespace Celeste.Mod.SkinModHelper {
             string colorGrade_Path = (string)new DynData<PlayerSprite>(self.Sprite)["ColorGrade_Path"];
 
             //Check if config from v0.7 Before---
-            string spriteName = (string)new DynData<PlayerSprite>(self.Sprite)["spriteName"];
-            foreach (string key in OtherskinOldConfig.Keys) {
-                if (spriteName.EndsWith($"{key}")) {
-                    atlas = GFX.ColorGrades;
-                    break;
+            if (self.Entity is Player || self.Entity is PlayerDeadBody) {
+                string spriteName = (string)new DynData<PlayerSprite>(self.Sprite)["spriteName"];
+                foreach (string key in OtherskinOldConfig.Keys) {
+                    if (spriteName.EndsWith($"{key}")) {
+                        atlas = GFX.ColorGrades;
+                        break;
+                    }
                 }
             }
 
@@ -408,15 +412,17 @@ namespace Celeste.Mod.SkinModHelper {
                 DynData<PlayerSprite> selfData = new DynData<PlayerSprite>(self.Sprite);
 
                 //Check if config from v0.7 Before---
-                string spriteName = (string)selfData["spriteName"];
-                foreach (string key in OtherskinOldConfig.Keys) {
-                    if (spriteName.EndsWith($"{key}")) {
-                        selfData["HairColors"] = SkinModHelperOldConfig.BuildHairColors(OtherskinOldConfig[key]);
-                        selfData["HairFlashing"] = false;
+                if (self.Entity is Player) {
+                    string spriteName = (string)selfData["spriteName"];
+                    foreach (string key in OtherskinOldConfig.Keys) {
+                        if (spriteName.EndsWith($"{key}")) {
+                            selfData["HairColors"] = SkinModHelperOldConfig.BuildHairColors(OtherskinOldConfig[key]);
+                            selfData["HairFlashing"] = false;
 
-                        orig(self);
-                        new DynData<PlayerHair>(self)["SMH_OncePerFrame"] = true;
-                        return;
+                            orig(self);
+                            new DynData<PlayerHair>(self)["SMH_OncePerFrame"] = true;
+                            return;
+                        }
                     }
                 }
                 //---
