@@ -44,6 +44,9 @@ namespace Celeste.Mod.SkinModHelper {
                     doneHooks.Add(new Hook(OldModule.GetMethod("CreateModMenuSection", BindingFlags.Public | BindingFlags.Instance),
                                          typeof(SomePatches).GetMethod("EmptyBlocks_4", BindingFlags.Public | BindingFlags.Instance), OldModule));
 
+                    doneHooks.Add(new Hook(OldModule.GetMethod("UniqueSkinSelected", BindingFlags.Public | BindingFlags.Static),
+                                         typeof(SomePatches).GetMethod("EmptyBlocks_0_boolen", BindingFlags.Public | BindingFlags.Static)));
+
                     //OldModule.GetMethod("Unload", BindingFlags.Public | BindingFlags.Instance).Invoke(OldModule, new object[] { OldModule });
                 } catch (Exception e) {
                     Logger.Log(LogLevel.Warn, "SkinModHelper", $"SkinModHelperPlus trying interruption the code of orig SkinModHelper, but it failed.");
@@ -132,15 +135,16 @@ namespace Celeste.Mod.SkinModHelper {
 
         //-----------------------------Sprites-----------------------------
         private static void PlayerSpritePlayHook(On.Monocle.Sprite.orig_Play orig, Sprite self, string id, bool restart = false, bool randomizeFrame = false) {
-            if (self is PlayerSprite) {
-                if (id == "duck" && self.LastAnimationID == "duck") {
-                    //Duck's animation frames keep replaying? Blocks it!
-                    return;
+            if (self is PlayerSprite playerSprite) {
+                if (id == "duck") {
+                    if (self.Has("demodash") && self.Entity is Player player && player.DashAttacking) { id = "demodash"; }
+                    if (self.LastAnimationID.StartsWith(id)) { return; } //Duck's animation frames keep replaying? Blocks it!
+
                 } else if (id == "lookUp" && self.LastAnimationID.StartsWith("lookUp")) {
                     return;
                 }
 
-                DynData<PlayerSprite> selfData = new DynData<PlayerSprite>((PlayerSprite)self);
+                DynData<PlayerSprite> selfData = new DynData<PlayerSprite>(playerSprite);
                 if (selfData["spriteName_orig"] != null) {
                     GFX.SpriteBank.CreateOn(self, (string)selfData["spriteName_orig"]);
                     selfData["spriteName_orig"] = null;
@@ -243,6 +247,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
 
         // Maybe... maybe maybe...
+        public static bool EmptyBlocks_0_boolen() { return false; }
         private void EmptyBlocks_1(object obj) { }
         public void EmptyBlocks_4(object obj, object obj_2, object obj_3, object obj_4) { }
     }

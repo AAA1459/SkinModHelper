@@ -173,6 +173,7 @@ namespace Celeste.Mod.SkinModHelper {
             if (Setting) {
                 Settings.FreeCollocations_Portraits[SpriteID] = SkinId;
             }
+
             var value = Settings.FreeCollocations_Portraits;
 
 
