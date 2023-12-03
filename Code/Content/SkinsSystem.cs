@@ -451,8 +451,8 @@ namespace Celeste.Mod.SkinModHelper {
                 }
             }
             if (Player_Skinid_verify != player_skinid_verify) {
+                Player_Skinid_verify = player_skinid_verify; // 
                 RefreshSkins(true);
-                Player_Skinid_verify = player_skinid_verify;
             }
         }
 
