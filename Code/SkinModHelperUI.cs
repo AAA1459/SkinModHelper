@@ -60,16 +60,16 @@ namespace Celeste.Mod.SkinModHelper
 
             skinSelectMenu.Add(Dialog.Clean("SkinModHelper_Settings_DefaultPlayer"), DEFAULT, true);
 
-            foreach (SkinModHelperConfig config in skinConfigs.Values)
-            {
+            foreach (SkinModHelperConfig config in skinConfigs.Values) {
+
+                if (!config.Player_List || Settings.HideSkinsInOptions.Contains(config.SkinName)) {
+                    continue;
+                }
                 bool selected = config.SkinName == Settings.SelectedPlayerSkin;
                 string name = "SkinModHelper_Player__" + config.SkinName;
                 name = Dialog.Clean(!string.IsNullOrEmpty(config.SkinDialogKey) ? config.SkinDialogKey : name);
 
-                if (config.Player_List)
-                {
-                    skinSelectMenu.Add(name, config.SkinName, selected);
-                }
+                skinSelectMenu.Add(name, config.SkinName, selected);
             }
 
             // Set our update action on our complete menu
@@ -87,15 +87,17 @@ namespace Celeste.Mod.SkinModHelper
 
             skinSelectMenu.Add(Dialog.Clean("SkinModHelper_Settings_DefaultSilhouette"), DEFAULT, true);
 
-            foreach (SkinModHelperConfig config in skinConfigs.Values)
-            {
+            foreach (SkinModHelperConfig config in skinConfigs.Values) {
+
+                if (!config.Silhouette_List || Settings.HideSkinsInOptions.Contains(config.SkinName)) {
+                    continue;
+                }
+
                 bool selected = config.SkinName == Settings.SelectedSilhouetteSkin;
                 string name = "SkinModHelper_Player__" + config.SkinName;
                 name = Dialog.Clean(!string.IsNullOrEmpty(config.SkinDialogKey) ? config.SkinDialogKey : name);
-                if (config.Silhouette_List)
-                {
-                    skinSelectMenu.Add(name, config.SkinName, selected);
-                }
+
+                skinSelectMenu.Add(name, config.SkinName, selected);
             }
 
             skinSelectMenu.Change(skinId => UpdateSilhouetteSkin(skinId, inGame));
@@ -111,6 +113,11 @@ namespace Celeste.Mod.SkinModHelper
                 }
 
                 foreach (SkinModHelperConfig config in OtherskinConfigs.Values) {
+
+                    if (config.General_List == false) {
+                        continue;
+                    }
+
                     string Options_name = ("SkinModHelper_ExSprite__" + config.SkinName);
                     bool Options_OnOff = false;
 
@@ -120,13 +127,11 @@ namespace Celeste.Mod.SkinModHelper
                         Options_OnOff = Settings.ExtraXmlList[config.SkinName];
                     }
 
-                    if (config.General_List != false) {
-                        Options_name = !string.IsNullOrEmpty(config.SkinDialogKey) ? config.SkinDialogKey : Options_name;
-                        TextMenu.OnOff Options = new TextMenu.OnOff(Dialog.Clean(Options_name), Options_OnOff);
-                        Options.Change(OnOff => UpdateExtraXml(config.SkinName, OnOff, inGame));
+                    Options_name = !string.IsNullOrEmpty(config.SkinDialogKey) ? config.SkinDialogKey : Options_name;
+                    TextMenu.OnOff Options = new TextMenu.OnOff(Dialog.Clean(Options_name), Options_OnOff);
+                    Options.Change(OnOff => UpdateExtraXml(config.SkinName, OnOff, inGame));
 
-                        subMenu.Add(Options);
-                    }
+                    subMenu.Add(Options);
                 }
             });
         }

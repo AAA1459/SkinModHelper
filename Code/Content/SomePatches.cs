@@ -140,6 +140,7 @@ namespace Celeste.Mod.SkinModHelper {
                     if (self.Has("demodash") && self.Entity is Player player && player.DashAttacking) { id = "demodash"; }
                     if (self.LastAnimationID.StartsWith(id)) { return; } //Duck's animation frames keep replaying? Blocks it!
 
+
                 } else if (id == "lookUp" && self.LastAnimationID.StartsWith("lookUp")) {
                     return;
                 }

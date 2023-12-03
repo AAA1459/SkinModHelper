@@ -9,6 +9,18 @@ namespace Celeste.Mod.SkinModHelper {
     [SettingName("SKIN_MOD_HELPER_SETTINGS_TITLE")]
     public class SkinModHelperSettings : EverestModuleSettings {
 
+        [SettingIgnore] // Please modify it in the save file(.celeste file)
+        public List<string> HideSkinsInOptions { get; set; } = new() {
+            "If you loaded much PlayerSkins, and feels difficult to switch them,",
+            "",
+            "So you can write the skins key that you want ignore here.",
+            "",
+            "(This not affect those skin work in game)",
+            "",
+            "",
+            ""
+        };
+
         public enum BackpackMode { Default, Invert, Off, On }
         private BackpackMode backpack = BackpackMode.Default;
 
