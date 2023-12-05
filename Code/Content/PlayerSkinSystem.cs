@@ -400,7 +400,13 @@ namespace Celeste.Mod.SkinModHelper {
             new DynData<PlayerHair>(self)["SMH_OncePerFrame"] = null;
 
             DynData<PlayerSprite> selfData = new DynData<PlayerSprite>(self.Sprite);
-            if (selfData["HairLength"] != null && self.Sprite.HairCount != (int)selfData["HairLength"]) { self.Sprite.HairCount = (int)selfData["HairLength"]; }
+            if (selfData["HairLength"] != null) { self.Sprite.HairCount = (int)selfData["HairLength"]; }
+
+            if (self.Entity is Player player && player.StateMachine.State == 14) {
+                try { // Gives the player's respawn(death) particles a hair color. (did this because I don't want have an complex code)
+                    self.Render();
+                } catch { }
+            }
 
             orig(self);
         }
