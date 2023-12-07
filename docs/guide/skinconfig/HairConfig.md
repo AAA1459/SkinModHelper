@@ -38,7 +38,7 @@ Then you can use this:
     Color: [use six digit RGB hex code]     # such as: "9B3FB5", that is baddy's 1-dash color
 	SegmentsColors:
 	- Segment: [Which segments of hair]     # use [negative numbers] to get reverse order
-      Color: [use six digit RGB hex code]
+          Color: [use six digit RGB hex code]
 ```
 
 HairFlash

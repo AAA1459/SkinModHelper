@@ -31,11 +31,11 @@ LowStaminaFlash
 When the player's stamina is almost exhausted, the player will start to flash red.
 If you want to change that flash color (when it very harsh on your skin), so you can use this:
 ```
-  LowStaminaFlashColor: [use six digit RGB hex code]     # default color is "ff0000"
+LowStaminaFlashColor: [use six digit RGB hex code]     # default color is "ff0000"
 ```
 and if you want that flash to work on skin's hair, then use this:
 ```
-  LowStaminaFlashHair: true
+LowStaminaFlashHair: true
 ```
 
 [previous page](/docs/guide/README.md#more-miscellaneous)
