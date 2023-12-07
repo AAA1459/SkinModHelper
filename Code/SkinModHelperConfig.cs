@@ -47,6 +47,8 @@ namespace Celeste.Mod.SkinModHelper {
     public class CharacterConfig {
         public bool? BadelineMode { get; set; }
         public bool? SilhouetteMode { get; set; }
+        public string LowStaminaFlashColor { get; set; }
+        public bool? LowStaminaFlashHair { get; set; }
     }
 
 

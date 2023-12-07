@@ -12,7 +12,8 @@ Each of the fields will be explained below.
 BadelineMode: [true/false]
 SilhouetteMode: [true/false]
 
-# ---yes, this config only has these at present---
+LowStaminaFlashHair: [true/false]
+LowStaminaFlashColor: [use six digit RGB hex code]
 ```
 
 
@@ -21,10 +22,20 @@ Character's effect setting
 If you want to set it's character-effect for object-ID, 
 Then you can choose to add the effect you want (you can add multiple):
 ```
-BadelineMode: [true/false]     # if true: Let the default hair color etc of object-ID be baddy.
-SilhouetteMode: [true/false]     # if true: Color the object-ID's entire body with its hair color, like a silhouette
+BadelineMode: true     # Let the default hair color etc of object-ID be baddy.
+SilhouetteMode: true     # Color the entire object-ID with its hair color, like a silhouette
 ```
 
-
+LowStaminaFlash
+-----------------------------------
+When the player's stamina is almost exhausted, the player will start to flash red.
+If you want to change that flash color (when it very harsh on your skin), so you can use this:
+```
+  LowStaminaFlashColor: [use six digit RGB hex code]     # default color is "ff0000"
+```
+and if you want that flash to work on skin's hair, then use this:
+```
+  LowStaminaFlashHair: true
+```
 
 [previous page](/docs/guide/README.md#more-miscellaneous)

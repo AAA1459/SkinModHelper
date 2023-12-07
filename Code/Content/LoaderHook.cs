@@ -75,7 +75,7 @@ namespace Celeste.Mod.SkinModHelper {
 
                 Player_Skinid_verify = skinConfigs[hash_object].hashValues;
             }
-            RefreshSkins(null);
+            RefreshSkins(true);
             orig(self);
         }
 
@@ -84,7 +84,7 @@ namespace Celeste.Mod.SkinModHelper {
         // loading if OverWorld loaded.
         private static void OuiFileSelectSlotSetupHook(On.Celeste.OuiFileSelectSlot.orig_Setup orig, OuiFileSelectSlot self) {
             if (self.FileSlot == 0) {
-                RefreshSkins(null);
+                RefreshSkins(true, false);
 
                 if (SaveFilePortraits) {
                     // Not return the madeline's portrait to orig if SaveFilePortraits not installed

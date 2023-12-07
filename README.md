@@ -24,10 +24,10 @@ Allows you to personalize combination them
 
 Reskin the game! Solve the hard coding in game programs and provide their reskin solutions. such as:
 ```yaml
-* Provided bangs, for player and badeline etc.  
-* Provided death particles, for player and TheoCrystal etc.  
-* Provided new particles and outline, for flyFeathers and Boosters.  
-* Provided Refill's reskin compatibility, for maps or skins
+* Make different bangs for players and badeline!
+* Make different death-particles for player or TheoCrystal or Seeker or more!
+* Modify the hair and dash color for players or badeline!
+* Provided Refill's reskin compatibility, for maps or skins!
 * Or more, As long as you needed! 
 ```
 for complete content of reskinable, [check here](https://github.com/AAA1459/SkinModHelper/wiki/Textures-list-of-Various-Type)

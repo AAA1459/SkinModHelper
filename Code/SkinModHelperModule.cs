@@ -105,6 +105,7 @@ namespace Celeste.Mod.SkinModHelper {
 
 
         //-----------------------------Setting update-----------------------------
+        // There is an unknown issue, when I triggered "Instance.SaveSettings();", xml will be clear to vanilla value
         public static void UpdateSkin(string newSkinId, bool inGame = false) {
             if (Session != null) {
                 Session.SessionPlayerSkin = null;
@@ -118,7 +119,7 @@ namespace Celeste.Mod.SkinModHelper {
                 } else {
                     Player_Skinid_verify = 0;
                 }
-                RefreshSkins(true);
+                RefreshSkins(false, inGame);
             }
         }
         public static void UpdateSilhouetteSkin(string newSkinId, bool inGame) {
@@ -133,13 +134,13 @@ namespace Celeste.Mod.SkinModHelper {
                 Session.SessionExtraXml.Remove(SkinId);
             }
             Settings.ExtraXmlList[SkinId] = OnOff;
-            RefreshSkins(true);
+            RefreshSkins(false, inGame);
         }
 
         //-----------------------------FreeCollocations Update / Skins Refresh-----------------------------
-        public static void RefreshSkinValues(bool? OnOff, bool inGame) {
-            if (OnOff != null) {
-                Settings.FreeCollocations_OffOn = (bool)OnOff;
+        public static void RefreshSkinValues(bool? Setting, bool inGame) {
+            if (Setting != null) {
+                Settings.FreeCollocations_OffOn = (bool)Setting;
             }
 
             foreach (string SpriteID in SpriteSkins_records.Keys) {

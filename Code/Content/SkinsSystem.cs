@@ -404,8 +404,8 @@ namespace Celeste.Mod.SkinModHelper {
         }
 
         //-----------------------------Skins Refresh-----------------------------
-        public static void RefreshSkins(bool? Xmls_refresh) {
-            if (Xmls_refresh == null) {
+        public static void RefreshSkins(bool Xmls_refresh, bool inGame = true) {
+            if (Xmls_refresh == true) {
 
                 bool Enabled = false;
                 foreach (SkinModHelperConfig config in OtherskinConfigs.Values) {
@@ -430,14 +430,9 @@ namespace Celeste.Mod.SkinModHelper {
                         CombineSpriteBanks(GFX.PortraitsSpriteBank, $"{config.hashValues}", portraitsXmlPath, Enabled);
                     }
                 }
-                Xmls_refresh = true;
             }
-            if (Xmls_refresh == true) {
-                Xmls_refresh = false;
-
-                UpdateParticles();
-                RefreshSkinValues(null, true);
-            }
+            UpdateParticles();
+            RefreshSkinValues(null, inGame);
         }
 
         private static void PlayerUpdateHook(On.Celeste.Player.orig_Update orig, Player self) {
@@ -452,7 +447,7 @@ namespace Celeste.Mod.SkinModHelper {
             }
             if (Player_Skinid_verify != player_skinid_verify) {
                 Player_Skinid_verify = player_skinid_verify; // 
-                RefreshSkins(true);
+                RefreshSkins(false);
             }
         }
 
@@ -554,6 +549,14 @@ namespace Celeste.Mod.SkinModHelper {
                 }
             }
             return atlas.Has(CustomPath + get_number) ? CustomPath : origPath;
+        }
+        public static Color ColorBlend(Color c1, object obj) {
+            if (obj is Color c2) {
+                return new(c1.R * c2.R / 255, c1.G * c2.G / 255, c1.B * c2.B / 255);
+            } else if (obj is float f) {
+                return new((int)(c1.R * f), (int)(c1.G * f), (int)(c1.B * f));
+            }
+            return c1;
         }
     }
 }

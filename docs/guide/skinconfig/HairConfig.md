@@ -35,16 +35,16 @@ Then you can use this:
 ```
   HairColors:
   - Dashes: [use 0 to 32]
-    Color: [use six digit RGB hex code]     # such as: ["9B3FB5"], that is baddy's 1-dash color
+    Color: [use six digit RGB hex code]     # such as: "9B3FB5", that is baddy's 1-dash color
 	SegmentsColors:
 	- Segment: [Which segments of hair]     # use [negative numbers] to get reverse order
-          Color: [use six digit RGB hex code]
+      Color: [use six digit RGB hex code]
 ```
 
 HairFlash
 -----------------------------------
 player's hair will flashing when player's dashes be used or refill.
-but if you not want it will flashing, Then you can use this.
+but if you not want that, Then you can use this:
 ```
   HairFlash: false
 ```
