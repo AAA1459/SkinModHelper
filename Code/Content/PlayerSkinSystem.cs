@@ -500,6 +500,9 @@ namespace Celeste.Mod.SkinModHelper {
                         HairLength = null;
                     }
                 }
+                if (HairLength != null) {
+                    selfData["HairLength"] = HairLength;
+                }
                 new DynData<PlayerHair>(self)["SMH_OncePerFrame"] = true;
                 return;
             }
