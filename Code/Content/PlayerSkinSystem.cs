@@ -239,24 +239,24 @@ namespace Celeste.Mod.SkinModHelper {
                 cursor.EmitDelegate<Func<Color, Player, Color>>((color, player) => {
                     string ConfigPath = $"Graphics/Atlases/Gameplay/{getAnimationRootPath(player.Sprite)}skinConfig/" + "CharacterConfig";
 
-                    CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>(ConfigPath);
-                    if (ModeConfig != null) {
+                    DynData<PlayerSprite> selfData = new DynData<PlayerSprite>(player.Sprite);
+                    CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>(ConfigPath) ?? new();
+                    new CharacterConfig(ModeConfig, player.Sprite.Mode);
 
-                        object backup = null;
-                        if (ModeConfig.LowStaminaFlashColor != null && new Regex(@"^[a-fA-F0-9]{6}$").IsMatch(ModeConfig.LowStaminaFlashColor)) {
-                            backup = color = Calc.HexToColor(ModeConfig.LowStaminaFlashColor);
-                            if (ModeConfig.SilhouetteMode == true) {
-                                color = ColorBlend(player.Hair.Color, color);
-                            }
-                        } else if (ModeConfig.SilhouetteMode == true) {
-                            color = ColorBlend(player.Hair.Color, (backup = 0.5f));
-                        } else if (ModeConfig.SilhouetteMode == false) {
-                            color = Color.Red;
+                    object backup = null;
+                    if (ModeConfig.LowStaminaFlashColor != null && new Regex(@"^[a-fA-F0-9]{6}$").IsMatch(ModeConfig.LowStaminaFlashColor)) {
+                        backup = color = Calc.HexToColor(ModeConfig.LowStaminaFlashColor);
+                        if (ModeConfig.SilhouetteMode == true) {
+                            color = ColorBlend(player.Hair.Color, color);
                         }
+                    } else if (ModeConfig.SilhouetteMode == true) {
+                        color = ColorBlend(player.Hair.Color, (backup = 0.5f));
+                    } else if (ModeConfig.SilhouetteMode == false) {
+                        color = Color.Red;
+                    }
 
-                        if (ModeConfig.LowStaminaFlashHair == true || (ModeConfig.SilhouetteMode == true && ModeConfig.LowStaminaFlashHair != false)) {
-                            new DynData<PlayerSprite>(player.Sprite)["HairColorGrading"] = backup ?? color;
-                        }
+                    if (ModeConfig.LowStaminaFlashHair == true || (ModeConfig.SilhouetteMode == true)) {
+                        selfData["HairColorGrading"] = backup ?? color;
                     }
                     return color;
                 });
@@ -269,13 +269,13 @@ namespace Celeste.Mod.SkinModHelper {
                 cursor.EmitDelegate<Func<Color, Player, Color>>((orig, self) => {
                     string ConfigPath = $"Graphics/Atlases/Gameplay/{getAnimationRootPath(self.Sprite)}skinConfig/" + "CharacterConfig";
 
-                    CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>(ConfigPath);
-                    if (ModeConfig != null) {
-                        if (ModeConfig.SilhouetteMode == true) {
-                            return self.Hair.Color;
-                        } else if (ModeConfig.SilhouetteMode == false) {
-                            return Color.White;
-                        }
+                    CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>(ConfigPath) ?? new();
+                    new CharacterConfig(ModeConfig, self.Sprite.Mode);
+
+                    if (ModeConfig.SilhouetteMode == true) {
+                        return self.Hair.Color;
+                    } else if (ModeConfig.SilhouetteMode == false) {
+                        return Color.White;
                     }
                     return orig;
                 });
@@ -445,18 +445,19 @@ namespace Celeste.Mod.SkinModHelper {
                 //---
 
                 string rootPath = getAnimationRootPath(self.Sprite);
-                HairConfig hairConfig = searchSkinConfig<HairConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "HairConfig");
-                CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "CharacterConfig");
+                HairConfig hairConfig = searchSkinConfig<HairConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "HairConfig") ?? new();
+                CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "CharacterConfig") ?? new();
 
-                if (self.Sprite.Mode == (PlayerSpriteMode)2 && ModeConfig != null && ModeConfig.BadelineMode == null) {
-                    ModeConfig.BadelineMode = true;
-                }
+                new CharacterConfig(ModeConfig, self.Sprite.Mode);
 
-                if (hairConfig != null && hairConfig.OutlineColor != null && new Regex(@"^[a-fA-F0-9]{6}$").IsMatch(hairConfig.OutlineColor)) {
+                if (hairConfig.OutlineColor != null && new Regex(@"^[a-fA-F0-9]{6}$").IsMatch(hairConfig.OutlineColor)) {
                     self.Border = Calc.HexToColor(hairConfig.OutlineColor);
                 } else {
                     self.Border = Color.Black;
                 }
+                self.Border = ColorBlend(self.Border, selfData["HairColorGrading"]);
+
+                int? get_dashCount = GetDashCount(self);
 
                 if (self.Entity is not PlayerPlayback) {
                     int number_search = 0;
@@ -465,30 +466,30 @@ namespace Celeste.Mod.SkinModHelper {
                     }
                     bool Build_switch = GFX.Game.Has($"{rootPath}ColorGrading/dash{number_search}");
 
-                    if (hairConfig != null && hairConfig.HairFlash != null) {
-                        selfData["HairFlash"] = hairConfig.HairFlash == true;
+                    if (hairConfig.HairFlash != null) {
+                        selfData["HairFlash"] = hairConfig.HairFlash ?? true;
                         Build_switch = hairConfig.HairFlash == true ? Build_switch : true;
                     }
 
-                    if ((hairConfig != null && hairConfig.HairColors != null) || Build_switch) {
+                    if (hairConfig.HairColors != null || Build_switch) {
                         selfData["HairColors"] = HairConfig.BuildHairColors(hairConfig, ModeConfig);
                     } else {
                         selfData["HairColors"] = null;
                     }
-                }
-                int? get_dashCount = GetDashCount(self);
-
+                } 
+                
                 if (self.Entity is not Player) {
                     // We need this code, for sure make badeline as silhouette can working.
                     Dictionary<int, List<Color>> HairColors = (Dictionary<int, List<Color>>)selfData["HairColors"];
-                    if (HairColors != null && ModeConfig != null && get_dashCount != null) {
+                    if (HairColors != null && get_dashCount != null) {
                         if (ModeConfig.SilhouetteMode == true) {
-                            self.Sprite.Color = HairColors[100][Math.Max(Math.Min((int)get_dashCount, MAX_DASHES), 0)];
+                            self.Color = self.Sprite.Color = HairColors[100][Math.Max(Math.Min((int)get_dashCount, MAX_DASHES), 0)];
                         } else if (ModeConfig.SilhouetteMode == false) {
-                            self.Sprite.Color = Color.White;
+                            self.Color = self.Sprite.Color = Color.White;
                         }
                     }
                 }
+                if (ModeConfig.SilhouetteMode == true) { self.Border = ColorBlend(self.Border, self.Color); }
                 orig(self);
 
                 int? HairLength = HairConfig.GetHairLength(hairConfig, get_dashCount);
@@ -499,10 +500,6 @@ namespace Celeste.Mod.SkinModHelper {
                         HairLength = null;
                     }
                 }
-                if (HairLength != null) {
-                    selfData["HairLength"] = HairLength;
-                }
-
                 new DynData<PlayerHair>(self)["SMH_OncePerFrame"] = true;
                 return;
             }

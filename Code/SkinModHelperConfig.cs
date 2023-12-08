@@ -45,6 +45,16 @@ namespace Celeste.Mod.SkinModHelper {
 
 
     public class CharacterConfig {
+        public CharacterConfig() {
+        }
+        public CharacterConfig(CharacterConfig config, PlayerSpriteMode mode) {
+            if (config.BadelineMode == null && (mode == (PlayerSpriteMode)2 || mode == (PlayerSpriteMode)3)) {
+                config.BadelineMode = true;
+            } 
+            if (config.SilhouetteMode == null && mode == (PlayerSpriteMode)4) {
+                config.SilhouetteMode = true;
+            }
+        }
         public bool? BadelineMode { get; set; }
         public bool? SilhouetteMode { get; set; }
         public string LowStaminaFlashColor { get; set; }
@@ -75,18 +85,18 @@ namespace Celeste.Mod.SkinModHelper {
             public int Length { get; set; }
         }
 
-        public static Dictionary<int, List<Color>> BuildHairColors(HairConfig build_object, CharacterConfig ModeConfig = null) {
+        public static Dictionary<int, List<Color>> BuildHairColors(HairConfig build_object, CharacterConfig ModeConfig) {
             List<bool> changed = new(new bool[MAX_DASHES + 1]);
             Regex hairColorRegex = new(@"^[a-fA-F0-9]{6}$");
 
             // Default colors taken from vanilla
             List<Color> GeneratedHairColors = new List<Color>(new Color[MAX_DASHES + 1]) {
                 [0] = Calc.HexToColor("44B7FF"),
-                [1] = ModeConfig != null && ModeConfig.BadelineMode == true ? Calc.HexToColor("9B3FB5") : Calc.HexToColor("AC3232"),
+                [1] = ModeConfig.BadelineMode == true ? Calc.HexToColor("9B3FB5") : Calc.HexToColor("AC3232"),
                 [2] = Calc.HexToColor("FF6DEF")
             };
 
-            if (build_object != null && build_object.HairColors != null) {
+            if (build_object.HairColors != null) {
                 foreach (HairColor hairColor in build_object.HairColors) {
                     if (hairColor.Dashes >= 0 && hairColor.Dashes <= MAX_DASHES && hairColorRegex.IsMatch(hairColor.Color)) {
                         GeneratedHairColors[hairColor.Dashes] = Calc.HexToColor(hairColor.Color);
@@ -100,7 +110,7 @@ namespace Celeste.Mod.SkinModHelper {
             // -100~-1 as reverse-order of hair.
             HairColors[100] = GeneratedHairColors; // 100 as each-segment Hair's Default color, or as Player's Dash Color and Silhouette color.
 
-            if (build_object != null && build_object.HairColors != null) {
+            if (build_object.HairColors != null) {
                 foreach (HairColor hairColor in build_object.HairColors) {
                     if (hairColor.Dashes >= 0 && hairColor.Dashes <= MAX_DASHES && hairColor.SegmentsColors != null) {
 
@@ -129,7 +139,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
 
         public static int? GetHairLength(HairConfig build_object, int? DashCount) {
-            if (DashCount == null || build_object == null) {
+            if (DashCount == null || build_object.HairLengths == null) {
                 return null;
             }
             int? HairLength = null;
@@ -137,15 +147,13 @@ namespace Celeste.Mod.SkinModHelper {
             DashCount = Math.Max(Math.Min((int)DashCount, MAX_DASHES), -1);
             // -1 for when player into flyFeathers state.
 
-            if (build_object.HairLengths != null) {
-                foreach (HairLength hairLength in build_object.HairLengths) {
-                    if (DashCount == hairLength.Dashes) {
-                        HairLength = hairLength.Length;
-                        break;
-                    } else if (DashCount > 2 && hairLength.Dashes > 1 && DashCount > hairLength.Dashes) {
-                        // Autofill HairLength if DashCount over config setted
-                        HairLength = hairLength.Length;
-                    }
+            foreach (HairLength hairLength in build_object.HairLengths) {
+                if (DashCount == hairLength.Dashes) {
+                    HairLength = hairLength.Length;
+                    break;
+                } else if (DashCount > 2 && hairLength.Dashes > 1 && DashCount > hairLength.Dashes) {
+                    // Autofill HairLength if DashCount over config setted
+                    HairLength = hairLength.Length;
                 }
             }
             if (HairLength != null) {
