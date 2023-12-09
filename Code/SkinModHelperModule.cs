@@ -40,20 +40,15 @@ namespace Celeste.Mod.SkinModHelper {
         public static bool JungleHelperInstalled = false;
         public static bool SaveFilePortraits = false;
         public static bool OrigSkinModHelper_loaded = false;
+        public static bool MaddieHelpingHandInstalled = false;
 
         public SkinModHelperModule() {
             Instance = this;
             UI = new SkinModHelperUI();
 
-            if (Everest.Loader.DependencyLoaded(new EverestModuleMetadata { Name = "JungleHelper", Version = new Version(1, 0, 8) })) {
-                JungleHelperInstalled = true;
-            }
-            if (Everest.Loader.DependencyLoaded(new EverestModuleMetadata { Name = "SaveFilePortraits", Version = new Version(1, 0, 0) })) {
-                SaveFilePortraits = true;
-            }
-            if (Everest.Loader.DependencyLoaded(new EverestModuleMetadata { Name = "SkinModHelper", Version = new Version(0, 0, 0) })) {
-                OrigSkinModHelper_loaded = true;
-            }
+            JungleHelperInstalled = Everest.Loader.DependencyLoaded(new EverestModuleMetadata { Name = "JungleHelper", Version = new Version(1, 0, 8) });
+            SaveFilePortraits = Everest.Loader.DependencyLoaded(new EverestModuleMetadata { Name = "SaveFilePortraits", Version = new Version(1, 0, 0) });
+            OrigSkinModHelper_loaded = Everest.Loader.DependencyLoaded(new EverestModuleMetadata { Name = "SkinModHelper", Version = new Version(0, 0, 0) });
         }
 
         public override void Load() {
@@ -65,7 +60,11 @@ namespace Celeste.Mod.SkinModHelper {
             ObjectsHook.Load();
             SomePatches.Load();
         }
-
+        public override void Initialize() {
+            base.Initialize();
+            MaddieHelpingHandInstalled = Everest.Loader.DependencyLoaded(new EverestModuleMetadata { Name = "MaxHelpingHand", Version = new Version(1, 17, 3) });
+            SomePatches.LazyLoad();
+        }
 
         public override void Unload() {
             SkinsSystem.Unload();

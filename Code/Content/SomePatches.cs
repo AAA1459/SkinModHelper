@@ -247,6 +247,32 @@ namespace Celeste.Mod.SkinModHelper {
             }
         }
 
+        //-----------------------------more things-----------------------------
+        public static void LazyLoad() {
+            if (MaddieHelpingHandInstalled) {
+                Logger.Log(LogLevel.Info, "SkinModHelper", $"interruption MaddieHelpingHand's silhouettes render, Let SkinModHelperPlus own render it");
+
+                using (new DetourContext() { Before = { "*" } }) { // Make those hook to take precedence over the same hook that ExtendedVariants
+                    Assembly assembly = Everest.Modules.Where(m => m.Metadata?.Name == "MaxHelpingHand").First().GetType().Assembly;
+                    Type madelineSilhouetteTrigger = assembly.GetType("Celeste.Mod.MaxHelpingHand.Triggers.MadelineSilhouetteTrigger");
+
+                    doneILHooks.Add(new ILHook(madelineSilhouetteTrigger.GetNestedType("<>c", BindingFlags.NonPublic)
+                                .GetMethod("<patchPlayerRender>b__4_1", BindingFlags.NonPublic | BindingFlags.Instance), hookMadelineIsSilhouette));
+                    doneILHooks.Add(new ILHook(madelineSilhouetteTrigger.GetNestedType("<>c", BindingFlags.NonPublic)
+                        .GetMethod("<patchPlayerRender>b__4_3", BindingFlags.NonPublic | BindingFlags.Instance), hookMadelineIsSilhouette));
+                }
+            }
+        }
+        //-----------------------------Hook MaddieHelpingHand / MaxHelpingHand-----------------------------
+        private static void hookMadelineIsSilhouette(ILContext il) {
+            ILCursor cursor = new ILCursor(il);
+            while (cursor.TryGotoNext(MoveType.After, instr => instr.OpCode == OpCodes.Callvirt && (instr.Operand as MethodReference).Name == "get_MadelineIsSilhouette")) {
+                cursor.EmitDelegate<Func<bool, bool>>(orig => {
+                    return false;
+                });
+            }
+        }
+
         // Maybe... maybe maybe...
         public static bool EmptyBlocks_0_boolen() { return false; }
         private void EmptyBlocks_1(object obj) { }
