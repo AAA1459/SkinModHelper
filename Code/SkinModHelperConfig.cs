@@ -192,8 +192,6 @@ namespace Celeste.Mod.SkinModHelper {
                     if (hairColor.Dashes >= 0 && hairColor.Dashes <= MAX_DASHES && hairColorRegex.IsMatch(hairColor.Color)) {
                         GeneratedHairColors[hairColor.Dashes] = Calc.HexToColor(hairColor.Color);
                         changed[hairColor.Dashes] = true;
-                    } else {
-                        Logger.Log(LogLevel.Warn, "SkinModHelper", $"Invalid hair color or dash count values provided for {config.SkinId}.");
                     }
                 }
             }

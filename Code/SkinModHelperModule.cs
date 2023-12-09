@@ -104,7 +104,7 @@ namespace Celeste.Mod.SkinModHelper {
 
 
         //-----------------------------Setting update-----------------------------
-        // There is an unknown issue, when I triggered "Instance.SaveSettings();", xml will be clear to vanilla value
+        // There is an unknown issue, in OverWorld when I triggered "Instance.SaveSettings();", xml will be clear to vanilla value
         public static void UpdateSkin(string newSkinId, bool inGame = false) {
             if (Session != null) {
                 Session.SessionPlayerSkin = null;

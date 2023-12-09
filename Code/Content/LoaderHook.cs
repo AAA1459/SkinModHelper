@@ -41,10 +41,10 @@ namespace Celeste.Mod.SkinModHelper {
             foreach (SkinModHelperConfig config in skinConfigs.Values) {
                 if (!string.IsNullOrEmpty(config.Character_ID)) {
 
-                    try {
+                    if (GFX.SpriteBank.SpriteData.ContainsKey(config.Character_ID)) {
                         PlayerSprite.CreateFramesMetadata(config.Character_ID);
-                    } catch (Exception e) {
-                        throw new Exception($"Character_ID '{config.Character_ID}' does not exist in default Sprites.xml", e);
+                    } else {
+                        throw new Exception($"[SkinModHelper] '{config.Character_ID}' does not exist in Graphics/Sprites.xml");
                     }
                 }
             }
