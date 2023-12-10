@@ -177,8 +177,14 @@ namespace Celeste.Mod.SkinModHelper {
             string spritePath = (string)new DynData<DeathEffect>(self)["spritePath"];
 
             if (self.Entity != null && spritePath == null) {
+                Type objectType = self.Entity.GetType();
 
-                var Sprite = self.Entity.GetType().GetField("sprite", BindingFlags.NonPublic | BindingFlags.Instance);
+                // some mods entities works based on vanilla entities, but mods entity possible don't have theis own "sprite" field
+                while (objectType.GetField("sprite", BindingFlags.NonPublic | BindingFlags.Instance) == null && objectType.BaseType != typeof(object)) {
+                    objectType = objectType.BaseType;
+                }
+
+                var Sprite = objectType.GetField("sprite", BindingFlags.NonPublic | BindingFlags.Instance);
                 if (Sprite != null) {
                     Sprite On_sprite = Sprite.GetValue(self.Entity) as Sprite;
                     spritePath = getAnimationRootPath(On_sprite) + "death_particle";
