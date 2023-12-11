@@ -29,6 +29,8 @@ namespace Celeste.Mod.SkinModHelper {
             IL.Celeste.CS06_Campfire.Question.ctor += CampfireQuestionHook;
             IL.Celeste.MiniTextbox.ctor += SwapTextboxHook;
 
+            On.Monocle.Sprite.SetAnimationFrame += SpriteSetAnimationFrameHook;
+
             doneILHooks.Add(new ILHook(typeof(Textbox).GetMethod("RunRoutine", BindingFlags.NonPublic | BindingFlags.Instance).GetStateMachineTarget(), SwapTextboxHook));
 
             if (OrigSkinModHelper_loaded) {
@@ -61,6 +63,8 @@ namespace Celeste.Mod.SkinModHelper {
             On.Monocle.Sprite.Play -= PlayerSpritePlayHook;
             IL.Celeste.CS06_Campfire.Question.ctor -= CampfireQuestionHook;
             IL.Celeste.MiniTextbox.ctor -= SwapTextboxHook;
+
+            On.Monocle.Sprite.SetAnimationFrame -= SpriteSetAnimationFrameHook;
         }
 
 
@@ -135,17 +139,17 @@ namespace Celeste.Mod.SkinModHelper {
 
         //-----------------------------Sprites-----------------------------
         private static void PlayerSpritePlayHook(On.Monocle.Sprite.orig_Play orig, Sprite self, string id, bool restart = false, bool randomizeFrame = false) {
-            if (self is PlayerSprite playerSprite) {
+
+            if (self.Entity is Player player) {
                 if (id == "duck") {
-                    if (self.Has("demodash") && self.Entity is Player player && player.DashAttacking) { id = "demodash"; }
+                    if (self.Has("demodash") && player.DashAttacking) { id = "demodash"; }
                     if (self.LastAnimationID.StartsWith(id)) { return; } //Duck's animation frames keep replaying? Blocks it!
 
-
-                } else if (id == "lookUp" && self.LastAnimationID.StartsWith("lookUp")) {
+                } else if (id == "lookUp" && self.LastAnimationID.StartsWith(id)) {
                     return;
                 }
-
-                DynData<PlayerSprite> selfData = new DynData<PlayerSprite>(playerSprite);
+                        
+                DynData<PlayerSprite> selfData = new DynData<PlayerSprite>(player.Sprite);
                 if (selfData["spriteName_orig"] != null) {
                     GFX.SpriteBank.CreateOn(self, (string)selfData["spriteName_orig"]);
                     selfData["spriteName_orig"] = null;
@@ -170,6 +174,13 @@ namespace Celeste.Mod.SkinModHelper {
             orig(self, id, restart, randomizeFrame);
         }
 
+        private static void SpriteSetAnimationFrameHook(On.Monocle.Sprite.orig_SetAnimationFrame orig, Sprite self, int frame) {
+            try {
+                orig(self, frame);
+            } catch (Exception e) {
+                throw new Exception($"[SkinModHelper_LogPatch] '{getAnimationRootPath(self)}'--'{self.CurrentAnimationID}'s frame {frame} does not exist!", e);
+            }
+        }
 
         //-----------------------------Death Effect-----------------------------
         private static void DeathEffectRenderHook(On.Celeste.DeathEffect.orig_Render orig, DeathEffect self) {
