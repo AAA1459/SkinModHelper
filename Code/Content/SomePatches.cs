@@ -34,24 +34,26 @@ namespace Celeste.Mod.SkinModHelper {
             doneILHooks.Add(new ILHook(typeof(Textbox).GetMethod("RunRoutine", BindingFlags.NonPublic | BindingFlags.Instance).GetStateMachineTarget(), SwapTextboxHook));
 
             if (OrigSkinModHelper_loaded) {
+                int tracking_numbers = 0;
                 try {
                     Logger.Log(LogLevel.Verbose, "SkinModHelper", $"SkinModHelperPlus trying interruption the code of orig SkinModHelper.");
 
                     Assembly assembly = Everest.Modules.Where(m => m.Metadata?.Name == "SkinModHelper").First().GetType().Assembly;
                     Type OldModule = assembly.GetType("SkinModHelper.Module.SkinModHelperModule");
 
+                    tracking_numbers++;
                     doneHooks.Add(new Hook(OldModule.GetMethod("ReloadSettings", BindingFlags.NonPublic | BindingFlags.Instance),
                                          typeof(SomePatches).GetMethod("EmptyBlocks_1", BindingFlags.NonPublic | BindingFlags.Instance), OldModule));
-
+                    tracking_numbers++;
                     doneHooks.Add(new Hook(OldModule.GetMethod("CreateModMenuSection", BindingFlags.Public | BindingFlags.Instance),
                                          typeof(SomePatches).GetMethod("EmptyBlocks_4", BindingFlags.Public | BindingFlags.Instance), OldModule));
-
+                    tracking_numbers++;
                     doneHooks.Add(new Hook(OldModule.GetMethod("UniqueSkinSelected", BindingFlags.Public | BindingFlags.Static),
                                          typeof(SomePatches).GetMethod("EmptyBlocks_0_boolen", BindingFlags.Public | BindingFlags.Static)));
 
                     //OldModule.GetMethod("Unload", BindingFlags.Public | BindingFlags.Instance).Invoke(OldModule, new object[] { OldModule });
                 } catch (Exception e) {
-                    Logger.Log(LogLevel.Warn, "SkinModHelper", $"SkinModHelperPlus trying interruption the code of orig SkinModHelper, but it failed.");
+                    Logger.Log(LogLevel.Warn, "SkinModHelper", $"SkinModHelperPlus trying interruption the code of orig SkinModHelper, but it failed in the hook No.{tracking_numbers}.");
                 }
             }
         }

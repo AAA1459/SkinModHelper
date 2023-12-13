@@ -85,16 +85,15 @@ namespace Celeste.Mod.SkinModHelper {
         public static void ReloadSettings() {
             skinConfigs.Clear();
             OtherskinConfigs.Clear();
+            OtherskinOldConfig.Clear();
 
             Instance.LoadSettings();
 
             foreach (ModContent mod in Everest.Content.Mods) {
 
                 if (mod.Map.TryGetValue("SkinModHelperConfig", out ModAsset configAsset) && configAsset.Type == typeof(AssetTypeYaml)) {
-
                     try { //Check if config from v0.7 Before---
                         SkinModHelperOldConfig old_config = LoadConfigFile<SkinModHelperOldConfig>(configAsset);
-
                         if (string.IsNullOrEmpty(old_config.SkinId)) {
                             Logger.Log(LogLevel.Warn, "SkinModHelper", $"Duplicate or invalid skin mod ID {old_config.SkinId}, will not register.");
                             continue;
@@ -102,7 +101,7 @@ namespace Celeste.Mod.SkinModHelper {
                         SkinModHelperConfig config = new(old_config);
 
                         if (config.SkinName == DEFAULT || config.SkinName == ORIGINAL || config.SkinName == LockedToPlayer ||
-                            OtherskinConfigs.ContainsKey(config.SkinName) || skinConfigs.ContainsKey(config.SkinName)) {
+                            OtherskinConfigs.ContainsKey(config.SkinName) || OtherskinOldConfig.ContainsKey(config.SkinName)) {
                             Logger.Log(LogLevel.Warn, "SkinModHelper", $"skin name {config.SkinName} has been taken.");
                             continue;
                         }
@@ -111,8 +110,7 @@ namespace Celeste.Mod.SkinModHelper {
                         OtherskinConfigs.Add(config.SkinName, config);
                         OtherskinOldConfig.Add(config.SkinName, old_config);
                         continue;
-                    } catch {
-                    }
+                    } catch { }
 
                     List<SkinModHelperConfig> configs = LoadConfigFile<List<SkinModHelperConfig>>(configAsset);
 
