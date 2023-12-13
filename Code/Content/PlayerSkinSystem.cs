@@ -35,6 +35,7 @@ namespace Celeste.Mod.SkinModHelper {
             IL.Celeste.Player.Render += PlayerRenderIlHook_Sprite;
 
             On.Celeste.PlayerHair.Render += PlayerHairRenderHook;
+            On.Celeste.PlayerSprite.Render += PlayerSpriteRenderHook;
             On.Celeste.PlayerHair.Update += PlayerHairUpdateHook;
 
             On.Celeste.PlayerSprite.Render += OnPlayerSpriteRender_ColorGrade;
@@ -46,7 +47,6 @@ namespace Celeste.Mod.SkinModHelper {
             IL.Celeste.Player.UpdateHair += patch_SpriteMode_Badeline;
             IL.Celeste.Player.DashUpdate += patch_SpriteMode_Badeline;
             IL.Celeste.Player.GetTrailColor += patch_SpriteMode_Badeline;
-            IL.Celeste.PlayerPlayback.SetFrame += patch_SpriteMode_Silhouette;
 
             doneILHooks.Add(new ILHook(typeof(Player).GetMethod("TempleFallCoroutine", BindingFlags.NonPublic | BindingFlags.Instance).GetStateMachineTarget(), TempleFallCoroutineILHook));
 
@@ -73,6 +73,7 @@ namespace Celeste.Mod.SkinModHelper {
             IL.Celeste.Player.Render -= PlayerRenderIlHook_Sprite;
 
             On.Celeste.PlayerHair.Render -= PlayerHairRenderHook;
+            On.Celeste.PlayerSprite.Render -= PlayerSpriteRenderHook;
             On.Celeste.PlayerHair.Update -= PlayerHairUpdateHook;
 
             On.Celeste.PlayerSprite.Render -= OnPlayerSpriteRender_ColorGrade;
@@ -84,7 +85,6 @@ namespace Celeste.Mod.SkinModHelper {
             IL.Celeste.Player.UpdateHair -= patch_SpriteMode_Badeline;
             IL.Celeste.Player.DashUpdate -= patch_SpriteMode_Badeline;
             IL.Celeste.Player.GetTrailColor -= patch_SpriteMode_Badeline;
-            IL.Celeste.PlayerPlayback.SetFrame -= patch_SpriteMode_Silhouette;
         }
 
         //-----------------------------PlayerSprite-----------------------------
@@ -404,10 +404,32 @@ namespace Celeste.Mod.SkinModHelper {
             }
             orig(self);
         }
+        //-----------------------------PlayerSprite-----------------------------
+        private static void PlayerSpriteRenderHook(On.Celeste.PlayerSprite.orig_Render orig, PlayerSprite self) {
+            DynData<PlayerSprite> selfData = new DynData<PlayerSprite>(self);
 
+            // rendering run multiple times in one frame, but we don't need to do much. so...
+            if (selfData["SMH_OncePerFrame"] == null) {
+                if (self.Entity is not Player) {
+                    string rootPath = getAnimationRootPath(self);
+                    CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "CharacterConfig") ?? new();
+                    new CharacterConfig(ModeConfig, self.Mode);
+
+                    if (ModeConfig.SilhouetteMode == true) {
+                        self.Color = (Color?)selfData["CurrentHairColor"] ?? self.Color;
+                    } else if (ModeConfig.SilhouetteMode == false) {
+                        self.Color = Color.White;
+                    }
+                }
+                selfData["SMH_OncePerFrame"] = true;
+            }
+            orig(self);
+        }
+        
         //-----------------------------PlayerHair-----------------------------
         private static void PlayerHairUpdateHook(On.Celeste.PlayerHair.orig_Update orig, PlayerHair self) {
             DynData<PlayerSprite> selfData = new DynData<PlayerSprite>(self.Sprite);
+            selfData["SMH_OncePerFrame"] = null;
             new DynData<PlayerHair>(self)["SMH_OncePerFrame"] = null;
 
             selfData["HairColorGrading"] = null;
@@ -418,7 +440,6 @@ namespace Celeste.Mod.SkinModHelper {
                     self.Render();
                 } catch { }
             }
-
             orig(self);
         }
 
@@ -482,13 +503,10 @@ namespace Celeste.Mod.SkinModHelper {
                     // We need this code, for sure make badeline as silhouette can working.
                     Dictionary<int, List<Color>> HairColors = (Dictionary<int, List<Color>>)selfData["HairColors"];
                     if (HairColors != null && get_dashCount != null) {
-                        if (ModeConfig.SilhouetteMode == true) {
-                            self.Color = self.Sprite.Color = HairColors[100][Math.Max(Math.Min((int)get_dashCount, MAX_DASHES), 0)];
-                        } else if (ModeConfig.SilhouetteMode == false) {
-                            self.Color = self.Sprite.Color = Color.White;
-                        }
+                        self.Color = HairColors[100][Math.Max(Math.Min((int)get_dashCount, MAX_DASHES), 0)];
                     }
                 }
+                selfData["CurrentHairColor"] = self.Color;
                 if (ModeConfig.SilhouetteMode == true) { self.Border = ColorBlend(self.Border, self.Color); }
                 orig(self);
 
@@ -595,25 +613,6 @@ namespace Celeste.Mod.SkinModHelper {
                         if (ModeConfig.BadelineMode == true) {
                             return (PlayerSpriteMode)3;
                         } else if (ModeConfig.BadelineMode == false) {
-                            return 0;
-                        }
-                    }
-                    return orig;
-                });
-            }
-        }
-        private static void patch_SpriteMode_Silhouette(ILContext il) {
-            ILCursor cursor = new ILCursor(il);
-            if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchCallvirt<PlayerSprite>("get_Mode"))) {
-                cursor.Emit(OpCodes.Ldarg_0);
-                cursor.EmitDelegate<Func<PlayerSpriteMode, PlayerPlayback, PlayerSpriteMode>>((orig, self) => {
-                    string ConfigPath = $"Graphics/Atlases/Gameplay/{getAnimationRootPath(self.Sprite)}skinConfig/" + "CharacterConfig";
-
-                    CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>(ConfigPath);
-                    if (ModeConfig != null) {
-                        if (ModeConfig.SilhouetteMode == true) {
-                            return (PlayerSpriteMode)4;
-                        } else if (ModeConfig.SilhouetteMode == false) {
                             return 0;
                         }
                     }

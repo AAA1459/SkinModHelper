@@ -48,11 +48,11 @@ namespace Celeste.Mod.SkinModHelper {
         public CharacterConfig() {
         }
         public CharacterConfig(CharacterConfig config, PlayerSpriteMode mode) {
-            if (config.BadelineMode == null && (mode == (PlayerSpriteMode)2 || mode == (PlayerSpriteMode)3)) {
-                config.BadelineMode = true;
+            if (config.BadelineMode == null) {
+                config.BadelineMode = mode == (PlayerSpriteMode)2 || mode == (PlayerSpriteMode)3;
             } 
-            if (config.SilhouetteMode == null && mode == (PlayerSpriteMode)4) {
-                config.SilhouetteMode = true;
+            if (config.SilhouetteMode == null) {
+                config.SilhouetteMode = mode == (PlayerSpriteMode)4;
             }
         }
         public bool? BadelineMode { get; set; }
