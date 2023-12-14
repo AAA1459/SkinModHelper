@@ -45,15 +45,14 @@ namespace Celeste.Mod.SkinModHelper {
                     doneHooks.Add(new Hook(OldModule.GetMethod("ReloadSettings", BindingFlags.NonPublic | BindingFlags.Instance),
                                          typeof(SomePatches).GetMethod("EmptyBlocks_1", BindingFlags.NonPublic | BindingFlags.Instance), OldModule));
                     tracking_numbers++;
-                    doneHooks.Add(new Hook(OldModule.GetMethod("CreateModMenuSection", BindingFlags.Public | BindingFlags.Instance),
-                                         typeof(SomePatches).GetMethod("EmptyBlocks_4", BindingFlags.Public | BindingFlags.Instance), OldModule));
-                    tracking_numbers++;
                     doneHooks.Add(new Hook(OldModule.GetMethod("UniqueSkinSelected", BindingFlags.Public | BindingFlags.Static),
                                          typeof(SomePatches).GetMethod("EmptyBlocks_0_boolen", BindingFlags.Public | BindingFlags.Static)));
 
-                    //OldModule.GetMethod("Unload", BindingFlags.Public | BindingFlags.Instance).Invoke(OldModule, new object[] { OldModule });
+                    tracking_numbers++;  // There are some issues with this unimportant hook that only happen to some people, So let's put it last
+                    doneHooks.Add(new Hook(OldModule.GetMethod("CreateModMenuSection", BindingFlags.Public | BindingFlags.Instance),
+                                         typeof(SomePatches).GetMethod("EmptyBlocks_4", BindingFlags.Public | BindingFlags.Instance), OldModule));
                 } catch (Exception e) {
-                    Logger.Log(LogLevel.Warn, "SkinModHelper", $"SkinModHelperPlus trying interruption the code of orig SkinModHelper, but it failed in the hook No.{tracking_numbers}.");
+                    Logger.Log(LogLevel.Warn, "SkinModHelper", $"SkinModHelperPlus trying interruption the code of orig SkinModHelper, but it failed in the hook No.{tracking_numbers}.\n {e}\n");
                 }
             }
         }
@@ -296,5 +295,6 @@ namespace Celeste.Mod.SkinModHelper {
         public static bool EmptyBlocks_0_boolen() { return false; }
         private void EmptyBlocks_1(object obj) { }
         public void EmptyBlocks_4(object obj, object obj_2, object obj_3, object obj_4) { }
+        public void EmptyBlocks_3(object obj, object obj_2, object obj_3) { }
     }
 }
