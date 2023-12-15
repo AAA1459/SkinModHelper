@@ -124,7 +124,7 @@ namespace Celeste.Mod.SkinModHelper {
 
 
             if (hash_object != null) {
-                hash_object = !backpackOn ? GetPlayerSkin("_NB", hash_object) : hash_object;
+                if (!backpackOn) { hash_object = GetPlayerSkin("_NB", hash_object); }
 
                 mode = (PlayerSpriteMode)skinConfigs[hash_object].hashValues;
             } else if (!backpackOn && mode == PlayerSpriteMode.Madeline) {
@@ -133,7 +133,7 @@ namespace Celeste.Mod.SkinModHelper {
                 mode = PlayerSpriteMode.Madeline;
             }
             orig(self, mode);
-            Logger.Log(LogLevel.Info, "SkinModHelper", $"PlayerModeValue: {mode}");
+            Logger.Log(LogLevel.Verbose, "SkinModHelper", $"PlayerModeValue: {mode}");
 
             int requestMode = (int)(isGhost ? (1 << 31) + mode : mode);
 
@@ -645,10 +645,7 @@ namespace Celeste.Mod.SkinModHelper {
                 return;
             }
 
-            Player_Skinid_verify = 0;
             if (SkinName != null && skinConfigs.ContainsKey(SkinName)) {
-
-                Player_Skinid_verify = skinConfigs[SkinName].hashValues;
                 SetPlayerSpriteMode((PlayerSpriteMode)skinConfigs[SkinName].hashValues);
 
             } else if (SaveData.Instance != null && SaveData.Instance.Assists.PlayAsBadeline) {

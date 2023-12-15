@@ -88,9 +88,9 @@ namespace Celeste.Mod.SkinModHelper {
             OtherskinOldConfig.Clear();
 
             Instance.LoadSettings();
+            List<int> hashValues = new() { 0, 1, 2, 3, 4, 444482, 444483 };
 
             foreach (ModContent mod in Everest.Content.Mods) {
-
                 if (mod.Map.TryGetValue("SkinModHelperConfig", out ModAsset configAsset) && configAsset.Type == typeof(AssetTypeYaml)) {
                     try { //Check if config from v0.7 Before---
                         SkinModHelperOldConfig old_config = LoadConfigFile<SkinModHelperOldConfig>(configAsset);
@@ -106,7 +106,7 @@ namespace Celeste.Mod.SkinModHelper {
                             continue;
                         }
 
-                        Logger.Log(LogLevel.Info, "SkinModHelper", $"Registered old version skin(as General skin): {config.SkinName}");
+                        Logger.Log(LogLevel.Info, "SkinModHelper", $"Registered old-ver General skin: {config.SkinName}");
                         OtherskinConfigs.Add(config.SkinName, config);
                         OtherskinOldConfig.Add(config.SkinName, old_config);
                         continue;
@@ -126,42 +126,46 @@ namespace Celeste.Mod.SkinModHelper {
                             Logger.Log(LogLevel.Warn, "SkinModHelper", $"skin name {config.SkinName} has been taken.");
                             continue;
                         }
-
+                        //---------------------GeneralSkin------------------------#
                         if (!string.IsNullOrEmpty(config.OtherSprite_ExPath)) {
                             if (config.OtherSprite_ExPath.EndsWith("/")) { config.OtherSprite_ExPath = config.OtherSprite_ExPath.Remove(config.OtherSprite_ExPath.LastIndexOf("/")); }
 
                             Logger.Log(LogLevel.Info, "SkinModHelper", $"Registered new General skin: {config.SkinName}");
                             OtherskinConfigs.Add(config.SkinName, config);
                         }
-
+                        //--------------------------------------------------------#
+                        //---------------------PlayerSkin-------------------------
                         if (!string.IsNullOrEmpty(config.Character_ID)) {
-
-                            if (string.IsNullOrEmpty(config.hashSeed)) {
-                                config.hashSeed = config.SkinName;
-                            }
+                            if (string.IsNullOrEmpty(config.hashSeed)) { config.hashSeed = config.SkinName; }
                             config.hashValues = getHash(config.hashSeed) + 1;
 
+                            //----------------JungleLantern---------------
                             if (config.SkinName.EndsWith("_lantern_NB") || config.SkinName.EndsWith("_lantern")) {
                                 config.JungleLanternMode = true;
-
                                 if (config.Silhouette_List || config.Player_List) {
-                                    Logger.Log(LogLevel.Warn, "SkinModHelper", $"{config.SkinName} this name will affect the gameplay of JungleHelper, it should't appear in the options");
+                                    Logger.Log(LogLevel.Warn, "SkinModHelper", $"{config.SkinName} this name will affect the gameplay of JungleHelper, it should't appear in the options.");
                                 }
                                 config.Silhouette_List = false;
                                 config.Player_List = false;
                             }
-
-                            if (!spritesWithHair.Contains(config.Character_ID)) {
-                                spritesWithHair.Add(config.Character_ID);
-                            }
+                            //--------------------------------------------#
+                            if (!spritesWithHair.Contains(config.Character_ID)) { spritesWithHair.Add(config.Character_ID); }
 
                             if (!string.IsNullOrEmpty(config.OtherSprite_Path)) {
                                 if (config.OtherSprite_Path.EndsWith("/")) { config.OtherSprite_Path = config.OtherSprite_Path.Remove(config.OtherSprite_Path.LastIndexOf("/")); }
                             }
+                            if (!hashValues.Contains(config.hashValues)) {
+                                hashValues.Add(config.hashValues);
 
-                            Logger.Log(LogLevel.Info, "SkinModHelper", $"Registered new player skin: {config.SkinName} and {config.hashValues}");
-                            skinConfigs.Add(config.SkinName, config);
+                                string s = "   "; for (int i = config.SkinName.Length; i < 32; s += " ", i++) { }
+                                Logger.Log(LogLevel.Info, "SkinModHelper", $"Registered new player skin: {config.SkinName}{s}{config.hashValues}");
+                                
+                                skinConfigs.Add(config.SkinName, config);
+                            } else {
+                                Logger.Log(LogLevel.Error, "SkinModHelper", $"Player skin {config.SkinName} happened hash value conflict! cannot registered.");
+                            }
                         }
+                        //--------------------------------------------------------#
                     }
                 }
             }
@@ -403,6 +407,14 @@ namespace Celeste.Mod.SkinModHelper {
 
         //-----------------------------Skins Refresh-----------------------------
         public static void RefreshSkins(bool Xmls_refresh, bool inGame = true) {
+            if (!inGame) {
+                string skinName = GetPlayerSkin();
+                if (skinName != null) {
+                    Player_Skinid_verify = skinConfigs[skinName].hashValues;
+                } else {
+                    Player_Skinid_verify = 0;
+                }
+            }
             if (Xmls_refresh == true) {
 
                 bool Enabled = false;
@@ -444,7 +456,7 @@ namespace Celeste.Mod.SkinModHelper {
                 }
             }
             if (Player_Skinid_verify != player_skinid_verify) {
-                Player_Skinid_verify = player_skinid_verify; // 
+                Player_Skinid_verify = player_skinid_verify;
                 RefreshSkins(false);
             }
         }

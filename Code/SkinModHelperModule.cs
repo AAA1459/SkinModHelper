@@ -86,7 +86,6 @@ namespace Celeste.Mod.SkinModHelper {
         //-----------------------------
         public override void LoadContent(bool firstLoad) {
             base.LoadContent(firstLoad);
-            ReloadSettings();
         }
         public override void CreateModMenuSection(TextMenu menu, bool inGame, EventInstance snapshot) {
             base.CreateModMenuSection(menu, inGame, snapshot);
@@ -113,11 +112,6 @@ namespace Celeste.Mod.SkinModHelper {
             if (inGame) {
                 PlayerSkinSystem.RefreshPlayerSpriteMode();
             } else if (!inGame) {
-                if (skinConfigs.ContainsKey(newSkinId)) {
-                    Player_Skinid_verify = skinConfigs[newSkinId].hashValues;
-                } else {
-                    Player_Skinid_verify = 0;
-                }
                 RefreshSkins(false, inGame);
             }
         }
@@ -205,7 +199,7 @@ namespace Celeste.Mod.SkinModHelper {
         //-----------------------------Method-----------------------------
         public static string GetPlayerSkin(string skin_suffix = null, string skinName = null) {
             if (skinName == null) {
-                skinName = Settings.SelectedPlayerSkin;
+                skinName = Settings.SelectedPlayerSkin ?? "";
                 if (Session != null && Session.SessionPlayerSkin != null) {
                     skinName = Session.SessionPlayerSkin;
                 }
@@ -220,7 +214,7 @@ namespace Celeste.Mod.SkinModHelper {
             }
         }
         public static string GetSilhouetteSkin(string skin_suffix = null) {
-            string skinName = Settings.SelectedSilhouetteSkin;
+            string skinName = Settings.SelectedSilhouetteSkin ?? "";
             if (Session != null && Session.SessionSilhouetteSkin != null) {
                 skinName = Session.SessionSilhouetteSkin;
             }

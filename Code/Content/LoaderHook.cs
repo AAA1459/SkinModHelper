@@ -24,13 +24,17 @@ namespace Celeste.Mod.SkinModHelper {
         public static void Load() {
             On.Celeste.LevelLoader.ctor += on_LevelLoader_ctor;
 
+            On.Celeste.OverworldLoader.LoadThread += OverworldLoaderLoadThreadHook;
             On.Celeste.LevelLoader.LoadingThread += LevelLoaderLoadingThreadHook;
+
             On.Celeste.GameLoader.LoadThread += GameLoaderLoadThreadHook;
             On.Celeste.OuiFileSelectSlot.Setup += OuiFileSelectSlotSetupHook;
         }
 
         public static void Unload() {
+            On.Celeste.OverworldLoader.LoadThread -= OverworldLoaderLoadThreadHook;
             On.Celeste.LevelLoader.LoadingThread -= LevelLoaderLoadingThreadHook;
+
             On.Celeste.GameLoader.LoadThread -= GameLoaderLoadThreadHook;
             On.Celeste.OuiFileSelectSlot.Setup -= OuiFileSelectSlotSetupHook;
         }
@@ -49,19 +53,15 @@ namespace Celeste.Mod.SkinModHelper {
                 }
             }
         }
-        // loading if Game starts.
+        // loading if game starts.
         private static void GameLoaderLoadThreadHook(On.Celeste.GameLoader.orig_LoadThread orig, GameLoader self) {
             orig(self);
-            RecordSpriteBanks_Start();
-
-            string skinName = GetPlayerSkin();
-            if (skinName != null) {
-                Player_Skinid_verify = skinConfigs[skinName].hashValues;
-            }
+            ReloadSettings();
         }
 
 
-        // loading if Enter the maps.
+
+        // loading if enter the maps.
         private static void LevelLoaderLoadingThreadHook(On.Celeste.LevelLoader.orig_LoadingThread orig, LevelLoader self) {
 
             //at this Hooking time, The level data has not established, cannot get Default backpack state of Level 
@@ -72,7 +72,6 @@ namespace Celeste.Mod.SkinModHelper {
             string hash_object = GetPlayerSkin();
             if (hash_object != null) {
                 if (!backpackOn) { hash_object = GetPlayerSkin("_NB", hash_object); }
-
                 Player_Skinid_verify = skinConfigs[hash_object].hashValues;
             }
             RefreshSkins(true);
@@ -81,13 +80,21 @@ namespace Celeste.Mod.SkinModHelper {
 
 
 
-        // loading if OverWorld loaded.
+        // loading if overworld loads or exit maps.
+        private static void OverworldLoaderLoadThreadHook(On.Celeste.OverworldLoader.orig_LoadThread orig, OverworldLoader self) {
+            RefreshSkins(true, false);
+            orig(self);
+        }
+
+
+
+        // loading if save file menu be first time enter when before overworld reloaded.
         private static void OuiFileSelectSlotSetupHook(On.Celeste.OuiFileSelectSlot.orig_Setup orig, OuiFileSelectSlot self) {
             if (self.FileSlot == 0) {
                 RefreshSkins(true, false);
 
                 if (SaveFilePortraits) {
-                    // Not return the madeline's portrait to orig if SaveFilePortraits not installed
+                    // return the madeline's portrait to orig if SaveFilePortraits installed
                     foreach (string SpriteID in PortraitsSkins_records.Keys) {
                         PortraitsSkin_record[SpriteID] = null;
                     }
@@ -99,6 +106,9 @@ namespace Celeste.Mod.SkinModHelper {
             }
             orig(self);
         }
+
+
+
         // ---SaveFilePortraits---
         private static void SaveFilePortraits_Reload() {
             List<Tuple<string, string>> On_ExistingPortraits = new List<Tuple<string, string>>();
