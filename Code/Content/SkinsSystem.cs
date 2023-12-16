@@ -406,6 +406,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
 
         //-----------------------------Skins Refresh-----------------------------
+        public static bool first_build = true;
         public static void RefreshSkins(bool Xmls_refresh, bool inGame = true) {
             if (!inGame) {
                 string skinName = GetPlayerSkin();
@@ -416,6 +417,9 @@ namespace Celeste.Mod.SkinModHelper {
                 }
             }
             if (Xmls_refresh == true) {
+                LogLevel logLevel = Logger.GetLogLevel("Atlas");
+                if (!first_build) { Logger.SetLogLevel("Atlas", LogLevel.Error);  }
+                first_build = false;
 
                 bool Enabled = false;
                 foreach (SkinModHelperConfig config in OtherskinConfigs.Values) {
@@ -440,6 +444,7 @@ namespace Celeste.Mod.SkinModHelper {
                         CombineSpriteBanks(GFX.PortraitsSpriteBank, $"{config.hashValues}", portraitsXmlPath, Enabled);
                     }
                 }
+                Logger.SetLogLevel("Atlas", logLevel);
             }
             UpdateParticles();
             RefreshSkinValues(null, inGame);

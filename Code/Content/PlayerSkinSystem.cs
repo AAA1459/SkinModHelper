@@ -133,9 +133,13 @@ namespace Celeste.Mod.SkinModHelper {
                 mode = PlayerSpriteMode.Madeline;
             }
             orig(self, mode);
-            Logger.Log(LogLevel.Verbose, "SkinModHelper", $"PlayerModeValue: {mode}");
-
             int requestMode = (int)(isGhost ? (1 << 31) + mode : mode);
+
+            if (isGhost) {
+                Logger.Log(LogLevel.Verbose, "SkinModHelper", $"GhostModeValue: {requestMode}");
+            } else {
+                Logger.Log(LogLevel.Debug, "SkinModHelper", $"PlayerModeValue: {requestMode}");
+            }
 
             foreach (SkinModHelperConfig config in skinConfigs.Values) {
                 if (requestMode == config.hashValues) {
