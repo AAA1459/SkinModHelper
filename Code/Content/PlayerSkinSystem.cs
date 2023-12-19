@@ -18,6 +18,7 @@ using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 
 namespace Celeste.Mod.SkinModHelper {
     public class PlayerSkinSystem {
+        #region
         public static SkinModHelperSettings Settings => (SkinModHelperSettings)Instance._Settings;
         public static SkinModHelperSession Session => (SkinModHelperSession)Instance._Session;
 
@@ -87,7 +88,10 @@ namespace Celeste.Mod.SkinModHelper {
             IL.Celeste.Player.GetTrailColor -= patch_SpriteMode_Badeline;
         }
 
+        #endregion
+
         //-----------------------------PlayerSprite-----------------------------
+        #region
         private static Sprite SpriteBankCreateOn(On.Monocle.SpriteBank.orig_CreateOn orig, SpriteBank self, Sprite sprite, string id) {
             // Prevent mode's non-vanilla value causing the game Error
             if (sprite is PlayerSprite && id == "") {
@@ -179,11 +183,10 @@ namespace Celeste.Mod.SkinModHelper {
             }
         }
 
-
-
-
+        #endregion
 
         //-----------------------------Player-----------------------------
+        #region
 
         private static void PlayerUpdateHairHook(On.Celeste.Player.orig_UpdateHair orig, Player self, bool applyGravity) {
             orig(self, applyGravity);
@@ -313,8 +316,10 @@ namespace Celeste.Mod.SkinModHelper {
                 });
             }
         }
+        #endregion
 
         //-----------------------------ColorGrade-----------------------------
+        #region
         private static void OnPlayerSpriteRender_ColorGrade(On.Celeste.PlayerSprite.orig_Render orig, PlayerSprite self) {
             DynData<PlayerSprite> selfData = new DynData<PlayerSprite>(self);
 
@@ -408,7 +413,10 @@ namespace Celeste.Mod.SkinModHelper {
             }
             orig(self);
         }
+        #endregion
+
         //-----------------------------PlayerSprite-----------------------------
+        #region
         private static void PlayerSpriteRenderHook(On.Celeste.PlayerSprite.orig_Render orig, PlayerSprite self) {
             DynData<PlayerSprite> selfData = new DynData<PlayerSprite>(self);
 
@@ -429,8 +437,10 @@ namespace Celeste.Mod.SkinModHelper {
             }
             orig(self);
         }
-        
+        #endregion
+
         //-----------------------------PlayerHair-----------------------------
+        #region
         private static void PlayerHairUpdateHook(On.Celeste.PlayerHair.orig_Update orig, PlayerHair self) {
             DynData<PlayerSprite> selfData = new DynData<PlayerSprite>(self.Sprite);
             selfData["SMH_OncePerFrame"] = null;
@@ -585,9 +595,10 @@ namespace Celeste.Mod.SkinModHelper {
             }
             return ColorBlend(orig(self, index), selfData["HairColorGrading"]);
         }
+        #endregion
 
         //-----------------------------PlayerSpriteMode-----------------------------
-
+        #region
         private static void SetPlayerSpriteMode(PlayerSpriteMode? mode) {
             if (Engine.Scene is Level level) {
                 Player player = level.Tracker.GetEntity<Player>();
@@ -638,8 +649,10 @@ namespace Celeste.Mod.SkinModHelper {
             }
             return false;
         }
+        #endregion
 
         //-----------------------------Method-----------------------------
+        #region
         public static void RefreshPlayerSpriteMode(string SkinName = null, int dashCount = 1) {
             if (Engine.Scene is not Level) {
                 return;
@@ -688,5 +701,8 @@ namespace Celeste.Mod.SkinModHelper {
             }
             return get_dashCount;
         }
+        #endregion
+
+
     }
 }

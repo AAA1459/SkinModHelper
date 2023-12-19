@@ -17,15 +17,18 @@ using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 
 namespace Celeste.Mod.SkinModHelper {
     public class SomePatches {
+        #region
         public static SkinModHelperSettings Settings => (SkinModHelperSettings)Instance._Settings;
         public static SkinModHelperSession Session => (SkinModHelperSession)Instance._Session;
-
 
         public static void Load() {
             On.Celeste.DeathEffect.Render += DeathEffectRenderHook;
             IL.Celeste.DeathEffect.Draw += DeathEffectDrawHook;
 
             On.Monocle.Sprite.Play += PlayerSpritePlayHook;
+            On.Celeste.Player.SuperJump += PlayerSuperJumpHook;
+            On.Celeste.Player.SuperWallJump += PlayerSuperWallJumpHook;
+
             IL.Celeste.CS06_Campfire.Question.ctor += CampfireQuestionHook;
             IL.Celeste.MiniTextbox.ctor += SwapTextboxHook;
 
@@ -62,14 +65,19 @@ namespace Celeste.Mod.SkinModHelper {
             IL.Celeste.DeathEffect.Draw -= DeathEffectDrawHook;
 
             On.Monocle.Sprite.Play -= PlayerSpritePlayHook;
+            On.Celeste.Player.SuperJump -= PlayerSuperJumpHook;
+            On.Celeste.Player.SuperWallJump -= PlayerSuperWallJumpHook;
+
             IL.Celeste.CS06_Campfire.Question.ctor -= CampfireQuestionHook;
             IL.Celeste.MiniTextbox.ctor -= SwapTextboxHook;
 
             On.Monocle.Sprite.SetAnimationFrame -= SpriteSetAnimationFrameHook;
         }
 
+        #endregion
 
         //-----------------------------Portraits-----------------------------
+        #region
         private static void SwapTextboxHook(ILContext il) {
             ILCursor cursor = new(il);
             // Move to the last occurence of this
@@ -138,16 +146,33 @@ namespace Celeste.Mod.SkinModHelper {
             return portrait;
         }
 
-        //-----------------------------Sprites-----------------------------
+        #endregion
+
+        //-----------------------------Players-----------------------------
+        #region
+        private static void PlayerSuperWallJumpHook(On.Celeste.Player.orig_SuperWallJump orig, Player self, int dir) {
+            orig(self, dir);
+            if (self.Sprite.CurrentAnimationID != "dreamDashOut" 
+                && self.Sprite.Has("jumpCrazy")) { self.Sprite.Play("jumpCrazy"); }
+        }
+        private static void PlayerSuperJumpHook(On.Celeste.Player.orig_SuperJump orig, Player self) {
+            orig(self);
+            if (self.Sprite.CurrentAnimationID != "dreamDashOut"
+                && self.Sprite.Has("jumpCrazy")) { self.Sprite.Play("jumpCrazy"); }
+        }
         private static void PlayerSpritePlayHook(On.Monocle.Sprite.orig_Play orig, Sprite self, string id, bool restart = false, bool randomizeFrame = false) {
 
             if (self.Entity is Player player) {
-                if (id == "duck") {
-                    if (self.Has("demodash") && player.DashAttacking) { id = "demodash"; }
-                    if (self.LastAnimationID.StartsWith(id)) { return; } //Duck's animation frames keep replaying? Blocks it!
+                if (self.LastAnimationID != null) {
+                    if (id == "duck") {
+                        if (self.Has("demodash") && player.DashAttacking) { id = "demodash"; }
+                        if (self.LastAnimationID.Contains(id)) { return; } //Duck's animation frames keep replaying? Blocks it!
 
-                } else if (id == "lookUp" && self.LastAnimationID.StartsWith(id)) {
-                    return;
+                    } else if (id == "lookUp" && self.LastAnimationID.Contains(id)) {
+                        return;
+                    } else if (self.LastAnimationID.Contains("jumpCrazy") && (id == "jumpFast" || id == "runFast")) {
+                        return;
+                    }
                 }
                         
                 DynData<PlayerSprite> selfData = new DynData<PlayerSprite>(player.Sprite);
@@ -175,6 +200,10 @@ namespace Celeste.Mod.SkinModHelper {
             orig(self, id, restart, randomizeFrame);
         }
 
+        #endregion
+
+        //-----------------------------Log Patch-----------------------------
+        #region
         private static void SpriteSetAnimationFrameHook(On.Monocle.Sprite.orig_SetAnimationFrame orig, Sprite self, int frame) {
             try {
                 orig(self, frame);
@@ -183,7 +212,10 @@ namespace Celeste.Mod.SkinModHelper {
             }
         }
 
+        #endregion
+
         //-----------------------------Death Effect-----------------------------
+        #region
         private static void DeathEffectRenderHook(On.Celeste.DeathEffect.orig_Render orig, DeathEffect self) {
 
             string spritePath = (string)new DynData<DeathEffect>(self)["spritePath"];
@@ -264,8 +296,10 @@ namespace Celeste.Mod.SkinModHelper {
                 });
             }
         }
+        #endregion
 
-        //-----------------------------more things-----------------------------
+        //-----------------------------Lazy Load-----------------------------
+        #region
         public static void LazyLoad() {
             if (MaddieHelpingHandInstalled) {
                 Logger.Log(LogLevel.Info, "SkinModHelper", $"interruption MaddieHelpingHand's silhouettes render, Let SkinModHelperPlus own render it");
@@ -281,7 +315,10 @@ namespace Celeste.Mod.SkinModHelper {
                 }
             }
         }
+        #endregion
+
         //-----------------------------Hook MaddieHelpingHand / MaxHelpingHand-----------------------------
+        #region
         private static void hookMadelineIsSilhouette(ILContext il) {
             ILCursor cursor = new ILCursor(il);
             while (cursor.TryGotoNext(MoveType.After, instr => instr.OpCode == OpCodes.Callvirt && (instr.Operand as MethodReference).Name == "get_MadelineIsSilhouette")) {
@@ -290,11 +327,15 @@ namespace Celeste.Mod.SkinModHelper {
                 });
             }
         }
+        #endregion
 
+
+        #region
         // Maybe... maybe maybe...
         public static bool EmptyBlocks_0_boolen() { return false; }
         private void EmptyBlocks_1(object obj) { }
         public void EmptyBlocks_4(object obj, object obj_2, object obj_3, object obj_4) { }
         public void EmptyBlocks_3(object obj, object obj_2, object obj_3) { }
+        #endregion
     }
 }

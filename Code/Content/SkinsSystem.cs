@@ -19,6 +19,8 @@ using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 
 namespace Celeste.Mod.SkinModHelper {
     public class SkinsSystem {
+        #region
+
         public static SkinModHelperSettings Settings => (SkinModHelperSettings)Instance._Settings;
         public static SkinModHelperSession Session => (SkinModHelperSession)Instance._Session;
 
@@ -55,7 +57,9 @@ namespace Celeste.Mod.SkinModHelper {
             On.Monocle.Atlas.GetAtlasSubtextures -= GetAtlasSubtexturesHook;
         }
 
-        //-----------------------------Value-----------------------------
+        #endregion
+        #region
+
         //When Character_ID appears in the config file, that ID will be automatically added here.
         //In other words, don¡¯t add hook for this.
         public static readonly List<string> spritesWithHair = new() {
@@ -76,7 +80,12 @@ namespace Celeste.Mod.SkinModHelper {
         public static int Player_Skinid_verify;
         public static bool backpackOn = true;
 
+        public static bool first_build = true;
+
+        #endregion
+
         //-----------------------------Build Skins-----------------------------
+        #region
         private static void EverestContentUpdateHook(ModAsset oldAsset, ModAsset newAsset) {
             if (newAsset != null && newAsset.PathVirtual.StartsWith("SkinModHelperConfig")) {
                 ReloadSettings();
@@ -186,7 +195,10 @@ namespace Celeste.Mod.SkinModHelper {
             }
             return hashValue;
         }
+        #endregion
 
+        //-----------------------------Sprite Banks / Skin Xmls-----------------------------
+        #region
         private static Sprite SpriteBankCreateHook(On.Monocle.SpriteBank.orig_Create orig, SpriteBank self, string id) {
             string newId = id;
             if (self == GFX.SpriteBank) {
@@ -397,16 +409,16 @@ namespace Celeste.Mod.SkinModHelper {
                 number_search = true;
             }
 
-
             if (SpriteID != null && OtherSkins_records.ContainsKey(SpriteID)) {
                 RefreshSkinValues_OtherExtra(SpriteID, null, true, false);
                 path = getOtherSkin_ReskinPath(self, SpritePath, SpriteID, OtherSkin_record[SpriteID], number_search);
             }
             return orig(self, path);
         }
+        #endregion
 
         //-----------------------------Skins Refresh-----------------------------
-        public static bool first_build = true;
+        #region
         public static void RefreshSkins(bool Xmls_refresh, bool inGame = true) {
             if (!inGame) {
                 string skinName = GetPlayerSkin();
@@ -466,9 +478,10 @@ namespace Celeste.Mod.SkinModHelper {
             }
         }
 
-
+        #endregion
 
         //-----------------------------Method-----------------------------
+        #region
         public static T LoadConfigFile<T>(ModAsset skinConfigYaml) {
             return skinConfigYaml.Deserialize<T>();
         }
@@ -573,5 +586,8 @@ namespace Celeste.Mod.SkinModHelper {
             }
             return c1;
         }
+        #endregion
+
+
     }
 }
