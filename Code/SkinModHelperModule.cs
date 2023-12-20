@@ -112,7 +112,7 @@ namespace Celeste.Mod.SkinModHelper {
             if (inGame) {
                 PlayerSkinSystem.RefreshPlayerSpriteMode();
             } else if (!inGame) {
-                RefreshSkins(false, inGame);
+                RefreshSkins(!inGame, inGame);
             }
         }
         public static void UpdateSilhouetteSkin(string newSkinId, bool inGame) {
@@ -127,7 +127,7 @@ namespace Celeste.Mod.SkinModHelper {
                 Session.SessionExtraXml.Remove(SkinId);
             }
             Settings.ExtraXmlList[SkinId] = OnOff;
-            RefreshSkins(false, inGame);
+            RefreshSkins(!inGame, inGame);
         }
 
         //-----------------------------FreeCollocations Update / Skins Refresh-----------------------------

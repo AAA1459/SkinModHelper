@@ -61,14 +61,8 @@ namespace Celeste.Mod.SkinModHelper {
         #region
 
         //When Character_ID appears in the config file, that ID will be automatically added here.
-        //In other words, don¡¯t add hook for this.
-        public static readonly List<string> spritesWithHair = new() {
-            "player",
-            "player_no_backpack",
-            "badeline",
-            "player_badeline",
-            "player_playback"
-        };
+        //In other words, don't add hook for this.
+        public static readonly List<string> spritesWithHair = new();
 
         public static readonly int MAX_DASHES = 32;
         public static readonly int MAX_HAIRLENGTH = 99;
@@ -264,7 +258,8 @@ namespace Celeste.Mod.SkinModHelper {
                         // "SpriteSkin_record" initialization
                         SpriteSkin_record[spriteId] = null;
 
-                        if (spritesWithHair.Contains(spriteId)) {
+                        // Automatically check if origID has Metadata.
+                        if (new DynData<PlayerSprite>(null).Get<Dictionary<string, PlayerAnimMetadata>>("FrameMetadata").ContainsKey($"{origSpriteData.Sprite.Texture}")) {
                             PlayerSprite.CreateFramesMetadata(newSpriteId);
                         }
                     } else if (origBank == GFX.PortraitsSpriteBank && !string.IsNullOrEmpty(skinId)) {
@@ -421,17 +416,25 @@ namespace Celeste.Mod.SkinModHelper {
         #region
         public static void RefreshSkins(bool Xmls_refresh, bool inGame = true) {
             if (!inGame) {
+                Player_Skinid_verify = 0;
+
                 string skinName = GetPlayerSkin();
                 if (skinName != null) {
                     Player_Skinid_verify = skinConfigs[skinName].hashValues;
-                } else {
-                    Player_Skinid_verify = 0;
                 }
             }
             if (Xmls_refresh == true) {
                 LogLevel logLevel = Logger.GetLogLevel("Atlas");
                 if (!first_build) { Logger.SetLogLevel("Atlas", LogLevel.Error);  }
                 first_build = false;
+
+                foreach (string sprite in spritesWithHair) {
+                    if (GFX.SpriteBank.SpriteData.ContainsKey(sprite)) {
+                        PlayerSprite.CreateFramesMetadata(sprite);
+                    } else {
+                        throw new Exception($"[SkinModHelper] '{sprite}' does not exist in Graphics/Sprites.xml");
+                    }
+                }
 
                 bool Enabled = false;
                 foreach (SkinModHelperConfig config in OtherskinConfigs.Values) {

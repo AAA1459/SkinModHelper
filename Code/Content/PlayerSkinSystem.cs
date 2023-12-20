@@ -128,9 +128,7 @@ namespace Celeste.Mod.SkinModHelper {
 
 
             if (hash_object != null) {
-                if (!backpackOn) { hash_object = GetPlayerSkin("_NB", hash_object); }
-
-                mode = (PlayerSpriteMode)skinConfigs[hash_object].hashValues;
+                mode = (PlayerSpriteMode)skinConfigs[!backpackOn ? GetPlayerSkin("_NB", hash_object) : hash_object].hashValues;
             } else if (!backpackOn && mode == PlayerSpriteMode.Madeline) {
                 mode = PlayerSpriteMode.MadelineNoBackpack;
             } else if (backpackOn && mode == PlayerSpriteMode.MadelineNoBackpack) {
@@ -202,12 +200,12 @@ namespace Celeste.Mod.SkinModHelper {
             }
         }
         private static int PlayerStartDashHook(On.Celeste.Player.orig_StartDash orig, Player self) {
-            new DynData<PlayerSprite>(self.Sprite)["TrailDashCount"] = Math.Max(Math.Min(self.Dashes - 1, MAX_DASHES), 0);
+            new DynData<Player>(self)["TrailDashCount"] = Math.Max(Math.Min(self.Dashes - 1, MAX_DASHES), 0);
             return orig(self);
         }
         private static Color PlayerGetTrailColorHook(On.Celeste.Player.orig_GetTrailColor orig, Player self, bool wasDashB) {
             DynData<PlayerSprite> selfData = new DynData<PlayerSprite>(self.Sprite);
-            int dashCount = Math.Max(Math.Min((int)(selfData["TrailDashCount"] ?? self.Dashes), MAX_DASHES), 0);
+            int dashCount = Math.Max(Math.Min((int)(new DynData<Player>(self)["TrailDashCount"] ?? self.Dashes), MAX_DASHES), 0);
 
             Dictionary<int, List<Color>> HairColors = (Dictionary<int, List<Color>>)selfData["HairColors"];
             if (HairColors != null) {
@@ -222,7 +220,7 @@ namespace Celeste.Mod.SkinModHelper {
                 cursor.EmitDelegate<Func<ParticleType, Player, ParticleType>>((orig, self) => {
                     DynData<PlayerSprite> selfData = new DynData<PlayerSprite>(self.Sprite);
 
-                    int dashCount = Math.Max(Math.Min((int)(selfData["TrailDashCount"] ?? self.Dashes), MAX_DASHES), 0);
+                    int dashCount = Math.Max(Math.Min((int)(new DynData<Player>(self)["TrailDashCount"] ?? self.Dashes), MAX_DASHES), 0);
                     Dictionary<int, List<Color>> HairColors = (Dictionary<int, List<Color>>)selfData["HairColors"];
                     if (HairColors != null) {
                         orig = new(orig);

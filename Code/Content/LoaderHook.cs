@@ -17,77 +17,63 @@ using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 
 namespace Celeste.Mod.SkinModHelper {
     public class LoaderHook {
+        #region
         public static SkinModHelperSettings Settings => (SkinModHelperSettings)Instance._Settings;
         public static SkinModHelperSession Session => (SkinModHelperSession)Instance._Session;
 
 
         public static void Load() {
             On.Celeste.LevelLoader.ctor += on_LevelLoader_ctor;
-
             On.Celeste.OverworldLoader.LoadThread += OverworldLoaderLoadThreadHook;
-            On.Celeste.LevelLoader.LoadingThread += LevelLoaderLoadingThreadHook;
 
             On.Celeste.GameLoader.LoadThread += GameLoaderLoadThreadHook;
             On.Celeste.OuiFileSelectSlot.Setup += OuiFileSelectSlotSetupHook;
         }
 
         public static void Unload() {
+            On.Celeste.LevelLoader.ctor -= on_LevelLoader_ctor;
             On.Celeste.OverworldLoader.LoadThread -= OverworldLoaderLoadThreadHook;
-            On.Celeste.LevelLoader.LoadingThread -= LevelLoaderLoadingThreadHook;
 
             On.Celeste.GameLoader.LoadThread -= GameLoaderLoadThreadHook;
             On.Celeste.OuiFileSelectSlot.Setup -= OuiFileSelectSlotSetupHook;
         }
 
-        //-----------------------------Loader-----------------------------
-        private static void on_LevelLoader_ctor(On.Celeste.LevelLoader.orig_ctor orig, LevelLoader self, Session session, Vector2? startPosition) {
-            orig(self, session, startPosition);
-            foreach (SkinModHelperConfig config in skinConfigs.Values) {
-                if (!string.IsNullOrEmpty(config.Character_ID)) {
+        #endregion
 
-                    if (GFX.SpriteBank.SpriteData.ContainsKey(config.Character_ID)) {
-                        PlayerSprite.CreateFramesMetadata(config.Character_ID);
-                    } else {
-                        throw new Exception($"[SkinModHelper] '{config.Character_ID}' does not exist in Graphics/Sprites.xml");
-                    }
-                }
-            }
-        }
+        //-----------------------------Loader-----------------------------
+        #region
         // loading if game starts.
         private static void GameLoaderLoadThreadHook(On.Celeste.GameLoader.orig_LoadThread orig, GameLoader self) {
             orig(self);
             ReloadSettings();
         }
 
-
-
         // loading if enter the maps.
-        private static void LevelLoaderLoadingThreadHook(On.Celeste.LevelLoader.orig_LoadingThread orig, LevelLoader self) {
+        private static void on_LevelLoader_ctor(On.Celeste.LevelLoader.orig_ctor orig, LevelLoader self, Session session, Vector2? startPosition) {
+            orig(self, session, startPosition);
 
-            //at this Hooking time, The level data has not established, cannot get Default backpack state of Level 
-            if (Settings.Backpack == SkinModHelperSettings.BackpackMode.Off || Settings.Backpack == SkinModHelperSettings.BackpackMode.On) {
-                backpackOn = Settings.Backpack != SkinModHelperSettings.BackpackMode.Off;
+            if (session != null) {
+                backpackOn = Settings.Backpack == SkinModHelperSettings.BackpackMode.On ||
+                    (Settings.Backpack == SkinModHelperSettings.BackpackMode.Default && session.Inventory.Backpack) ||
+                    (Settings.Backpack == SkinModHelperSettings.BackpackMode.Invert && !session.Inventory.Backpack);
             }
+            Player_Skinid_verify = 0;
 
             string hash_object = GetPlayerSkin();
             if (hash_object != null) {
-                if (!backpackOn) { hash_object = GetPlayerSkin("_NB", hash_object); }
-                Player_Skinid_verify = skinConfigs[hash_object].hashValues;
+                Player_Skinid_verify = skinConfigs[!backpackOn ? GetPlayerSkin("_NB", hash_object) : hash_object].hashValues;
             }
             RefreshSkins(true);
-            orig(self);
         }
-
-
 
         // loading if overworld loads or exit maps.
         private static void OverworldLoaderLoadThreadHook(On.Celeste.OverworldLoader.orig_LoadThread orig, OverworldLoader self) {
             RefreshSkins(true, false);
             orig(self);
         }
+        #endregion
 
-
-
+        #region
         // loading if save file menu be first time enter when before overworld reloaded.
         private static void OuiFileSelectSlotSetupHook(On.Celeste.OuiFileSelectSlot.orig_Setup orig, OuiFileSelectSlot self) {
             if (self.FileSlot == 0) {
@@ -142,5 +128,6 @@ namespace Celeste.Mod.SkinModHelper {
             }
             Logger.Log("SaveFilePortraits", $"Found {On_ExistingPortraits.Count} portraits to pick from.");
         }
+        #endregion
     }
 }
