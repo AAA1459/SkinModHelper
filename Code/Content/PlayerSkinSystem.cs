@@ -360,7 +360,6 @@ namespace Celeste.Mod.SkinModHelper {
                 selfData["ColorGrade_Atlas"] = atlas;
                 selfData["ColorGrade_Path"] = colorGrade_Path = $"{colorGrade_Path}{dashCount}";
             }
-            Logger.Log(LogLevel.Warn, "SkinModHelper", $"colorGrade_Path: {atlas}{colorGrade_Path}");
 
             if (colorGrade_Path != null && atlas.Has(colorGrade_Path)) {
                 Effect colorGradeEffect = GFX.FxColorGrading;
