@@ -321,8 +321,24 @@ namespace Celeste.Mod.SkinModHelper {
         private static void OnPlayerSpriteRender_ColorGrade(On.Celeste.PlayerSprite.orig_Render orig, PlayerSprite self) {
             DynData<PlayerSprite> selfData = new DynData<PlayerSprite>(self);
 
-            int? get_dashCount = null;
+            // Save colorgrade in typeof(PlayerSprite).
+            // For make typeof(PlayerDeadBody) inherited typeof(Player)'s colorgrade, or similar situations.
+            Atlas atlas = (Atlas)selfData["ColorGrade_Atlas"] ?? GFX.Game;
+            string colorGrade_Path = (string)selfData["ColorGrade_Path"];
+
+            int? get_dashCount;
             if (self.Entity is Player player) {
+                //Check if config from v0.7 Before---
+                string spriteName = (string)selfData["spriteName"];
+                foreach (string key in OtherskinOldConfig.Keys) {
+                    if (spriteName.EndsWith($"{key}")) {
+                        atlas = GFX.ColorGrades;
+                        colorGrade_Path = $"{OtherskinConfigs[key].OtherSprite_ExPath}/dash";
+                        break;
+                    }
+                }
+                //---
+
                 if (player.MaxDashes <= 0 && player.Dashes < 2) {
                     get_dashCount = 1;
                 } else {
@@ -332,35 +348,19 @@ namespace Celeste.Mod.SkinModHelper {
                 get_dashCount = GetDashCount(self);
             }
 
-            // Save colorgrade in typeof(PlayerSprite).
-            // For make typeof(PlayerDeadBody) inherited typeof(Player)'s colorgrade, or similar situations.
-            string colorGrade_Path = (string)selfData["ColorGrade_Path"];
-
-            Atlas atlas = GFX.Game;
             if (get_dashCount != null) {
-                colorGrade_Path = $"{getAnimationRootPath(self)}ColorGrading/dash";
-
-                //Check if config from v0.7 Before---
-                if (self.Entity is Player || self.Entity is PlayerDeadBody) {
-                    string spriteName = (string)new DynData<PlayerSprite>(self)["spriteName"];
-                    foreach (string key in OtherskinOldConfig.Keys) {
-                        if (spriteName.EndsWith($"{key}")) {
-                            atlas = GFX.ColorGrades;
-                            colorGrade_Path = $"{OtherskinConfigs[key].OtherSprite_ExPath}/dash";
-                            break;
-                        }
-                    }
+                if (atlas == GFX.Game) {
+                    colorGrade_Path = $"{getAnimationRootPath(self)}ColorGrading/dash";
                 }
-                //---
-
                 int dashCount = Math.Max(Math.Min((int)get_dashCount, MAX_DASHES), 0);
-
                 while (dashCount > 2 && !GFX.Game.Has($"{colorGrade_Path}{dashCount}")) {
                     dashCount--;
                 }
-                colorGrade_Path = $"{colorGrade_Path}{dashCount}";
-                selfData["ColorGrade_Path"] = colorGrade_Path;
+
+                selfData["ColorGrade_Atlas"] = atlas;
+                selfData["ColorGrade_Path"] = colorGrade_Path = $"{colorGrade_Path}{dashCount}";
             }
+            Logger.Log(LogLevel.Warn, "SkinModHelper", $"colorGrade_Path: {atlas}{colorGrade_Path}");
 
             if (colorGrade_Path != null && atlas.Has(colorGrade_Path)) {
                 Effect colorGradeEffect = GFX.FxColorGrading;
@@ -380,19 +380,10 @@ namespace Celeste.Mod.SkinModHelper {
             orig(self);
         }
         private static void PlayerHairRenderHook_ColorGrade(On.Celeste.PlayerHair.orig_Render orig, PlayerHair self) {
-            Atlas atlas = GFX.Game;
-            string colorGrade_Path = (string)new DynData<PlayerSprite>(self.Sprite)["ColorGrade_Path"];
+            DynData<PlayerSprite> selfData = new DynData<PlayerSprite>(self.Sprite);
 
-            //Check if config from v0.7 Before---
-            if (self.Entity is Player || self.Entity is PlayerDeadBody) {
-                string spriteName = (string)new DynData<PlayerSprite>(self.Sprite)["spriteName"];
-                foreach (string key in OtherskinOldConfig.Keys) {
-                    if (spriteName.EndsWith($"{key}")) {
-                        atlas = GFX.ColorGrades;
-                        break;
-                    }
-                }
-            }
+            Atlas atlas = (Atlas)selfData["ColorGrade_Atlas"] ?? GFX.Game;
+            string colorGrade_Path = (string)selfData["ColorGrade_Path"];
 
             if (colorGrade_Path != null && atlas.Has(colorGrade_Path)) {
                 Effect colorGradeEffect = GFX.FxColorGrading;
@@ -694,8 +685,6 @@ namespace Celeste.Mod.SkinModHelper {
             } else if (type is PlayerPlayback) {
                 get_dashCount = null;
             } else if (get_dashCount == null) {
-                var Dashes = type.GetType().GetField("Dashes");
-                get_dashCount = Dashes != null ? (int?)Dashes.GetValue(type) : null;
             }
             return get_dashCount;
         }

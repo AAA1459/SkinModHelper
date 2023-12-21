@@ -82,6 +82,7 @@ namespace Celeste.Mod.SkinModHelper {
         #region
         private static void EverestContentUpdateHook(ModAsset oldAsset, ModAsset newAsset) {
             if (newAsset != null && newAsset.PathVirtual.StartsWith("SkinModHelperConfig")) {
+                first_build = true;
                 ReloadSettings();
             }
         }
@@ -259,7 +260,7 @@ namespace Celeste.Mod.SkinModHelper {
                         SpriteSkin_record[spriteId] = null;
 
                         // Automatically check if origID has Metadata.
-                        if (new DynData<PlayerSprite>(null).Get<Dictionary<string, PlayerAnimMetadata>>("FrameMetadata").ContainsKey($"{origSpriteData.Sprite.Texture}")) {
+                        if (new DynData<PlayerSprite>(null).Get<Dictionary<string, PlayerAnimMetadata>>("FrameMetadata").ContainsKey($"{(origSpriteData.Sprite.Has("idle") ? origSpriteData.Sprite.GetFrame("idle", 0) : origSpriteData.Sprite.Texture)}")) {
                             PlayerSprite.CreateFramesMetadata(newSpriteId);
                         }
                     } else if (origBank == GFX.PortraitsSpriteBank && !string.IsNullOrEmpty(skinId)) {
