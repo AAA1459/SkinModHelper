@@ -318,8 +318,8 @@ namespace Celeste.Mod.SkinModHelper {
 
         //-----------------------------ColorGrade-----------------------------
         #region
-        private static void OnPlayerSpriteRender_ColorGrade(On.Celeste.PlayerSprite.orig_Render orig, PlayerSprite self) {
-            DynData<PlayerSprite> selfData = new DynData<PlayerSprite>(self);
+        private static void PlayerHairRenderHook_ColorGrade(On.Celeste.PlayerHair.orig_Render orig, PlayerHair self) {
+            DynData<PlayerSprite> selfData = new DynData<PlayerSprite>(self.Sprite);
 
             // Save colorgrade in typeof(PlayerSprite).
             // For make typeof(PlayerDeadBody) inherited typeof(Player)'s colorgrade, or similar situations.
@@ -350,7 +350,7 @@ namespace Celeste.Mod.SkinModHelper {
 
             if (get_dashCount != null) {
                 if (atlas == GFX.Game) {
-                    colorGrade_Path = $"{getAnimationRootPath(self)}ColorGrading/dash";
+                    colorGrade_Path = $"{getAnimationRootPath(self.Sprite)}ColorGrading/dash";
                 }
                 int dashCount = Math.Max(Math.Min((int)get_dashCount, MAX_DASHES), 0);
                 while (dashCount > 2 && !GFX.Game.Has($"{colorGrade_Path}{dashCount}")) {
@@ -378,8 +378,8 @@ namespace Celeste.Mod.SkinModHelper {
             }
             orig(self);
         }
-        private static void PlayerHairRenderHook_ColorGrade(On.Celeste.PlayerHair.orig_Render orig, PlayerHair self) {
-            DynData<PlayerSprite> selfData = new DynData<PlayerSprite>(self.Sprite);
+        private static void OnPlayerSpriteRender_ColorGrade(On.Celeste.PlayerSprite.orig_Render orig, PlayerSprite self) {
+            DynData<PlayerSprite> selfData = new DynData<PlayerSprite>(self);
 
             Atlas atlas = (Atlas)selfData["ColorGrade_Atlas"] ?? GFX.Game;
             string colorGrade_Path = (string)selfData["ColorGrade_Path"];
@@ -410,7 +410,7 @@ namespace Celeste.Mod.SkinModHelper {
 
             // rendering run multiple times in one frame, but we don't need to do much. so...
             if (selfData["SMH_OncePerFrame"] == null) {
-                if (self.Entity is not Player) {
+                if (self.Entity is not Player && selfData["isGhost"] == null) {
                     string rootPath = getAnimationRootPath(self);
                     CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "CharacterConfig") ?? new();
                     new CharacterConfig(ModeConfig, self.Mode);
@@ -446,10 +446,10 @@ namespace Celeste.Mod.SkinModHelper {
         }
 
         private static void PlayerHairRenderHook(On.Celeste.PlayerHair.orig_Render orig, PlayerHair self) {
+            DynData<PlayerSprite> selfData = new DynData<PlayerSprite>(self.Sprite);
 
             // We want hair get config in rendering before. but rendering run multiple times in one frame, so...
             if (new DynData<PlayerHair>(self)["SMH_OncePerFrame"] == null) {
-                DynData<PlayerSprite> selfData = new DynData<PlayerSprite>(self.Sprite);
 
                 //Check if config from v0.7 Before---
                 if (self.Entity is Player) {
@@ -482,7 +482,7 @@ namespace Celeste.Mod.SkinModHelper {
 
                 int? get_dashCount = GetDashCount(self);
 
-                if (self.Entity is not PlayerPlayback) {
+                if (get_dashCount != null) {
                     int number_search = 0;
                     while (number_search < MAX_DASHES && !GFX.Game.Has($"{rootPath}ColorGrading/dash{number_search}")) {
                         number_search++;
@@ -499,13 +499,13 @@ namespace Celeste.Mod.SkinModHelper {
                     } else {
                         selfData["HairColors"] = null;
                     }
-                } 
-                
-                if (self.Entity is not Player) {
-                    // We need this code, for sure make badeline as silhouette can working.
-                    Dictionary<int, List<Color>> HairColors = (Dictionary<int, List<Color>>)selfData["HairColors"];
-                    if (HairColors != null && get_dashCount != null) {
-                        self.Color = HairColors[100][Math.Max(Math.Min((int)get_dashCount, MAX_DASHES), 0)];
+
+                    if (self.Entity is not Player) {
+                        // We need this code, for sure make badeline as silhouette can working.
+                        Dictionary<int, List<Color>> HairColors = (Dictionary<int, List<Color>>)selfData["HairColors"];
+                        if (HairColors != null) {
+                            self.Color = HairColors[100][Math.Max(Math.Min((int)get_dashCount, MAX_DASHES), 0)];
+                        }
                     }
                 }
                 selfData["CurrentHairColor"] = self.Color;

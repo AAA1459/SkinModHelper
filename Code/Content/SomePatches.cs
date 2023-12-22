@@ -51,7 +51,7 @@ namespace Celeste.Mod.SkinModHelper {
                     doneHooks.Add(new Hook(OldModule.GetMethod("UniqueSkinSelected", BindingFlags.Public | BindingFlags.Static),
                                          typeof(SomePatches).GetMethod("EmptyBlocks_0_boolen", BindingFlags.Public | BindingFlags.Static)));
 
-                    tracking_numbers++;  // There are some issues with this unimportant hook that only happen to some people, So let's put it last
+                    tracking_numbers++;  // There are some issues with this unimportant hook that only happen to EverestCore, So let's put it last.
                     doneHooks.Add(new Hook(OldModule.GetMethod("CreateModMenuSection", BindingFlags.Public | BindingFlags.Instance),
                                          typeof(SomePatches).GetMethod("EmptyBlocks_4", BindingFlags.Public | BindingFlags.Instance), OldModule));
                 } catch (Exception e) {
