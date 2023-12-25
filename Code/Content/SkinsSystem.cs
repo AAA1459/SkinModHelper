@@ -83,7 +83,7 @@ namespace Celeste.Mod.SkinModHelper {
         private static void EverestContentUpdateHook(ModAsset oldAsset, ModAsset newAsset) {
             if (newAsset != null && newAsset.PathVirtual.StartsWith("SkinModHelperConfig")) {
                 ReloadSettings();
-                RecordSpriteBanks_Start();
+                RefreshSkins(true, false);
             }
         }
         public static void ReloadSettings() {

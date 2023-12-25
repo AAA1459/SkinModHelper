@@ -82,6 +82,8 @@ namespace Celeste.Mod.SkinModHelper {
                 Type entityType = entity.GetType();
                 var Field_sprite = GetFieldPlus(entityType, "sprite");
 
+                Field_sprite = GetFieldPlus(entityType, "sprite");
+
                 if (Field_sprite != null && Field_sprite.GetValue(entity) is Sprite sprite) {
 
                     // --------sprite--------

@@ -25,7 +25,7 @@ namespace Celeste.Mod.SkinModHelper {
             On.Celeste.Lookout.Interact += on_Lookout_Interact;
 
             IL.Celeste.Booster.Added += Celeste_Booster_ILHook;
-            IL.Celeste.FlyFeather.ctor_Vector2_bool_bool += Celeste_flyFeather_ILHook;
+            On.Celeste.FlyFeather.Added += Celeste_flyFeather_Hook;
             On.Celeste.Cloud.Added += Celeste_Cloud_Hook;
 
             IL.Celeste.DreamBlock.ctor_Vector2_float_float_Nullable1_bool_bool_bool += Celeste_DreamBlock_ILHook;
@@ -40,7 +40,7 @@ namespace Celeste.Mod.SkinModHelper {
             On.Celeste.Lookout.Interact -= on_Lookout_Interact;
 
             IL.Celeste.Booster.Added -= Celeste_Booster_ILHook;
-            IL.Celeste.FlyFeather.ctor_Vector2_bool_bool -= Celeste_flyFeather_ILHook;
+            On.Celeste.FlyFeather.Added -= Celeste_flyFeather_Hook;
             On.Celeste.Cloud.Added -= Celeste_Cloud_Hook;
 
             IL.Celeste.DreamBlock.ctor_Vector2_float_float_Nullable1_bool_bool_bool -= Celeste_DreamBlock_ILHook;
@@ -62,15 +62,14 @@ namespace Celeste.Mod.SkinModHelper {
         }
 
         //-----------------------------flyFeather-----------------------------
-        public static void Celeste_flyFeather_ILHook(ILContext il) {
-            ILCursor cursor = new(il);
+        public static void Celeste_flyFeather_Hook(On.Celeste.FlyFeather.orig_Added orig, FlyFeather self, Scene scene) {
+            orig(self, scene);
+            DynData<FlyFeather> selfData = new DynData<FlyFeather>(self);
 
-            while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdstr("objects/flyFeather/outline"))) {
-                cursor.EmitDelegate<Func<string, string>>((orig) => {
-
-                    string SpritePath = getAnimationRootPath("flyFeather") + "outline";
-                    return !GFX.Game.Has(SpritePath) ? orig : SpritePath;
-                });
+            string SpritePath = getAnimationRootPath(selfData["sprite"] as Sprite) + "outline";
+            if (GFX.Game.Has(SpritePath)) {
+                Image outline = selfData["outline"] as Image;
+                outline.Texture = GFX.Game[SpritePath];
             }
         }
         //-----------------------------Cloud-----------------------------
