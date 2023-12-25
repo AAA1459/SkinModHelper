@@ -82,11 +82,12 @@ namespace Celeste.Mod.SkinModHelper {
         #region
         private static void EverestContentUpdateHook(ModAsset oldAsset, ModAsset newAsset) {
             if (newAsset != null && newAsset.PathVirtual.StartsWith("SkinModHelperConfig")) {
-                first_build = true;
                 ReloadSettings();
+                RecordSpriteBanks_Start();
             }
         }
         public static void ReloadSettings() {
+            spritesWithHair.Clear();
             skinConfigs.Clear();
             OtherskinConfigs.Clear();
             OtherskinOldConfig.Clear();
@@ -173,8 +174,7 @@ namespace Celeste.Mod.SkinModHelper {
                     }
                 }
             }
-
-            RecordSpriteBanks_Start();
+            first_build = true;
 
             if (Settings.SelectedPlayerSkin == null || !skinConfigs.ContainsKey(Settings.SelectedPlayerSkin)) {
                 Settings.SelectedPlayerSkin = DEFAULT;
@@ -424,11 +424,13 @@ namespace Celeste.Mod.SkinModHelper {
                     Player_Skinid_verify = skinConfigs[skinName].hashValues;
                 }
             }
+
             if (Xmls_refresh == true) {
                 LogLevel logLevel = Logger.GetLogLevel("Atlas");
-                if (!first_build) { Logger.SetLogLevel("Atlas", LogLevel.Error);  }
+                if (!first_build) { Logger.SetLogLevel("Atlas", LogLevel.Error); }
                 first_build = false;
 
+                #region
                 foreach (string sprite in spritesWithHair) {
                     if (GFX.SpriteBank.SpriteData.ContainsKey(sprite)) {
                         PlayerSprite.CreateFramesMetadata(sprite);
@@ -436,7 +438,6 @@ namespace Celeste.Mod.SkinModHelper {
                         throw new Exception($"[SkinModHelper] '{sprite}' does not exist in Graphics/Sprites.xml");
                     }
                 }
-
                 bool Enabled = false;
                 foreach (SkinModHelperConfig config in OtherskinConfigs.Values) {
                     Enabled = Settings.ExtraXmlList.ContainsKey(config.SkinName) && Settings.ExtraXmlList[config.SkinName];
@@ -460,6 +461,10 @@ namespace Celeste.Mod.SkinModHelper {
                         CombineSpriteBanks(GFX.PortraitsSpriteBank, $"{config.hashValues}", portraitsXmlPath, Enabled);
                     }
                 }
+                #endregion
+
+                Logger.SetLogLevel("Atlas", LogLevel.Error);
+                RecordSpriteBanks_Start();
                 Logger.SetLogLevel("Atlas", logLevel);
             }
             UpdateParticles();
@@ -590,8 +595,18 @@ namespace Celeste.Mod.SkinModHelper {
             }
             return c1;
         }
+
+        public static FieldInfo GetFieldPlus(Type type, string name) {
+            FieldInfo field = null;
+            while (field == null) {
+                field = type.GetField(name, BindingFlags.Public | BindingFlags.Instance) ?? type.GetField(name, BindingFlags.NonPublic | BindingFlags.Instance);
+
+                // some mods entities works based on vanilla entities, but mods entity possible don't have theis own field.
+                type = type.BaseType; 
+                if (type.BaseType == typeof(object)) { break; }
+            }
+            return field;
+        }
         #endregion
-
-
     }
 }

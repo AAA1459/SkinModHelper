@@ -97,16 +97,15 @@ namespace Celeste.Mod.SkinModHelper {
                 cursor.EmitDelegate<Func<string, Entity, string>>((orig, self) => {
 
                     // Maybe... I want this as a general ILhook to be directly applicable to other Helpers?
-                    var Field_sprite = self.GetType().GetField("sprite", BindingFlags.NonPublic | BindingFlags.Instance);
-                    Field_sprite = Field_sprite ?? self.GetType().GetField("sprite", BindingFlags.Public | BindingFlags.Instance);
-                    if (Field_sprite != null) {
+                    var Field_sprite = GetFieldPlus(self.GetType(), "sprite");
 
+                    if (Field_sprite != null) {
                         Sprite sprite = Field_sprite.GetValue(self) as Sprite;
                         string SpritePath = getAnimationRootPath(sprite);
 
                         // At the same time, reskin particles if its exist.
                         if (GFX.Game.Has(SpritePath + "blob")) {
-                            var Field_particle = self.GetType().GetField("particleType", BindingFlags.NonPublic | BindingFlags.Instance);
+                            var Field_particle = GetFieldPlus(self.GetType(), "particleType");
 
                             if (Field_particle != null) {
                                 // Clone object to prevent lost of vanilla

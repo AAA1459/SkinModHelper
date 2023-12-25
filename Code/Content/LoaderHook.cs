@@ -44,8 +44,9 @@ namespace Celeste.Mod.SkinModHelper {
         #region
         // loading if game starts.
         private static void GameLoaderLoadThreadHook(On.Celeste.GameLoader.orig_LoadThread orig, GameLoader self) {
-            orig(self);
             ReloadSettings();
+            orig(self);
+            // Don't put the methods under orig(self), maybe FNA...not like it.
         }
 
         // loading if enter the maps.

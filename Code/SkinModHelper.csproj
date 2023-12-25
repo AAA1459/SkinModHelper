@@ -27,17 +27,16 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Reference Include="$(CelestePrefix)\Celeste.exe" />
         <Reference Include="$(CelestePrefix)\MMHOOK_Celeste.dll" />
         <Reference Include="$(CelestePrefix)\YamlDotNet.dll" />
+        <Reference Include="Celeste">
+          <HintPath>..\..\..\Celeste.dll</HintPath>
+        </Reference>
         <Reference Include="Mono.Cecil">
           <HintPath>..\..\..\Mono.Cecil.dll</HintPath>
         </Reference>
         <Reference Include="MonoMod.RuntimeDetour">
           <HintPath>..\..\..\MonoMod.RuntimeDetour.dll</HintPath>
-        </Reference>
-        <Reference Include="MonoMod.RuntimeDetour.HookGen">
-          <HintPath>..\..\..\MonoMod.RuntimeDetour.HookGen.exe</HintPath>
         </Reference>
         <Reference Include="MonoMod.Utils">
           <HintPath>..\..\..\MonoMod.Utils.dll</HintPath>

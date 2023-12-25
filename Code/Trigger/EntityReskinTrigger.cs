@@ -79,9 +79,8 @@ namespace Celeste.Mod.SkinModHelper {
             if (search.EndsWith("_")) { search = search.Remove(search.LastIndexOf("_")); }
 
             if (SpriteID != null && GFX.SpriteBank.SpriteData.ContainsKey(search)) {
-
-                var Field_sprite = entity.GetType().GetField("sprite", BindingFlags.NonPublic | BindingFlags.Instance);
-                Field_sprite = Field_sprite ?? entity.GetType().GetField("sprite", BindingFlags.Public | BindingFlags.Instance);
+                Type entityType = entity.GetType();
+                var Field_sprite = GetFieldPlus(entityType, "sprite");
 
                 if (Field_sprite != null && Field_sprite.GetValue(entity) is Sprite sprite) {
 
@@ -90,13 +89,13 @@ namespace Celeste.Mod.SkinModHelper {
                     string SpritePath = getAnimationRootPath(sprite);
                     // ----------------
                     // --------flash--------
-                    var Field_flash = entity.GetType().GetField("flash", BindingFlags.NonPublic | BindingFlags.Instance);
+                    var Field_flash = GetFieldPlus(entityType, "flash");
                     if (Field_flash != null && Field_flash.GetValue(entity) is Sprite flash) {
                         flash = GFX.SpriteBank.CreateOn(flash, SpriteID);
                     }
                     // ----------------
                     // --------outline--------
-                    var Field_outline = entity.GetType().GetField("outline", BindingFlags.NonPublic | BindingFlags.Instance);
+                    var Field_outline = GetFieldPlus(entityType, "outline");
                     if (Field_outline != null && Field_outline.GetValue(entity) is Entity outline) {
                         foreach (Component component in outline) {
                             if (component is Image image && GFX.Game.Has($"{SpritePath}outline")) {
@@ -111,7 +110,7 @@ namespace Celeste.Mod.SkinModHelper {
                     // ----------------
                     // --------particle--------
                     if (entity is Booster || entity is Cloud) {
-                        var Field_particle = entity.GetType().GetField("particleType", BindingFlags.NonPublic | BindingFlags.Instance);
+                        var Field_particle = GetFieldPlus(entityType, "particleType");
                         if (Field_particle != null) {
 
                             string particle = "blob";
