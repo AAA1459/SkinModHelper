@@ -67,6 +67,7 @@ namespace Celeste.Mod.SkinModHelper {
             IL.Celeste.DeathEffect.Draw -= DeathEffectDrawHook;
 
             On.Monocle.Sprite.Play -= PlayerSpritePlayHook;
+
             On.Celeste.Player.SuperJump -= PlayerSuperJumpHook;
             On.Celeste.Player.SuperWallJump -= PlayerSuperWallJumpHook;
             IL.Celeste.Player.Render -= PlayerRenderIlHook_Sprite;
@@ -155,22 +156,25 @@ namespace Celeste.Mod.SkinModHelper {
         #region
         private static void PlayerSuperWallJumpHook(On.Celeste.Player.orig_SuperWallJump orig, Player self, int dir) {
             orig(self, dir);
-            if (self.Sprite.CurrentAnimationID != "dreamDashOut"
+            if (!self.Sprite.CurrentAnimationID.Contains("dreamDashOut")
                 && self.Sprite.Has("jumpCrazy")) { self.Sprite.Play("jumpCrazy"); }
         }
         private static void PlayerSuperJumpHook(On.Celeste.Player.orig_SuperJump orig, Player self) {
             orig(self);
-            if (self.Sprite.CurrentAnimationID != "dreamDashOut"
+            if (!self.Sprite.CurrentAnimationID.Contains("dreamDashOut")
                 && self.Sprite.Has("jumpCrazy")) { self.Sprite.Play("jumpCrazy"); }
         }
 
         private static void PlayerSpritePlayHook(On.Monocle.Sprite.orig_Play orig, Sprite self, string id, bool restart = false, bool randomizeFrame = false) {
 
             if (self.Entity is Player player) {
+                DynData<PlayerSprite> selfData = new DynData<PlayerSprite>(player.Sprite);
+
+                string origID = id;
+
                 #region Animations modify and extended
                 if (self.LastAnimationID != null) {
                     bool SwimCheck = (bool)typeof(Player).GetMethod("SwimCheck", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(player, null);
-                    string origID = id;
 
                     if (id == "walk" && player.Holding != null) {
                         // Patched on when player running in cutscene and carrying something.
@@ -188,18 +192,24 @@ namespace Celeste.Mod.SkinModHelper {
                         }
                     }
 
-
-                    // Universal code... if who really so care the theo crystal...
-                    if (player.Holding != null && !id.EndsWith("_carry")) {
-                        if (self.Has($"{id}_carry")) {
-                            id = $"{id}_carry";
-                        } else if (player.Holding != null && id.StartsWith("swim") && !id.StartsWith("swimDash")) {
-                            origID = id = "fallSlow_carry";
-                        }
+                    // Universal code... if you are theo smuggle enthusiast...
+                    if (player.Holding != null && !id.EndsWith("_carry") && self.Has($"{id}_carry")) {
+                        id = $"{id}_carry";
                     }
 
-                    // Make sure that The orig animations will not be forced replay or The new animations will not be forced cancel.
-                    if ((origID != id || id == "lookUp" || id == "duck") && self.LastAnimationID.Contains(id)) {
+
+                    if (origID != id && origID == "dreamDashOut") {
+                        // This requires some special fixes...
+                        if (self.CurrentAnimationID.Contains(id)) {
+                            origID = id;
+                        }
+                        if (self.LastAnimationID.Contains(id)) {
+                            new DynData<Sprite>(self)["LastAnimationID"] = origID;
+                            return;
+                        }
+                    }
+                    else if ((origID != id || id == "lookUp" || id == "duck") && self.LastAnimationID.Contains(id)) {
+                        // Make sure that The orig animations will not be forced replay or The new animations will not be forced cancel.
                         return;
                     } else if (self.LastAnimationID.Contains("jumpCrazy") && (id == "jumpFast" || id == "runFast")) {
                         return;
@@ -207,7 +217,6 @@ namespace Celeste.Mod.SkinModHelper {
                 }
                 #endregion
 
-                DynData<PlayerSprite> selfData = new DynData<PlayerSprite>(player.Sprite);
                 if (selfData["spriteName_orig"] != null) {
                     GFX.SpriteBank.CreateOn(self, (string)selfData["spriteName_orig"]);
                     selfData["spriteName_orig"] = null;
@@ -215,6 +224,9 @@ namespace Celeste.Mod.SkinModHelper {
 
                 try {
                     orig(self, id, restart, randomizeFrame);
+                    if (origID != id && origID == "dreamDashOut") {
+
+                    }
                     return;
                 } catch {
                     if (selfData["spriteName_orig"] == null && selfData.Get<string>("spriteName") != "") {
