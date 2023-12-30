@@ -33,7 +33,6 @@ namespace Celeste.Mod.SkinModHelper {
             IL.Celeste.Player.DashUpdate += PlayerDashUpdateIlHook;
 
             IL.Celeste.Player.Render += PlayerRenderIlHook_Color;
-            IL.Celeste.Player.Render += PlayerRenderIlHook_Sprite;
 
             On.Celeste.PlayerHair.Render += PlayerHairRenderHook;
             On.Celeste.PlayerSprite.Render += PlayerSpriteRenderHook;
@@ -48,8 +47,6 @@ namespace Celeste.Mod.SkinModHelper {
             IL.Celeste.Player.UpdateHair += patch_SpriteMode_Badeline;
             IL.Celeste.Player.DashUpdate += patch_SpriteMode_Badeline;
             IL.Celeste.Player.GetTrailColor += patch_SpriteMode_Badeline;
-
-            doneILHooks.Add(new ILHook(typeof(Player).GetMethod("TempleFallCoroutine", BindingFlags.NonPublic | BindingFlags.Instance).GetStateMachineTarget(), TempleFallCoroutineILHook));
 
             if (JungleHelperInstalled) {
                 Assembly assembly = Everest.Modules.Where(m => m.Metadata?.Name == "JungleHelper").First().GetType().Assembly;
@@ -71,7 +68,6 @@ namespace Celeste.Mod.SkinModHelper {
             IL.Celeste.Player.DashUpdate -= PlayerDashUpdateIlHook;
 
             IL.Celeste.Player.Render -= PlayerRenderIlHook_Color;
-            IL.Celeste.Player.Render -= PlayerRenderIlHook_Sprite;
 
             On.Celeste.PlayerHair.Render -= PlayerHairRenderHook;
             On.Celeste.PlayerSprite.Render -= PlayerSpriteRenderHook;
@@ -281,34 +277,6 @@ namespace Celeste.Mod.SkinModHelper {
                         return self.Hair.Color;
                     } else if (ModeConfig.SilhouetteMode == false) {
                         return Color.White;
-                    }
-                    return orig;
-                });
-            }
-        }
-        private static void TempleFallCoroutineILHook(ILContext il) {
-            ILCursor cursor = new ILCursor(il);
-            while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdstr("idle"))) {
-                cursor.EmitDelegate<Func<string, string>>((orig) => {
-                    if (Player_Skinid_verify != 0) {
-                        return "fallPose";
-                    }
-                    return orig;
-                });
-            }
-        }
-        private static void PlayerRenderIlHook_Sprite(ILContext il) {
-            ILCursor cursor = new ILCursor(il);
-
-            if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdstr("characters/player/startStarFlyWhite"))) {
-                Logger.Log("SkinModHelper", $"Changing startStarFlyWhite path at {cursor.Index} in CIL code for {cursor.Method.FullName}");
-
-                cursor.Emit(OpCodes.Ldarg_0);
-                cursor.EmitDelegate<Func<string, Player, string>>((orig, self) => {
-                    string spritePath = getAnimationRootPath(self.Sprite) + "startStarFlyWhite";
-
-                    if (GFX.Game.HasAtlasSubtexturesAt(spritePath, 0)) {
-                        return spritePath;
                     }
                     return orig;
                 });

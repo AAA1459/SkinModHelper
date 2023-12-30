@@ -218,14 +218,7 @@ namespace Celeste.Mod.SkinModHelper {
             if (Session != null && Session.SessionSilhouetteSkin != null) {
                 skinName = Session.SessionSilhouetteSkin;
             }
-
-            if (skinConfigs.ContainsKey(skinName + skin_suffix)) {
-                return skinName + skin_suffix;
-            } else if (skinConfigs.ContainsKey(skinName)) {
-                return skinName;
-            } else {
-                return null;
-            }
+            return GetPlayerSkin(skin_suffix, skinName);
         }
     }
 }

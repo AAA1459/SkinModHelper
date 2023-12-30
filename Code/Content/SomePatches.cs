@@ -28,12 +28,14 @@ namespace Celeste.Mod.SkinModHelper {
             On.Monocle.Sprite.Play += PlayerSpritePlayHook;
             On.Celeste.Player.SuperJump += PlayerSuperJumpHook;
             On.Celeste.Player.SuperWallJump += PlayerSuperWallJumpHook;
+            IL.Celeste.Player.Render += PlayerRenderIlHook_Sprite;
 
             IL.Celeste.CS06_Campfire.Question.ctor += CampfireQuestionHook;
             IL.Celeste.MiniTextbox.ctor += SwapTextboxHook;
 
             On.Monocle.Sprite.SetAnimationFrame += SpriteSetAnimationFrameHook;
 
+            doneILHooks.Add(new ILHook(typeof(Player).GetMethod("TempleFallCoroutine", BindingFlags.NonPublic | BindingFlags.Instance).GetStateMachineTarget(), TempleFallCoroutineILHook));
             doneILHooks.Add(new ILHook(typeof(Textbox).GetMethod("RunRoutine", BindingFlags.NonPublic | BindingFlags.Instance).GetStateMachineTarget(), SwapTextboxHook));
 
             if (OrigSkinModHelper_loaded) {
@@ -67,6 +69,7 @@ namespace Celeste.Mod.SkinModHelper {
             On.Monocle.Sprite.Play -= PlayerSpritePlayHook;
             On.Celeste.Player.SuperJump -= PlayerSuperJumpHook;
             On.Celeste.Player.SuperWallJump -= PlayerSuperWallJumpHook;
+            IL.Celeste.Player.Render -= PlayerRenderIlHook_Sprite;
 
             IL.Celeste.CS06_Campfire.Question.ctor -= CampfireQuestionHook;
             IL.Celeste.MiniTextbox.ctor -= SwapTextboxHook;
@@ -152,7 +155,7 @@ namespace Celeste.Mod.SkinModHelper {
         #region
         private static void PlayerSuperWallJumpHook(On.Celeste.Player.orig_SuperWallJump orig, Player self, int dir) {
             orig(self, dir);
-            if (self.Sprite.CurrentAnimationID != "dreamDashOut" 
+            if (self.Sprite.CurrentAnimationID != "dreamDashOut"
                 && self.Sprite.Has("jumpCrazy")) { self.Sprite.Play("jumpCrazy"); }
         }
         private static void PlayerSuperJumpHook(On.Celeste.Player.orig_SuperJump orig, Player self) {
@@ -160,21 +163,50 @@ namespace Celeste.Mod.SkinModHelper {
             if (self.Sprite.CurrentAnimationID != "dreamDashOut"
                 && self.Sprite.Has("jumpCrazy")) { self.Sprite.Play("jumpCrazy"); }
         }
+
         private static void PlayerSpritePlayHook(On.Monocle.Sprite.orig_Play orig, Sprite self, string id, bool restart = false, bool randomizeFrame = false) {
 
             if (self.Entity is Player player) {
+                #region Animations modify and extended
                 if (self.LastAnimationID != null) {
-                    if (id == "duck") {
-                        if (self.Has("demodash") && player.DashAttacking) { id = "demodash"; }
-                        if (self.LastAnimationID.Contains(id)) { return; } //Duck's animation frames keep replaying? Blocks it!
+                    bool SwimCheck = (bool)typeof(Player).GetMethod("SwimCheck", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(player, null);
+                    string origID = id;
 
-                    } else if (id == "lookUp" && self.LastAnimationID.Contains(id)) {
+                    if (id == "walk" && player.Holding != null) {
+                        // Patched on when player running in cutscene and carrying something.
+                        id = "runSlow_carry";
+
+                    } else if (id == "dash" && SwimCheck && self.Has("swimDash")) {
+                        id = "swimDash";
+
+                    } else if (id == "duck" && player.DashAttacking) {
+                        if (SwimCheck && self.Has("swimDashCrouch")) {
+                            id = "swimDashCrouch";
+
+                        } else if (self.Has("dashCrouch")) {
+                            id = "dashCrouch";
+                        }
+                    }
+
+
+                    // Universal code... if who really so care the theo crystal...
+                    if (player.Holding != null && !id.EndsWith("_carry")) {
+                        if (self.Has($"{id}_carry")) {
+                            id = $"{id}_carry";
+                        } else if (player.Holding != null && id.StartsWith("swim") && !id.StartsWith("swimDash")) {
+                            origID = id = "fallSlow_carry";
+                        }
+                    }
+
+                    // Make sure that The orig animations will not be forced replay or The new animations will not be forced cancel.
+                    if ((origID != id || id == "lookUp" || id == "duck") && self.LastAnimationID.Contains(id)) {
                         return;
                     } else if (self.LastAnimationID.Contains("jumpCrazy") && (id == "jumpFast" || id == "runFast")) {
                         return;
                     }
                 }
-                        
+                #endregion
+
                 DynData<PlayerSprite> selfData = new DynData<PlayerSprite>(player.Sprite);
                 if (selfData["spriteName_orig"] != null) {
                     GFX.SpriteBank.CreateOn(self, (string)selfData["spriteName_orig"]);
@@ -200,6 +232,38 @@ namespace Celeste.Mod.SkinModHelper {
             orig(self, id, restart, randomizeFrame);
         }
 
+        #endregion
+        #region
+        private static void TempleFallCoroutineILHook(ILContext il) {
+            ILCursor cursor = new ILCursor(il);
+            while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdstr("idle"))) {
+                cursor.EmitDelegate<Func<string, string>>((orig) => {
+                    if (Player_Skinid_verify != 0) {
+                        return "fallPose";
+                    }
+                    return orig;
+                });
+            }
+        }
+        private static void PlayerRenderIlHook_Sprite(ILContext il) {
+            ILCursor cursor = new ILCursor(il);
+
+            if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdstr("characters/player/startStarFlyWhite"))) {
+                Logger.Log("SkinModHelper", $"Changing startStarFlyWhite path at {cursor.Index} in CIL code for {cursor.Method.FullName}");
+
+                cursor.Emit(OpCodes.Ldarg_0);
+                cursor.EmitDelegate<Func<string, Player, string>>((orig, self) => {
+                    string spritePath = getAnimationRootPath(self.Sprite) + "startStarFlyWhite";
+
+                    if (self.Holding != null && self.Sprite.Has("startStarFly_carry") && GFX.Game.HasAtlasSubtexturesAt($"{spritePath}_carry", 0)) {
+                        return $"{spritePath}_carry";
+                    } else if (GFX.Game.HasAtlasSubtexturesAt(spritePath, 0)) {
+                        return spritePath;
+                    }
+                    return orig;
+                });
+            }
+        }
         #endregion
 
         //-----------------------------Log Patch-----------------------------
