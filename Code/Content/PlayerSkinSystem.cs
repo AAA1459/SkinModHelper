@@ -405,10 +405,27 @@ namespace Celeste.Mod.SkinModHelper {
             selfData["HairColorGrading"] = null;
             if (selfData["HairLength"] != null) { self.Sprite.HairCount = (int)selfData["HairLength"]; }
 
-            if (self.Entity is Player player && player.StateMachine.State == 14) {
-                try { // Gives the player's respawn(death) particles a hair color. (did this because I don't want have an complex code)
-                    self.Render();
-                } catch { }
+            if (self.Entity is Player player && player.StateMachine.State == 14 && selfData["HairColors"] == null) {
+                #region
+                string rootPath = getAnimationRootPath(self.Sprite);
+                HairConfig hairConfig = searchSkinConfig<HairConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "HairConfig") ?? new();
+                CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "CharacterConfig") ?? new();
+
+                new CharacterConfig(ModeConfig, self.Sprite.Mode);
+
+                bool Build_switch = false;
+
+                if (hairConfig.HairFlash != null) {
+                    selfData["HairFlash"] = hairConfig.HairFlash ?? true;
+                    Build_switch = hairConfig.HairFlash == true ? Build_switch : true;
+                }
+
+                if (hairConfig.HairColors != null || Build_switch) {
+                    selfData["HairColors"] = HairConfig.BuildHairColors(hairConfig, ModeConfig);
+                } else {
+                    selfData["HairColors"] = null;
+                }
+                #endregion
             }
             orig(self);
         }
@@ -418,7 +435,7 @@ namespace Celeste.Mod.SkinModHelper {
 
             // We want hair get config in rendering before. but rendering run multiple times in one frame, so...
             if (new DynData<PlayerHair>(self)["SMH_OncePerFrame"] == null) {
-
+                #region
                 //Check if config from v0.7 Before---
                 if (self.Entity is Player) {
                     string spriteName = (string)selfData["spriteName"];
@@ -491,6 +508,7 @@ namespace Celeste.Mod.SkinModHelper {
                 if (HairLength != null) {
                     selfData["HairLength"] = HairLength;
                 }
+                #endregion
                 new DynData<PlayerHair>(self)["SMH_OncePerFrame"] = true;
                 return;
             }

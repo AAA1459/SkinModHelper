@@ -173,7 +173,7 @@ namespace Celeste.Mod.SkinModHelper {
                 string origID = id;
 
                 #region Animations modify and extended
-                if (self.LastAnimationID != null) {
+                if (!restart && self.LastAnimationID != null) {
                     bool SwimCheck = (bool)typeof(Player).GetMethod("SwimCheck", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(player, null);
 
                     if (id == "walk" && player.Holding != null) {
@@ -198,7 +198,7 @@ namespace Celeste.Mod.SkinModHelper {
                     }
 
 
-                    if (origID != id && origID == "dreamDashOut") {
+                    if (origID == "dreamDashOut") {
                         // This requires some special fixes...
                         if (self.CurrentAnimationID.Contains(id)) {
                             origID = id;
@@ -207,8 +207,7 @@ namespace Celeste.Mod.SkinModHelper {
                             new DynData<Sprite>(self)["LastAnimationID"] = origID;
                             return;
                         }
-                    }
-                    else if ((origID != id || id == "lookUp" || id == "duck") && self.LastAnimationID.Contains(id)) {
+                    } else if ((origID != id || id == "duck" || id == "lookUp") && self.LastAnimationID.Contains(id)) {
                         // Make sure that The orig animations will not be forced replay or The new animations will not be forced cancel.
                         return;
                     } else if (self.LastAnimationID.Contains("jumpCrazy") && (id == "jumpFast" || id == "runFast")) {
@@ -224,9 +223,6 @@ namespace Celeste.Mod.SkinModHelper {
 
                 try {
                     orig(self, id, restart, randomizeFrame);
-                    if (origID != id && origID == "dreamDashOut") {
-
-                    }
                     return;
                 } catch {
                     if (selfData["spriteName_orig"] == null && selfData.Get<string>("spriteName") != "") {
@@ -284,7 +280,7 @@ namespace Celeste.Mod.SkinModHelper {
             try {
                 orig(self, frame);
             } catch (Exception e) {
-                throw new Exception($"[SkinModHelper_LogPatch] '{getAnimationRootPath(self)}'--'{self.CurrentAnimationID}'s frame {frame} does not exist!", e);
+                throw new Exception($"[SkinModHelper_LogPatch] '{getAnimationRootPath(self)}'--'{(string.IsNullOrEmpty(self.CurrentAnimationID) ? "null" : self.CurrentAnimationID)}'s frame {frame} does not exist!", e);
             }
         }
 

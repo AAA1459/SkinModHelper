@@ -220,5 +220,12 @@ namespace Celeste.Mod.SkinModHelper {
             }
             return GetPlayerSkin(skin_suffix, skinName);
         }
+        public static SkinModHelperConfig GetPlayerSkinConfig(int hashValues) {
+            try {
+                return skinConfigs.Values.Where(config => config.hashValues == hashValues).First();
+            } catch {
+                return new();
+            }
+        }
     }
 }
