@@ -207,7 +207,7 @@ namespace Celeste.Mod.SkinModHelper {
                             new DynData<Sprite>(self)["LastAnimationID"] = origID;
                             return;
                         }
-                    } else if ((origID != id || id == "duck" || id == "lookUp") && self.LastAnimationID.Contains(origID)) {
+                    } else if ((origID != id || id == "duck" || id == "lookUp") && self.LastAnimationID.Contains(id)) {
                         // Make sure that The orig animations will not be forced replay or The new animations will not be forced cancel.
                         return;
                     } else if (self.LastAnimationID.Contains("jumpCrazy") && (id == "jumpFast" || id == "runFast")) {
