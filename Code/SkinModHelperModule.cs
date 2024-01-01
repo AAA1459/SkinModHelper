@@ -103,7 +103,6 @@ namespace Celeste.Mod.SkinModHelper {
 
 
         //-----------------------------Setting update-----------------------------
-        // There is an unknown issue, in OverWorld when I triggered "Instance.SaveSettings();", xml will be clear to vanilla value
         public static void UpdateSkin(string newSkinId, bool inGame = false) {
             if (Session != null) {
                 Session.SessionPlayerSkin = null;
@@ -111,8 +110,8 @@ namespace Celeste.Mod.SkinModHelper {
             Settings.SelectedPlayerSkin = newSkinId;
             if (inGame) {
                 PlayerSkinSystem.RefreshPlayerSpriteMode();
-            } else if (!inGame) {
-                RefreshSkins(!inGame, inGame);
+            } else {
+                RefreshSkins(false, inGame);
             }
         }
         public static void UpdateSilhouetteSkin(string newSkinId, bool inGame) {
@@ -127,7 +126,7 @@ namespace Celeste.Mod.SkinModHelper {
                 Session.SessionExtraXml.Remove(SkinId);
             }
             Settings.ExtraXmlList[SkinId] = OnOff;
-            RefreshSkins(!inGame, inGame);
+            RefreshSkins(false, inGame);
         }
 
         //-----------------------------FreeCollocations Update / Skins Refresh-----------------------------

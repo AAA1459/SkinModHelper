@@ -458,8 +458,8 @@ namespace Celeste.Mod.SkinModHelper {
                         string portraitsXmlPath = $"Graphics/{config.OtherSprite_Path}/Portraits.xml";
 
                         // SaveFilePortraits doesn't seem to like numbers...
-                        CombineSpriteBanks(GFX.SpriteBank, $"{config.SkinName}+_", spritesXmlPath, Enabled);
-                        CombineSpriteBanks(GFX.PortraitsSpriteBank, $"{config.SkinName}+_", portraitsXmlPath, Enabled);
+                        CombineSpriteBanks(GFX.SpriteBank, $"{config.SkinName}_+", spritesXmlPath, Enabled);
+                        CombineSpriteBanks(GFX.PortraitsSpriteBank, $"{config.SkinName}_+", portraitsXmlPath, Enabled);
                     }
                 }
                 #endregion
@@ -506,8 +506,8 @@ namespace Celeste.Mod.SkinModHelper {
         public static string getSkinDefaultValues(SpriteBank selfBank, string SpriteID) {
 
             string playerSkinID = GetPlayerSkinConfig(Player_Skinid_verify).SkinName;
-            if (playerSkinID != null && selfBank.Has(SpriteID + $"{playerSkinID}+_")) {
-                return $"{playerSkinID}+_";
+            if (playerSkinID != null && selfBank.Has(SpriteID + $"{playerSkinID}_+")) {
+                return $"{playerSkinID}_+";
             }
 
             if ((selfBank == GFX.SpriteBank && Settings.FreeCollocations_Sprites.ContainsKey(SpriteID) && Settings.FreeCollocations_Sprites[SpriteID] == LockedToPlayer)

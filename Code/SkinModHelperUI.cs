@@ -143,16 +143,6 @@ namespace Celeste.Mod.SkinModHelper
                 subMenu.Add(SpriteSubmenu = AbstractSubmenu.BuildOpenMenuButton<OuiCategorySubmenu>(menu, inGame, submenuBackAction, new object[] { NewMenuCategory.SkinFreeConfig }));
 
                 TextMenuButtonExt SkinsExtended = AbstractSubmenu.BuildOpenMenuButton<OuiCategorySubmenu>(menu, inGame, submenuBackAction, new object[] { NewMenuCategory.SkinsExtended });
-                menu.OnUpdate += () => {
-                    if (Input.MenuConfirm.Pressed) {
-                        Instance.SaveSettings();
-
-                        subMenu.Remove(SkinsExtended);
-                        if (DetectSkinExtended()) {
-                            subMenu.Add(SkinsExtended);
-                        }
-                    }
-                };
             });
         }
 

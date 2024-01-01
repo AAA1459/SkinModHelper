@@ -27,7 +27,9 @@ namespace Celeste.Mod.SkinModHelper {
             On.Celeste.OverworldLoader.LoadThread += OverworldLoaderLoadThreadHook;
 
             On.Celeste.GameLoader.LoadThread += GameLoaderLoadThreadHook;
+
             On.Celeste.OuiFileSelectSlot.Setup += OuiFileSelectSlotSetupHook;
+            doneILHooks.Add(new ILHook(typeof(OuiFileSelect).GetMethod("Enter", BindingFlags.Public | BindingFlags.Instance).GetStateMachineTarget(), OuiFileSelectEnterILHook));
         }
 
         public static void Unload() {
@@ -91,9 +93,23 @@ namespace Celeste.Mod.SkinModHelper {
                     SaveFilePortraits_Reload();
                 }
             }
+            slots_tracking[self.FileSlot] = self;
             orig(self);
         }
+        private static Dictionary<int, OuiFileSelectSlot> slots_tracking = new();
+        private static void OuiFileSelectEnterILHook(ILContext il) {
+            ILCursor cursor = new ILCursor(il);
 
+            cursor.GotoNext(MoveType.AfterLabel, instr => instr.MatchStfld<OuiFileSelect>("SlotSelected"));
+            cursor.EmitDelegate<Action>(() => {
+                // Make sure the slots's portrait reloading when everytime open save menu.
+                if (OuiFileSelect.Loaded) {
+                    foreach (OuiFileSelectSlot slot in new List<OuiFileSelectSlot>(slots_tracking.Values)) {
+                        typeof(OuiFileSelectSlot).GetMethod("Setup", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(slot, null);
+                    }
+                }
+            });
+        }
 
 
         // ---SaveFilePortraits---
