@@ -98,15 +98,15 @@ this just need repeats everything above steps.
 
 
 
-Special Jump of Player skin
+Automatically Jump of Player skin
 -----------------------------------
-If there are some special names close to that player skin in the config file, and you meet some conditions.
-Then SkinModHelper will try to do a special jump.
+After you select a Player Skin, If has some config's name close to this player skin, and you meet some conditions.
+Then SkinModHelper will try to automatically switch to that new player skin.
 
-The purpose of Those Special Jump are, 
+The purpose of Those Automatically Jump are, 
 for let player(maddy) looks different in the same entity. such as "payphone" ID of Sprites.xml.
 
-We will introduce those special jumps and their jump conditions:
+We will introduce those automatically jumps and their jump conditions:
 * "[SkinName] + _NB" 
    * conditions: When the player is no_backpack state
 * "[SkinName] + _lantern"
@@ -115,7 +115,7 @@ We will introduce those special jumps and their jump conditions:
 * "[SkinName] + _lantern_NB"
    * conditions: When the player get lantern from JungleHelper and is no_backpack state
 
-Note: special-jump to other skin after, you used skin's info will all is from that other skin's config info
+Note: automatically-jump to new player skin after, you used skin's info will all is from that new player skin's config info
 
 
 
