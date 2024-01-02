@@ -83,6 +83,8 @@ namespace Celeste.Mod.SkinModHelper {
         private static void EverestContentUpdateHook(ModAsset oldAsset, ModAsset newAsset) {
             if (newAsset != null && newAsset.PathVirtual.StartsWith("SkinModHelperConfig")) {
                 ReloadSettings();
+                Logger.Log(LogLevel.Warn, "SkinModHelper", $"If you encounter a loading failure, please just restart the game!");
+                Logger.Log(LogLevel.Warn, "SkinModHelper", $"Or add 'SkinModHelperPlus.zip' to whitelist (if you have)");
                 RefreshSkins(true, false);
             }
         }
