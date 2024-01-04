@@ -168,22 +168,20 @@ namespace Celeste.Mod.SkinModHelper {
         private static void PlayerSpritePlayHook(On.Monocle.Sprite.orig_Play orig, Sprite self, string id, bool restart = false, bool randomizeFrame = false) {
 
             if (self.Entity is Player player) {
-                DynData<PlayerSprite> selfData = new DynData<PlayerSprite>(player.Sprite);
+                #region Animations modify and extended
 
                 string origID = id;
-
-                #region Animations modify and extended
                 if (!restart && self.LastAnimationID != null) {
                     bool SwimCheck = (bool)typeof(Player).GetMethod("SwimCheck", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(player, null);
 
-                    if (id == "walk" && player.Holding != null) {
+                    if (id == "walk" && player?.Holding != null) {
                         // Patched on when player running in cutscene and carrying something.
                         id = "runSlow_carry";
 
                     } else if (id == "dash" && SwimCheck && self.Has("swimDash")) {
                         id = "swimDash";
 
-                    } else if (id == "duck" && player.DashAttacking) {
+                    } else if (id == "duck" && player?.DashAttacking == true) {
                         if (SwimCheck && self.Has("swimDashCrouch")) {
                             id = "swimDashCrouch";
 
@@ -193,7 +191,7 @@ namespace Celeste.Mod.SkinModHelper {
                     }
 
                     // Universal code... if you are theo smuggle enthusiast...
-                    if (player.Holding != null && !id.EndsWith("_carry") && self.Has($"{id}_carry")) {
+                    if (player?.Holding != null && !id.EndsWith("_carry") && self.Has($"{id}_carry")) {
                         id = $"{id}_carry";
                     }
 
@@ -215,7 +213,10 @@ namespace Celeste.Mod.SkinModHelper {
                     }
                 }
                 #endregion
+            }
 
+            if (self.Entity is Player || self.Entity is PlayerDeadBody) {
+                DynData<PlayerSprite> selfData = new DynData<PlayerSprite>(self as PlayerSprite);
                 if (selfData["spriteName_orig"] != null) {
                     GFX.SpriteBank.CreateOn(self, (string)selfData["spriteName_orig"]);
                     selfData["spriteName_orig"] = null;

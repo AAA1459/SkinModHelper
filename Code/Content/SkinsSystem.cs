@@ -84,7 +84,7 @@ namespace Celeste.Mod.SkinModHelper {
             if (newAsset != null && newAsset.PathVirtual.StartsWith("SkinModHelperConfig")) {
                 ReloadSettings();
                 Logger.Log(LogLevel.Warn, "SkinModHelper", $"If you encounter a loading failure, please just restart the game!");
-                Logger.Log(LogLevel.Warn, "SkinModHelper", $"Or add 'SkinModHelperPlus.zip' to whitelist (if you have)");
+                Logger.Log(LogLevel.Warn, "SkinModHelper", $"Or add 'SkinModHelperPlus.zip' to mods whitelist (if you have)");
                 RefreshSkins(true, false);
             }
         }
