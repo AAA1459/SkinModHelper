@@ -172,16 +172,16 @@ namespace Celeste.Mod.SkinModHelper {
 
                 string origID = id;
                 if (!restart && self.LastAnimationID != null) {
-                    bool SwimCheck = (bool)typeof(Player).GetMethod("SwimCheck", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(player, null);
+                    bool SwimCheck = player.Collidable ? (bool)typeof(Player).GetMethod("SwimCheck", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(player, null) : false;
 
-                    if (id == "walk" && player?.Holding != null) {
+                    if (id == "walk" && player.Holding != null) {
                         // Patched on when player running in cutscene and carrying something.
                         id = "runSlow_carry";
 
                     } else if (id == "dash" && SwimCheck && self.Has("swimDash")) {
                         id = "swimDash";
 
-                    } else if (id == "duck" && player?.DashAttacking == true) {
+                    } else if (id == "duck" && player.DashAttacking == true) {
                         if (SwimCheck && self.Has("swimDashCrouch")) {
                             id = "swimDashCrouch";
 
@@ -191,7 +191,7 @@ namespace Celeste.Mod.SkinModHelper {
                     }
 
                     // Universal code... if you are theo smuggle enthusiast...
-                    if (player?.Holding != null && !id.EndsWith("_carry") && self.Has($"{id}_carry")) {
+                    if (player.Holding != null && !id.EndsWith("_carry") && self.Has($"{id}_carry")) {
                         id = $"{id}_carry";
                     }
 
