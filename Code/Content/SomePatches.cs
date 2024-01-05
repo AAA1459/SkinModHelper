@@ -119,18 +119,18 @@ namespace Celeste.Mod.SkinModHelper {
         // ReplacePortraitPath makes textbox path funky, so correct to our real path or revert to vanilla if it does not exist
         private static string ReplaceTextboxPath(string textboxPath) {
 
-            string PortraitId = "portrait_" + textboxPath.Split('_')[0].Replace("textbox/", ""); // "textbox/[skin id]_ask"
+            string PortraitId = $"portrait_{textboxPath.Remove(textboxPath.LastIndexOf("_")).Replace("textbox/", "")}"; // "textbox/[skin id]_ask"
 
             if (GFX.PortraitsSpriteBank.Has(PortraitId)) {
                 string SourcesPath = GFX.PortraitsSpriteBank.SpriteData[PortraitId].Sources[0].XML.Attr("textbox");
 
                 textboxPath = SourcesPath == null ? "textbox/madeline_ask" : $"textbox/{SourcesPath}_ask";
-                if (!GFX.Portraits.Has(textboxPath)) {
-                    Logger.Log(LogLevel.Warn, "SkinModHelper", $"Requested texture that does not exist: {textboxPath}");
-                    textboxPath = "textbox/madeline_ask";
-                }
             }
 
+            if (!GFX.Portraits.Has(textboxPath)) {
+                Logger.Log(LogLevel.Warn, "SkinModHelper", $"Requested texture that does not exist: {textboxPath}");
+                textboxPath = "textbox/madeline_ask";
+            }
             return textboxPath;
         }
         private static FancyText.Portrait ReplacePortraitPath(FancyText.Portrait portrait) {
