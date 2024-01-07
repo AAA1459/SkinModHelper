@@ -186,10 +186,24 @@ namespace Celeste.Mod.SkinModHelper {
             }
         }
         private static int getHash(string hash_send) {
-            int hashValue = hash_send.GetHashCode() >> 4;
-            if (hashValue < 0) {
-                hashValue += (1 << 31);
+            if (hash_send == null) {
+                throw new Exception("null hash send");
             }
+            int hashValue;
+
+            unchecked {
+                int num = 352654597;
+                int num_2 = num;
+
+                for (int i = 0; i < hash_send.Length; i += 2) {
+                    num = ((num << 5) + num) ^ hash_send[i];
+                    if (i == hash_send.Length - 1) { break; }
+                    num_2 = ((num_2 << 5) + num_2) ^ hash_send[i + 1];
+                }
+                hashValue = num + (num_2 * 1566083941);
+            }
+
+            if (hashValue < 0) { hashValue += (1 << 31); }
             return hashValue;
         }
         #endregion
