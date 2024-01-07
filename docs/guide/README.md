@@ -124,12 +124,14 @@ Standard example of config file
 You can download them as examples for making skins: 
 * [Touhou-cirno](https://gamebanana.com/mods/316584)
 * [OshiroBoss But Badeline](https://gamebanana.com/mods/444994)
+* [Niko - Oneshote] (https://gamebanana.com/mods/251814)
+* [Ralsei - Deltarune] (https://gamebanana.com/mods/385893)
 
 
 More Miscellaneous
 ---------------------
 1. SkinModHelper have some introduce of special textures, and collected various sources of IDs animation.
-   [clike here for check](https://github.com/AAA1459/SkinModHelper/wiki/Textures-list-of-Various-Type#special-texture-settingreskin)
+   [clike here for check wiki](https://github.com/AAA1459/SkinModHelper/wiki/Textures-list-of-Various-Type#special-texture-settingreskin)
 
 2. more complicated things
    * [Setting ColorGrade for skin](/docs/guide//skinconfig/ColorGrade.md)

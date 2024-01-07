@@ -9,7 +9,6 @@ you need to create a new config file for that object-ID, be like: "../Gameplay/[
 Here is a skeleton of that new config file. 
 Each of the fields will be explained below.
 ```yaml
-BadelineMode: [true/false]
 SilhouetteMode: [true/false]
 
 LowStaminaFlashHair: [true/false]
@@ -20,9 +19,8 @@ LowStaminaFlashColor: [use six digit RGB hex code]
 Character's effect setting
 -----------------------------------
 If you want to set it's character-effect for object-ID, 
-Then you can choose to add the effect you want (you can add multiple):
+Then you can choose to add the effect you want:
 ```
-BadelineMode: true     # Let the default hair color etc of object-ID be baddy.
 SilhouetteMode: true     # Color the entire object-ID with its hair color, like a silhouette
 ```
 

@@ -12,15 +12,6 @@ using Mono.Cecil.Cil;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Celeste.Mod;
-using Celeste.Mod.Meta;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using MonoMod;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Xml;
 
 using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
