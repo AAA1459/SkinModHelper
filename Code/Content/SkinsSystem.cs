@@ -559,7 +559,9 @@ namespace Celeste.Mod.SkinModHelper {
 
             if (type is MTexture) {
                 spriteName = $"{type}";
-                return spriteName.Remove(spriteName.LastIndexOf("/") + 1);
+                if (spriteName != null && spriteName.LastIndexOf("/") >= 0) {
+                    return spriteName.Remove(spriteName.LastIndexOf("/") + 1);
+                }
 
             } else if (GFX.SpriteBank.SpriteData.ContainsKey(spriteName)) {
                 SpriteData spriteData = GFX.SpriteBank.SpriteData[spriteName];

@@ -517,9 +517,20 @@ namespace Celeste.Mod.SkinModHelper {
             orig(self);
         }
 
+        private static string PlayerHair_Previous_Log;
         private static MTexture PlayerHairGetHairTextureHook(On.Celeste.PlayerHair.orig_GetHairTexture orig, PlayerHair self, int index) {
 
             string spritePath = getAnimationRootPath(self.Sprite);
+            string detectPath = getAnimationRootPath(self.Sprite.Texture);
+
+            if (!detectPath.StartsWith(spritePath) && (detectPath.StartsWith("characters/player_no_backpack/") || detectPath.StartsWith("characters/player/") || detectPath.StartsWith("characters/player_badeline/") || detectPath.StartsWith("characters/player_playback/") || detectPath.StartsWith("characters/badeline/"))) {
+                
+                string text = "Avoid the possible invisible hair texture work to vanilla characters...";
+                if (text != PlayerHair_Previous_Log) { Logger.Log(LogLevel.Info, "SkinModHelper", $"{PlayerHair_Previous_Log = text}"); }
+
+                return orig(self, index);
+            }
+            PlayerHair_Previous_Log = null;
 
             //Check if config from v0.7 Before---
             string isOld = OldConfigCheck(self.Sprite);

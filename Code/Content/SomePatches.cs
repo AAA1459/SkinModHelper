@@ -284,7 +284,6 @@ namespace Celeste.Mod.SkinModHelper {
                 throw new Exception($"[SkinModHelper_LogPatch] '{getAnimationRootPath(self)}'--'{(string.IsNullOrEmpty(self.CurrentAnimationID) ? "null" : self.CurrentAnimationID)}'s frame {frame} does not exist!", e);
             }
         }
-
         #endregion
 
         //-----------------------------Death Effect-----------------------------
