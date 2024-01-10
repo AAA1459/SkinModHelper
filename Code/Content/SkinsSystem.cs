@@ -619,12 +619,11 @@ namespace Celeste.Mod.SkinModHelper {
 
         public static FieldInfo GetFieldPlus(Type type, string name) {
             FieldInfo field = null;
-            while (field == null) {
+            while (field == null && type != null) {
                 field = type.GetField(name, BindingFlags.Public | BindingFlags.Instance) ?? type.GetField(name, BindingFlags.NonPublic | BindingFlags.Instance);
 
                 // some mods entities works based on vanilla entities, but mods entity possible don't have theis own field.
                 type = type.BaseType; 
-                if (type.BaseType == typeof(object)) { break; }
             }
             return field;
         }
