@@ -166,11 +166,11 @@ namespace Celeste.Mod.SkinModHelper {
         }
 
         private static void PlayerSpritePlayHook(On.Monocle.Sprite.orig_Play orig, Sprite self, string id, bool restart = false, bool randomizeFrame = false) {
+            string origID = id;
 
             if (self.Entity is Player player) {
                 #region Animations modify and extended
 
-                string origID = id;
                 if (!restart && self.LastAnimationID != null) {
                     bool SwimCheck = player.Collidable ? (bool)typeof(Player).GetMethod("SwimCheck", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(player, null) : false;
 
@@ -224,6 +224,9 @@ namespace Celeste.Mod.SkinModHelper {
 
                 try {
                     orig(self, id, restart, randomizeFrame);
+                    if (origID == "startStarFly") {
+                        new DynData<Sprite>(self)["CurrentAnimationID"] = origID;
+                    }
                     return;
                 } catch {
                     if (selfData["spriteName_orig"] == null && selfData.Get<string>("spriteName") != "") {
@@ -262,13 +265,22 @@ namespace Celeste.Mod.SkinModHelper {
 
                 cursor.Emit(OpCodes.Ldarg_0);
                 cursor.EmitDelegate<Func<string, Player, string>>((orig, self) => {
-                    string spritePath = getAnimationRootPath(self.Sprite) + "startStarFlyWhite";
 
-                    if (self.Holding != null && self.Sprite.Has("startStarFly_carry") && GFX.Game.HasAtlasSubtexturesAt($"{spritePath}_carry", 0)) {
+                    string id = "startStarFly";
+                    if (self.Holding != null && self.Sprite.Has("startStarFly_carry")) {
+                        id = "startStarFly_carry";
+                    }
+                    string spritePath = getAnimationRootPath(self.Sprite, id) + "startStarFlyWhite";
+
+
+                    if (self.Holding != null && GFX.Game.HasAtlasSubtexturesAt($"{spritePath}_carry", 0)) {
                         return $"{spritePath}_carry";
-                    } else if (GFX.Game.HasAtlasSubtexturesAt(spritePath, 0)) {
+                    }
+                    if (GFX.Game.HasAtlasSubtexturesAt(spritePath, 0)) {
                         return spritePath;
                     }
+                    Logger.Log(LogLevel.Warn, "SkinModHelper", $"Requested texture that does not exist: {spritePath}");
+
                     return orig;
                 });
             }

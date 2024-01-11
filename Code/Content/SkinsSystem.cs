@@ -574,6 +574,10 @@ namespace Celeste.Mod.SkinModHelper {
             }
             return "";
         }
+        public static string getAnimationRootPath(Sprite sprite, string id) {
+            return sprite.Has(id) ? getAnimationRootPath(sprite.GetFrame(id, 0)) : getAnimationRootPath(sprite);
+        }
+
         public static string getOtherSkin_ReskinPath(Atlas atlas, string origPath, string SpriteID, string SkinId, bool number_search = false) {
             string get_number = "";
             string CustomPath = null;
