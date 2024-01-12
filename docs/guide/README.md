@@ -124,8 +124,8 @@ Standard example of config file
 You can download them as examples for making skins: 
 * [Touhou-cirno](https://gamebanana.com/mods/316584)
 * [OshiroBoss But Badeline](https://gamebanana.com/mods/444994)
-* [Niko - Oneshote] (https://gamebanana.com/mods/251814)
-* [Ralsei - Deltarune] (https://gamebanana.com/mods/385893)
+* [Niko - Oneshot](https://gamebanana.com/mods/251814)
+* [Ralsei - Deltarune](https://gamebanana.com/mods/385893)
 
 
 More Miscellaneous
@@ -157,7 +157,7 @@ If you get missing textures or unexpected vanilla textures:
 * Check your log to see what textures are missing -- these messages can point you in the right direction
 * Make sure the number of images matches the number of animation "frames"
 
-If some xml-undefined textures are misaligned:
+If some textures are misaligned, even xml-undefined:
 1. In the same folder as that texture, create a .meta.yaml file with the name of that texture
    * If the texture is "madeline.png", So create "madeline.meta.yaml" flie
 2. Write that texture information to the .meta.yaml file you create
