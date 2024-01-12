@@ -28,6 +28,7 @@ namespace Celeste.Mod.SkinModHelper {
             get => backpack;
             set {
                 backpack = value;
+                backpackSetting = (int)value;
                 PlayerSkinSystem.RefreshPlayerSpriteMode();
             }
         }

@@ -56,9 +56,7 @@ namespace Celeste.Mod.SkinModHelper {
             orig(self, session, startPosition);
 
             if (session != null) {
-                backpackOn = Settings.Backpack == SkinModHelperSettings.BackpackMode.On ||
-                    (Settings.Backpack == SkinModHelperSettings.BackpackMode.Default && session.Inventory.Backpack) ||
-                    (Settings.Backpack == SkinModHelperSettings.BackpackMode.Invert && !session.Inventory.Backpack);
+                backpackOn = backpackSetting == 3 || (backpackSetting == 0 && session.Inventory.Backpack) || (backpackSetting == 1 && !session.Inventory.Backpack);
             }
             Player_Skinid_verify = 0;
 

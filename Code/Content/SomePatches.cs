@@ -266,12 +266,8 @@ namespace Celeste.Mod.SkinModHelper {
                 cursor.Emit(OpCodes.Ldarg_0);
                 cursor.EmitDelegate<Func<string, Player, string>>((orig, self) => {
 
-                    string id = "startStarFly";
-                    if (self.Holding != null && self.Sprite.Has("startStarFly_carry")) {
-                        id = "startStarFly_carry";
-                    }
-                    string spritePath = getAnimationRootPath(self.Sprite, id) + "startStarFlyWhite";
-
+                    // This hook position runs only when player.Sprite.CurrentAnimationID are "startStarFly", So we can indexing the textures directly.
+                    string spritePath = getAnimationRootPath(self.Sprite.Texture) + "startStarFlyWhite";
 
                     if (self.Holding != null && GFX.Game.HasAtlasSubtexturesAt($"{spritePath}_carry", 0)) {
                         return $"{spritePath}_carry";
@@ -279,8 +275,10 @@ namespace Celeste.Mod.SkinModHelper {
                     if (GFX.Game.HasAtlasSubtexturesAt(spritePath, 0)) {
                         return spritePath;
                     }
-                    Logger.Log(LogLevel.Warn, "SkinModHelper", $"Requested texture that does not exist: {spritePath}");
-
+                    if (new DynData<Player>(self)["SMH_DisposableLog_bsaofsdlk"] == null) {
+                        Logger.Log(LogLevel.Warn, "SkinModHelper", $"Requested texture that does not exist: {spritePath}");
+                        new DynData<Player>(self)["SMH_DisposableLog_bsaofsdlk"] = "bsaofsdlk";
+                    }
                     return orig;
                 });
             }

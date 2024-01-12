@@ -45,6 +45,7 @@ namespace Celeste.Mod.SkinModHelper {
             On.Monocle.SpriteBank.Create += SpriteBankCreateHook;
             On.Monocle.SpriteBank.CreateOn += SpriteBankCreateOnHook;
             On.Monocle.Atlas.GetAtlasSubtextures += GetAtlasSubtexturesHook;
+            On.Monocle.Sprite.ctor_Atlas_string += SpriteCtorAtlasStringHook;
         }
 
         public static void Unload() {
@@ -55,6 +56,7 @@ namespace Celeste.Mod.SkinModHelper {
             On.Monocle.SpriteBank.Create -= SpriteBankCreateHook;
             On.Monocle.SpriteBank.CreateOn -= SpriteBankCreateOnHook;
             On.Monocle.Atlas.GetAtlasSubtextures -= GetAtlasSubtexturesHook;
+            On.Monocle.Sprite.ctor_Atlas_string -= SpriteCtorAtlasStringHook;
         }
 
         #endregion
@@ -73,6 +75,9 @@ namespace Celeste.Mod.SkinModHelper {
 
         public static int Player_Skinid_verify;
         public static bool backpackOn = true;
+
+        /// <summary> 0-Default, 1-Invert, 2-Off, 3-On </summary>
+        public static int backpackSetting = 0;
 
         public static bool first_build = true;
 
@@ -164,9 +169,10 @@ namespace Celeste.Mod.SkinModHelper {
                             if (!hashValues.Contains(config.hashValues)) {
                                 hashValues.Add(config.hashValues);
 
-                                string s = "   "; for (int i = config.SkinName.Length; i < 32; s += " ", i++) { }
+                                string s = "   ";
+                                for (int i = config.SkinName.Length; i < 32; s += " ", i++) { }
                                 Logger.Log(LogLevel.Info, "SkinModHelper", $"Registered new player skin: {config.SkinName}{s}{config.hashValues}");
-                                
+
                                 skinConfigs.Add(config.SkinName, config);
                             } else {
                                 Logger.Log(LogLevel.Error, "SkinModHelper", $"Player skin {config.SkinName} happened hash value conflict! cannot registered.");
@@ -392,7 +398,11 @@ namespace Celeste.Mod.SkinModHelper {
                 }
             }
         }
-        private static void UpdateParticles() {
+        #endregion
+
+        //-----------------------------Other Sprite-----------------------------
+        #region
+        public static void UpdateParticles() {
             FlyFeather.P_Collect.Source = GFX.Game["particles/feather"];
             FlyFeather.P_Boost.Source = GFX.Game["particles/feather"];
 
@@ -409,23 +419,54 @@ namespace Celeste.Mod.SkinModHelper {
                 FlyFeather.P_Boost.Source = GFX.Game[CustomPath];
             }
         }
-        private static List<MTexture> GetAtlasSubtexturesHook(On.Monocle.Atlas.orig_GetAtlasSubtextures orig, Atlas self, string path) {
+        public static string searchTransform_withBackPack(Atlas atlas, string path) {
+            if (atlas == MTN.Mountain) {
+                if (path == "marker/runNoBackpack" && (backpackSetting == 3 || backpackSetting == 1)) {
+                    path = "marker/runBackpack";
+                } else if (path == "marker/runBackpack" && (backpackSetting == 2 || backpackSetting == 1)) {
+                    path = "marker/runNoBackpack";
+                }
+            }
+            return path;
+        }
+        #endregion
 
+        #region
+        private static List<MTexture> GetAtlasSubtexturesHook(On.Monocle.Atlas.orig_GetAtlasSubtextures orig, Atlas self, string path) {
             string SpriteID = null;
-            string SpritePath = null;
             bool number_search = false;
 
-            if (path == "marker/runNoBackpack" || path == "marker/Fall" || path == "marker/runBackpack") {
-                SpritePath = path;
-                SpriteID = "Mountain_marker";
-                number_search = true;
+            if (self == MTN.Mountain) {
+                if (path == "marker/runNoBackpack" || path == "marker/Fall" || path == "marker/runBackpack") {
+                    path = searchTransform_withBackPack(self, path);
+                    SpriteID = "Mountain_marker";
+                    number_search = true;
+                }
             }
 
             if (SpriteID != null && OtherSkins_records.ContainsKey(SpriteID)) {
                 RefreshSkinValues_OtherExtra(SpriteID, null, true, false);
-                path = getOtherSkin_ReskinPath(self, SpritePath, SpriteID, OtherSkin_record[SpriteID], number_search);
+                path = getOtherSkin_ReskinPath(self, path, SpriteID, OtherSkin_record[SpriteID], number_search);
             }
             return orig(self, path);
+        }
+        private static void SpriteCtorAtlasStringHook(On.Monocle.Sprite.orig_ctor_Atlas_string orig, Sprite self, Atlas atlas, string path) {
+            string SpriteID = null;
+            bool number_search = false;
+
+            if (atlas == MTN.Mountain) {
+                if (path == "marker/runNoBackpack" || path == "marker/Fall" || path == "marker/runBackpack") {
+                    path = searchTransform_withBackPack(atlas, path);
+                    SpriteID = "Mountain_marker";
+                    number_search = true;
+                }
+            }
+
+            if (SpriteID != null && OtherSkins_records.ContainsKey(SpriteID)) {
+                RefreshSkinValues_OtherExtra(SpriteID, null, true, false);
+                path = getOtherSkin_ReskinPath(atlas, path, SpriteID, OtherSkin_record[SpriteID], number_search);
+            }
+            orig(self, atlas, path);
         }
         #endregion
 
@@ -627,7 +668,7 @@ namespace Celeste.Mod.SkinModHelper {
                 field = type.GetField(name, BindingFlags.Public | BindingFlags.Instance) ?? type.GetField(name, BindingFlags.NonPublic | BindingFlags.Instance);
 
                 // some mods entities works based on vanilla entities, but mods entity possible don't have theis own field.
-                type = type.BaseType; 
+                type = type.BaseType;
             }
             return field;
         }
