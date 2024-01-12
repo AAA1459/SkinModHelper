@@ -493,7 +493,7 @@ namespace Celeste.Mod.SkinModHelper {
                         }
                     }
                 }
-                selfData["CurrentHairColor"] = self.Color;
+                new DynData<PlayerSprite>(self.Sprite)["CurrentHairColor"] = self.Color;
                 if (ModeConfig.SilhouetteMode == true) { self.Border = ColorBlend(self.Border, self.Color); }
                 orig(self);
 
