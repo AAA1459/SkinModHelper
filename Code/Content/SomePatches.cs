@@ -304,10 +304,9 @@ namespace Celeste.Mod.SkinModHelper {
 
             if (self.Entity != null && spritePath == null) {
 
-                var Sprite = GetFieldPlus(self.Entity.GetType(), "sprite");
-                if (Sprite != null) {
-                    Sprite On_sprite = Sprite.GetValue(self.Entity) as Sprite;
-                    spritePath = getAnimationRootPath(On_sprite) + "death_particle";
+                var sprite = GetFieldPlus<Sprite>(self.Entity, "sprite");
+                if (sprite != null) {
+                    spritePath = getAnimationRootPath(sprite) + "death_particle";
                 }
 
                 if (self.Entity is PlayerDeadBody) {

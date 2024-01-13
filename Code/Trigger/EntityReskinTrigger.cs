@@ -80,20 +80,17 @@ namespace Celeste.Mod.SkinModHelper {
 
             if (SpriteID != null && GFX.SpriteBank.SpriteData.ContainsKey(search)) {
                 Type entityType = entity.GetType();
-                var Field_sprite = GetFieldPlus(entityType, "sprite");
+                Sprite sprite = GetFieldPlus<Sprite>(entity, "sprite");
 
-                Field_sprite = GetFieldPlus(entityType, "sprite");
-
-                if (Field_sprite != null && Field_sprite.GetValue(entity) is Sprite sprite) {
-
+                if (sprite != null) {
                     // --------sprite--------
                     sprite = GFX.SpriteBank.CreateOn(sprite, SpriteID);
                     string SpritePath = getAnimationRootPath(sprite);
                     // ----------------
                     // --------flash--------
-                    var Field_flash = GetFieldPlus(entityType, "flash");
-                    if (Field_flash != null && Field_flash.GetValue(entity) is Sprite flash) {
-                        flash = GFX.SpriteBank.CreateOn(flash, SpriteID);
+                    Sprite flash = GetFieldPlus<Sprite>(entity, "flash");
+                    if (flash != null) {
+                        GFX.SpriteBank.CreateOn(flash, SpriteID);
                     }
                     // ----------------
                     // --------outline--------
@@ -113,7 +110,12 @@ namespace Celeste.Mod.SkinModHelper {
                     // --------particle--------
                     if (entity is Booster || entity is Cloud) {
                         var Field_particle = GetFieldPlus(entityType, "particleType");
-                        if (Field_particle != null) {
+
+                        if (Field_particle != null && Field_particle.GetValue(entity) is ParticleType particleType) {
+                            // Clone object to prevent lost of vanilla
+                            particleType = new(particleType);
+                            Field_particle.SetValue(entity, particleType);
+                            //
 
                             string particle = "blob";
                             if (entity is Cloud) {
@@ -121,11 +123,6 @@ namespace Celeste.Mod.SkinModHelper {
                             }
 
                             if (GFX.Game.Has(SpritePath + particle)) {
-                                // Clone object to prevent lost of vanilla
-                                ParticleType particleType = new(Field_particle.GetValue(entity) as ParticleType);
-                                Field_particle.SetValue(entity, particleType);
-                                // Although... them cannot get the vanilla value when back vanilla, because that too cumbersome
-
                                 particleType.Source = GFX.Game[SpritePath + particle];
                                 particleType.Color = Color.White;
                             }

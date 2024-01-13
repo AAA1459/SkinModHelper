@@ -672,6 +672,13 @@ namespace Celeste.Mod.SkinModHelper {
             }
             return field;
         }
+        public static T GetFieldPlus<T>(Entity obj, string name) {
+            FieldInfo field = GetFieldPlus(obj.GetType(), name);
+            if (field != null && field.GetValue(obj) is T value) {
+                return value;
+            }
+            return default;
+        }
         #endregion
     }
 }

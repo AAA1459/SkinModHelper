@@ -96,19 +96,19 @@ namespace Celeste.Mod.SkinModHelper {
                 cursor.EmitDelegate<Func<string, Entity, string>>((orig, self) => {
 
                     // Maybe... I want this as a general ILhook to be directly applicable to other Helpers?
-                    var Field_sprite = GetFieldPlus(self.GetType(), "sprite");
 
-                    if (Field_sprite != null) {
-                        Sprite sprite = Field_sprite.GetValue(self) as Sprite;
+                    Sprite sprite = GetFieldPlus<Sprite>(self, "sprite");
+
+                    if (sprite != null) {
                         string SpritePath = getAnimationRootPath(sprite);
 
                         // At the same time, reskin particles if its exist.
                         if (GFX.Game.Has(SpritePath + "blob")) {
                             var Field_particle = GetFieldPlus(self.GetType(), "particleType");
 
-                            if (Field_particle != null) {
+                            if (Field_particle != null && Field_particle.GetValue(self) is ParticleType particleType) {
                                 // Clone object to prevent lost of vanilla
-                                ParticleType particleType = new(Field_particle.GetValue(self) as ParticleType);
+                                particleType = new(particleType);
                                 Field_particle.SetValue(self, particleType);
                                 //
 
@@ -145,23 +145,21 @@ namespace Celeste.Mod.SkinModHelper {
 
             string SpriteID = null;
 
-            // Filter out the refill of helpers
-            if (self.GetType().FullName == "Celeste.Refill") {
-                SpriteID = (bool)selfData["twoDashes"] ? "refillTwo" : "refill";
-            }
+            Sprite sprite = selfData.Get<Sprite>("sprite");
+            string SpritePath = getAnimationRootPath(sprite);
+            
+            // Filter the refills that using texture different than vanilla.
+            if (SpritePath == "objects/refill/") { SpriteID = "refill"; } else
+                if (SpritePath == "objects/refillTwo/") { SpriteID = "refillTwo"; }
 
             if (SpriteID != null) {
-                Sprite sprite = selfData["sprite"] as Sprite;
-                sprite = GFX.SpriteBank.CreateOn(sprite, SpriteID);
-
-                Sprite flash = selfData["flash"] as Sprite;
-                flash = GFX.SpriteBank.CreateOn(flash, SpriteID);
-
-                string SpritePath = getAnimationRootPath(sprite) + "outline";
-                if (GFX.Game.Has(SpritePath)) {
-                    Image outline = selfData["outline"] as Image;
-                    outline.Texture = GFX.Game[SpritePath];
-                }
+                GFX.SpriteBank.CreateOn(sprite, SpriteID);
+                GFX.SpriteBank.CreateOn(selfData.Get<Sprite>("flash"), SpriteID);
+            }
+            SpritePath = getAnimationRootPath(sprite) + "outline";
+            if (GFX.Game.Has(SpritePath)) {
+                Image outline = selfData["outline"] as Image;
+                outline.Texture = GFX.Game[SpritePath];
             }
         }
         //-----------------------------Seeker-----------------------------
