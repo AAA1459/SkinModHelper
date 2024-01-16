@@ -16,6 +16,7 @@ namespace Celeste.Mod.SkinModHelper
 {
     public class SkinModHelperUI
     {
+        #region
         public static SkinModHelperSettings Settings => (SkinModHelperSettings)Instance._Settings;
         public static SkinModHelperSession Session => (SkinModHelperSession)Instance._Session;
 
@@ -39,6 +40,7 @@ namespace Celeste.Mod.SkinModHelper
         private TextMenu.SubHeader buildHeading(TextMenu menu, string headingNameResource) {
             return new TextMenu.SubHeader(Dialog.Clean($"SkinModHelper_NewSubMenu_{headingNameResource}"));
         }
+        #endregion
 
         #region
         private void BuildPlayerSkinSelectMenu(TextMenu menu, bool inGame)
@@ -124,6 +126,7 @@ namespace Celeste.Mod.SkinModHelper
         }
         #endregion
 
+        #region
         public TextMenuExt.SubMenu BuildMoreOptionsMenu(TextMenu menu, bool inGame, bool includeCategorySubmenus, Action submenuBackAction) {
             return new TextMenuExt.SubMenu(Dialog.Clean("SkinModHelper_MORE_OPTIONS"), false).Apply(subMenu => {
 
@@ -132,7 +135,6 @@ namespace Celeste.Mod.SkinModHelper
             });
         }
 
-        #region
         public void Build_SkinFreeConfig_NewMenu(TextMenu menu, bool inGame) {
 
             TextMenu.OnOff SkinFreeConfig_OnOff = new TextMenu.OnOff(Dialog.Clean("SkinModHelper_SkinFreeConfig_OnOff"), Settings.FreeCollocations_OffOn);
@@ -143,104 +145,177 @@ namespace Celeste.Mod.SkinModHelper
             }
             menu.Add(SkinFreeConfig_OnOff);
 
+            #region
             if (SpriteSkins_records.Count > 0) {
                 menu.Add(buildHeading(menu, "SpritesXml"));
             }
             foreach (KeyValuePair<string, List<string>> recordID in SpriteSkins_records) {
-
                 string SpriteID = recordID.Key;
-                string SpriteText = Dialog.Has($"SkinModHelper_Sprite__{SpriteID}") ? $"{SpriteID} ({Dialog.Clean($"SkinModHelper_Sprite__{SpriteID}")})" : SpriteID;
+
+                string SpriteText = SpriteID;
+                string TextDescription = "";
+
+                if (SpriteText.Length > 18) {
+                    int index;
+                    for (index = 18; index < SpriteText.Length - 3; index++) {
+                        if (char.IsUpper(SpriteText, index) || SpriteText[index] == '_' || index > 25) { break; }
+                    }
+                    if (index < SpriteText.Length - 3) {
+                        TextDescription = "..." + SpriteText.Substring(index) + " ";
+                        SpriteText = SpriteText.Remove(index) + "...";
+                    }
+                }
+                if (Dialog.Has($"SkinModHelper_Sprite__{SpriteID}")) {
+                    TextDescription = TextDescription + $"({Dialog.Clean($"SkinModHelper_Sprite__{SpriteID}")})";
+                }
                 TextMenu.Option<string> skinSelectMenu = new(SpriteText);
 
 
-                skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_Original"), ORIGINAL, true);
                 if (!Settings.FreeCollocations_Sprites.ContainsKey(SpriteID)) {
                     Settings.FreeCollocations_Sprites[SpriteID] = DEFAULT;
                 }
                 string selected = Settings.FreeCollocations_Sprites[SpriteID];
+                skinSelectMenu.Change(skinId => RefreshSkinValues_Sprites(SpriteID, skinId, inGame));
 
+
+                skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_Original"), ORIGINAL, true);
                 skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_Default"), DEFAULT, selected == DEFAULT);
                 skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_LockedToPlayer"), LockedToPlayer, selected == LockedToPlayer);
 
+
                 foreach (string SkinName in recordID.Value) {
-                    string SkinText = Dialog.Has($"SkinModHelper_Sprite__{SpriteID}__{SkinName}") ? Dialog.Clean($"SkinModHelper_Sprite__{SpriteID}__{SkinName}") : Dialog.Clean($"SkinModHelper_anySprite__{SkinName}");
-                    
+                    string SkinText;
+                    if (Dialog.Has($"SkinModHelper_Sprite__{SpriteID}__{SkinName}")) {
+                        SkinText = Dialog.Clean($"SkinModHelper_Sprite__{SpriteID}__{SkinName}");
+                    } else if (!string.IsNullOrEmpty(OtherskinConfigs[SkinName].SkinDialogKey)) {
+                        SkinText = Dialog.Clean(OtherskinConfigs[SkinName].SkinDialogKey);
+                    } else {
+                        SkinText = Dialog.Clean($"SkinModHelper_anySprite__{SkinName}");
+                    }
+
                     if (!string.IsNullOrEmpty(OtherskinConfigs[SkinName].SkinDialogKey)) {
                         SkinText = Dialog.Clean(OtherskinConfigs[SkinName].SkinDialogKey);
                     }
                     skinSelectMenu.Add(SkinText, SkinName, (SkinName == selected));
                 }
-                skinSelectMenu.Change(skinId => RefreshSkinValues_Sprites(SpriteID, skinId, inGame));
                 menu.Add(skinSelectMenu);
+                skinSelectMenu.AddDescription(menu, TextDescription);
             }
+            #endregion
 
-
+            #region
             if (PortraitsSkins_records.Count > 0) {
                 menu.Add(buildHeading(menu, "PortraitsXml"));
             }
             foreach (KeyValuePair<string, List<string>> recordID in PortraitsSkins_records) {
-
                 string SpriteID = recordID.Key;
-                string SpriteText = Dialog.Has($"SkinModHelper_Portraits__{SpriteID}") ? $"{SpriteID} ({Dialog.Clean($"SkinModHelper_Portraits__{SpriteID}")})" : SpriteID;
+
+                string SpriteText = SpriteID;
+                string TextDescription = "";
+
+                if (SpriteText.Length > 18) {
+                    int index;
+                    for (index = 18; index < SpriteText.Length - 3; index++) {
+                        if (char.IsUpper(SpriteText, index) || SpriteText[index] == '_' || index > 25) { break; }
+                    }
+                    if (index < SpriteText.Length - 3) {
+                        TextDescription = "..." + SpriteText.Substring(index) + " ";
+                        SpriteText = SpriteText.Remove(index) + "...";
+                    }
+                }
+                if (Dialog.Has($"SkinModHelper_Portraits__{SpriteID}")) {
+                    TextDescription = TextDescription + $"({Dialog.Clean($"SkinModHelper_Portraits__{SpriteID}")})";
+                }
                 TextMenu.Option<string> skinSelectMenu = new(SpriteText);
 
 
-                skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_Original"), ORIGINAL, true);
                 if (!Settings.FreeCollocations_Portraits.ContainsKey(SpriteID)) {
                     Settings.FreeCollocations_Portraits[SpriteID] = DEFAULT;
                 }
                 string selected = Settings.FreeCollocations_Portraits[SpriteID];
+                skinSelectMenu.Change(skinId => RefreshSkinValues_Portraits(SpriteID, skinId, inGame));
 
+
+                skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_Original"), ORIGINAL, true);
                 skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_Default"), DEFAULT, selected == DEFAULT);
                 skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_LockedToPlayer"), LockedToPlayer, selected == LockedToPlayer);
 
+
                 foreach (string SkinName in recordID.Value) {
-                    string SkinText = Dialog.Has($"SkinModHelper_Portraits__{SpriteID}__{SkinName}") ? Dialog.Clean($"SkinModHelper_Portraits__{SpriteID}__{SkinName}") : Dialog.Clean($"SkinModHelper_anyPortraits__{SkinName}");
+                    string SkinText;
+                    if (Dialog.Has($"SkinModHelper_Portraits__{SpriteID}__{SkinName}")) {
+                        SkinText = Dialog.Clean($"SkinModHelper_Portraits__{SpriteID}__{SkinName}");
+                    } else if (!string.IsNullOrEmpty(OtherskinConfigs[SkinName].SkinDialogKey)) {
+                        SkinText = Dialog.Clean(OtherskinConfigs[SkinName].SkinDialogKey);
+                    } else {
+                        SkinText = Dialog.Clean($"SkinModHelper_anyPortraits__{SkinName}");
+                    }
 
                     if (!string.IsNullOrEmpty(OtherskinConfigs[SkinName].SkinDialogKey)) {
                         SkinText = Dialog.Clean(OtherskinConfigs[SkinName].SkinDialogKey);
                     }
                     skinSelectMenu.Add(SkinText, SkinName, (SkinName == selected));
                 }
-                skinSelectMenu.Change(skinId => RefreshSkinValues_Portraits(SpriteID, skinId, inGame));
                 menu.Add(skinSelectMenu);
+                skinSelectMenu.AddDescription(menu, TextDescription);
             }
+            #endregion
 
-
+            #region
             if (OtherSkins_records.Count > 0) {
                 menu.Add(buildHeading(menu, "OtherExtra"));
             }
             foreach (KeyValuePair<string, List<string>> recordID in OtherSkins_records) {
-
                 string SpriteID = recordID.Key;
+
                 string SpriteText = Dialog.Clean($"SkinModHelper_Other__{SpriteID}");
+                string TextDescription = "";
+
+                if (SpriteText.Length > 18) {
+                    int index;
+
+                    for (index = 18; index < SpriteText.Length - 3; index++) {
+                        if (char.IsUpper(SpriteText, index) || SpriteText[index] == ' ' || index > 25) { break; }
+                    }
+                    if (index < SpriteText.Length - 3) {
+                        TextDescription = "..." + (SpriteText[index] == ' ' ? SpriteText.Substring(index + 1) : SpriteText.Substring(index));
+                        SpriteText = SpriteText.Remove(index) + "...";
+                    }
+                }
                 TextMenu.Option<string> skinSelectMenu = new(SpriteText);
 
 
-                skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_Original"), ORIGINAL, true);
                 if (!Settings.FreeCollocations_OtherExtra.ContainsKey(SpriteID)) {
                     Settings.FreeCollocations_OtherExtra[SpriteID] = DEFAULT;
                 }
-
                 string selected = Settings.FreeCollocations_OtherExtra[SpriteID];
-                bool select = Settings.FreeCollocations_OtherExtra[SpriteID] == DEFAULT;
+                skinSelectMenu.Change(skinId => RefreshSkinValues_OtherExtra(SpriteID, skinId, inGame));
 
+
+                skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_Original"), ORIGINAL, true);
                 skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_Default"), DEFAULT, selected == DEFAULT);
                 skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_LockedToPlayer"), LockedToPlayer, selected == LockedToPlayer);
 
+
                 foreach (string SkinName in recordID.Value) {
-                    string SkinText = Dialog.Has($"SkinModHelper_Other__{SpriteID}__{SkinName}") ? Dialog.Clean($"SkinModHelper_Other__{SpriteID}__{SkinName}") : Dialog.Clean($"SkinModHelper_anyOther__{SkinName}");
+                    string SkinText;
+                    if (Dialog.Has($"SkinModHelper_Other__{SpriteID}__{SkinName}")) {
+                        SkinText = Dialog.Clean($"SkinModHelper_Other__{SpriteID}__{SkinName}");
+                    } else if (!string.IsNullOrEmpty(OtherskinConfigs[SkinName].SkinDialogKey)) {
+                        SkinText = Dialog.Clean(OtherskinConfigs[SkinName].SkinDialogKey);
+                    } else {
+                        SkinText = Dialog.Clean($"SkinModHelper_anyOther__{SkinName}");
+                    }
 
                     if (!string.IsNullOrEmpty(OtherskinConfigs[SkinName].SkinDialogKey)) {
                         SkinText = Dialog.Clean(OtherskinConfigs[SkinName].SkinDialogKey);
                     }
                     skinSelectMenu.Add(SkinText, SkinName, (SkinName == selected));
                 }
-
-
-                skinSelectMenu.Change(skinId => RefreshSkinValues_OtherExtra(SpriteID, skinId, inGame));
                 menu.Add(skinSelectMenu);
+                skinSelectMenu.AddDescription(menu, TextDescription);
             }
+            #endregion
         }
         #endregion
 

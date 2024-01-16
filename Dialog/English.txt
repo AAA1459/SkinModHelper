@@ -40,21 +40,37 @@ SkinModHelper_anyXmls_Default= " Default / Current "
 SkinModHelper_anyXmls_LockedToPlayer= " Locked to Player Skin "
 
 
+SkinModHelper_Other__death_particle= Particles when player dies
+SkinModHelper_Other__dreamblock_particles= Particles inside DreamBlock
+SkinModHelper_Other__feather_particles= Particles when get flyFeather
+SkinModHelper_Other__Mountain_marker= Mountain climber mark
+
+
+
+
+
+
 ##---annotation name of animation-set ID---
 
-SkinModHelper_Sprite__player= madeline
+SkinModHelper_Sprite__player= Madeline
 SkinModHelper_Sprite__badeline= {+MENU_VARIANT_PLAYASBADELINE}
-SkinModHelper_Sprite__player_playback= silhouette
+SkinModHelper_Sprite__player_playback= Silhouette
+
+SkinModHelper_Sprite__refill= Dash Crystal
+SkinModHelper_Sprite__refillTwo= double-Dash Crystal
+
+SkinModHelper_Sprite__ghostberry= Collected Straw Berry
+SkinModHelper_Sprite__goldghostberry= Collected Golden Berry
+
+SkinModHelper_Sprite__heartgem0= A-side Crystal Heart
+SkinModHelper_Sprite__heartgem1= B-side Crystal Heart
+SkinModHelper_Sprite__heartgem2= C-side Crystal Heart
+SkinModHelper_Sprite__heartgem3= Farewell Fake Heart
+SkinModHelper_Sprite__heartgemWhite= PureWhite Crystal Heart
+SkinModHelper_Sprite__heartgemGhost= Collected Crystal Heart
 
 SkinModHelper_Sprite__glider= Jellyfish
 
 SkinModHelper_Portraits__portrait_badeline= {+MENU_VARIANT_PLAYASBADELINE}
 
-SkinModHelper_Other__death_particle= Particles when player dies
-SkinModHelper_Other__dreamblock_particles= Particles inside DreamBlock
-SkinModHelper_Other__feather_particles= Particles when get flyFeather
-SkinModHelper_Other__Mountain_marker= Mountain climber mark
 ##---
-
-SkinModHelper_NewMenu_SkinsExtended=:SMH_SubMenu:Additional options - Current Player Skin
-SkinModHelper_NewMenu_SkinsExtended_opened= Additional options
