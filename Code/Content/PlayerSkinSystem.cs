@@ -106,21 +106,20 @@ namespace Celeste.Mod.SkinModHelper {
             }
 
             string hash_object = null;
-            if (!isGhost && (mode == PlayerSpriteMode.Madeline || mode == PlayerSpriteMode.MadelineNoBackpack || mode == PlayerSpriteMode.MadelineAsBadeline)) {
+            if (isGhost) {
+                selfData["isGhost"] = true;
+            } else if (mode == PlayerSpriteMode.Madeline || mode == PlayerSpriteMode.MadelineNoBackpack || mode == PlayerSpriteMode.MadelineAsBadeline) {
                 hash_object = GetPlayerSkin();
 
-            } else if (!isGhost && mode == PlayerSpriteMode.Playback) {
+            } else if (mode == PlayerSpriteMode.Playback) {
                 hash_object = GetSilhouetteSkin();
 
-            } else if (!isGhost && (mode == (PlayerSpriteMode)444482 || mode == (PlayerSpriteMode)444483)) {
+            } else if (mode == (PlayerSpriteMode)444482 || mode == (PlayerSpriteMode)444483) {
                 hash_object = GetPlayerSkin("_lantern");
                 if (hash_object == GetPlayerSkin()) { hash_object = null; }
-
-            } else if (isGhost) {
-                selfData["isGhost"] = true;
             }
 
-
+            
             if (hash_object != null) {
                 mode = (PlayerSpriteMode)skinConfigs[!backpackOn ? GetPlayerSkin("_NB", hash_object) : hash_object].hashValues;
             } else if (!backpackOn && mode == PlayerSpriteMode.Madeline) {
@@ -130,6 +129,7 @@ namespace Celeste.Mod.SkinModHelper {
             }
             orig(self, mode);
             int requestMode = (int)(isGhost ? (1 << 31) + mode : mode);
+
 
             foreach (SkinModHelperConfig config in skinConfigs.Values) {
                 if (requestMode == config.hashValues) {
@@ -522,9 +522,9 @@ namespace Celeste.Mod.SkinModHelper {
             string spritePath = getAnimationRootPath(self.Sprite);
             string detectPath = getAnimationRootPath(self.Sprite.Texture);
 
-            if (!detectPath.StartsWith(spritePath) && (detectPath.StartsWith("characters/player_no_backpack/") || detectPath.StartsWith("characters/player/") || detectPath.StartsWith("characters/player_badeline/") || detectPath.StartsWith("characters/player_playback/") || detectPath.StartsWith("characters/badeline/"))) {
+            if (detectPath.StartsWith("characters/player_no_backpack/") || detectPath.StartsWith("characters/player/") || detectPath.StartsWith("characters/player_badeline/") || detectPath.StartsWith("characters/player_playback/") || detectPath.StartsWith("characters/badeline/")) {
 
-                if (new DynData<PlayerSprite>(self.Sprite)["isGhost"] == null && new DynData<PlayerHair>(self)["SMH_DisposableLog_aPhggdddd"] == null) {
+                if (new DynData<PlayerHair>(self)["SMH_DisposableLog_aPhggdddd"] == null && new DynData<PlayerSprite>(self.Sprite)["isGhost"] == null && !detectPath.StartsWith(spritePath)) {
                     Logger.Log(LogLevel.Info, "SkinModHelper", $"Avoid the possible invisible hair texture work to vanilla characters...");
                     new DynData<PlayerHair>(self)["SMH_DisposableLog_aPhggdddd"] = "aPhggdddd";
                 }
