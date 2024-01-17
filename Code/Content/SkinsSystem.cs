@@ -80,7 +80,7 @@ namespace Celeste.Mod.SkinModHelper {
         public static int backpackSetting = 0;
 
         public static bool first_build = true;
-
+        public static List<string> FailedXml_record = new();
         #endregion
 
         //-----------------------------Build Skins-----------------------------
@@ -379,7 +379,17 @@ namespace Celeste.Mod.SkinModHelper {
             try {
                 SpriteBank newBank = new(origBank.Atlas, xmlPath);
                 return newBank;
-            } catch {
+            } catch (Exception e) {
+                if (skinId != "Default" && e.Message != "Object reference not set to an instance of an object." && !FailedXml_record.Contains(xmlPath)) {
+
+                    if (skinId.EndsWith("_+")) {
+                        skinId = skinId.Remove(skinId.Length - 2);
+                    }
+                    string xmlType = xmlPath.Substring(xmlPath.LastIndexOf("/") + 1);
+
+                    FailedXml_record.Add(xmlPath);
+                    Logger.Log(LogLevel.Error, "SkinModHelper", $"The {xmlType} of '{skinId}' build failed! \n {xmlPath}: {e.Message}");
+                }
                 return null;
             }
         }
@@ -485,7 +495,9 @@ namespace Celeste.Mod.SkinModHelper {
             if (Xmls_refresh == true) {
                 LogLevel logLevel = Logger.GetLogLevel("Atlas");
                 if (!first_build) { Logger.SetLogLevel("Atlas", LogLevel.Error); }
+
                 first_build = false;
+                FailedXml_record.Clear();
 
                 #region
                 foreach (string sprite in spritesWithHair) {
