@@ -291,16 +291,22 @@ namespace Celeste.Mod.SkinModHelper {
             Atlas atlas = (Atlas)selfData["ColorGrade_Atlas"] ?? GFX.Game;
             string colorGrade_Path = (string)selfData["ColorGrade_Path"];
 
+            if (colorGrade_Path == null) {
+                colorGrade_Path = $"{getAnimationRootPath(self.Sprite)}ColorGrading/dash";
+
+                if (self.Entity is Player) {
+                    //Check if config from v0.7 Before---
+                    string isOld = OldConfigCheck(self.Sprite);
+                    if (isOld != null) {
+                        atlas = GFX.ColorGrades;
+                        colorGrade_Path = $"{OtherskinConfigs[isOld].OtherSprite_ExPath}/dash";
+                    }
+                    //---
+                }
+            }
+
             int? get_dashCount;
             if (self.Entity is Player player) {
-                //Check if config from v0.7 Before---
-                string isOld = OldConfigCheck(self.Sprite);
-                if (isOld != null) {
-                    atlas = GFX.ColorGrades;
-                    colorGrade_Path = $"{OtherskinConfigs[isOld].OtherSprite_ExPath}/dash";
-                }
-                //---
-
                 if (player.MaxDashes <= 0 && player.Dashes < 2) {
                     get_dashCount = 1;
                 } else {
@@ -311,14 +317,14 @@ namespace Celeste.Mod.SkinModHelper {
             }
 
             if (get_dashCount != null) {
-                if (atlas == GFX.Game) {
-                    colorGrade_Path = $"{getAnimationRootPath(self.Sprite)}ColorGrading/dash";
+                while (char.IsDigit(colorGrade_Path, colorGrade_Path.Length - 1)) {
+                    colorGrade_Path = colorGrade_Path.Remove(colorGrade_Path.Length - 1);
                 }
+
                 int dashCount = Math.Max(Math.Min((int)get_dashCount, MAX_DASHES), 0);
                 while (dashCount > 2 && !GFX.Game.Has($"{colorGrade_Path}{dashCount}")) {
                     dashCount--;
                 }
-
                 selfData["ColorGrade_Atlas"] = atlas;
                 selfData["ColorGrade_Path"] = colorGrade_Path = $"{colorGrade_Path}{dashCount}";
             }
@@ -467,16 +473,10 @@ namespace Celeste.Mod.SkinModHelper {
 
                 if (get_dashCount != null) {
                     bool Build_switch = hairConfig.HairColors != null;
-                    if (hairConfig.HairFlash == false) {
-                        selfData["HairFlash"] = !(Build_switch = true);
-                    }
 
-                    if (!Build_switch) {
-                        int number_search = 0;
-                        while (number_search < MAX_DASHES && !GFX.Game.Has($"{rootPath}ColorGrading/dash{number_search}")) {
-                            number_search++;
-                        }
-                        Build_switch = GFX.Game.Has($"{rootPath}ColorGrading/dash{number_search}");
+                    if (hairConfig.HairFlash == false || AssetExists<AssetTypeDirectory>($"{rootPath}ColorGrading", GFX.Game)) {
+                        selfData["HairFlash"] = hairConfig.HairFlash;
+                        Build_switch = true;
                     }
 
                     if (Build_switch) {

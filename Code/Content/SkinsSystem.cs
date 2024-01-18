@@ -380,16 +380,19 @@ namespace Celeste.Mod.SkinModHelper {
                 SpriteBank newBank = new(origBank.Atlas, xmlPath);
                 return newBank;
             } catch (Exception e) {
-                if (skinId != "Default" && e.Message != "Object reference not set to an instance of an object." && !FailedXml_record.Contains(xmlPath)) {
+                if (skinId == "Default") { return null; }
+                if (skinId.EndsWith("_+")) { skinId = skinId.Remove(skinId.Length - 2); }
 
-                    if (skinId.EndsWith("_+")) {
-                        skinId = skinId.Remove(skinId.Length - 2);
-                    }
-                    string xmlType = xmlPath.Substring(xmlPath.LastIndexOf("/") + 1);
+                string dir = xmlPath.Remove(xmlPath.LastIndexOf("/"));
 
+                if (!AssetExists<AssetTypeDirectory>(dir) && !FailedXml_record.Contains(dir)) {
+                    FailedXml_record.Add(dir);
+                    Logger.Log(LogLevel.Error, "SkinModHelper", $"The xmls directory of '{skinId}' does not exist: {dir}");
+
+                } else if (AssetExists<AssetTypeXml>(xmlPath) && !FailedXml_record.Contains(xmlPath)) {
                     FailedXml_record.Add(xmlPath);
-                    Logger.Log(LogLevel.Error, "SkinModHelper", $"The {xmlType} of '{skinId}' build failed! \n {xmlPath}: {e.Message}");
-                }
+                    Logger.Log(LogLevel.Error, "SkinModHelper", $"The {xmlPath.Substring(xmlPath.LastIndexOf("/") + 1)} of '{skinId}' build failed! \n {xmlPath}: {e.Message}");
+                } 
                 return null;
             }
         }
@@ -690,6 +693,15 @@ namespace Celeste.Mod.SkinModHelper {
                 return value;
             }
             return default;
+        }
+        public static bool AssetExists<T>(string path, Atlas atlas = null) {
+            if (atlas != null) {
+                path = atlas.DataPath + "/" + path;
+            }
+            if (path.LastIndexOf(".") >= 0) {
+                path = path.Remove(path.LastIndexOf("."));
+            }
+            return Everest.Content.TryGet<T>(path, out ModAsset asset);
         }
         #endregion
     }
