@@ -14,8 +14,7 @@ using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 
 namespace Celeste.Mod.SkinModHelper
 {
-    public class SkinModHelperUI
-    {
+    public class SkinModHelperUI {
         #region
         public static SkinModHelperSettings Settings => (SkinModHelperSettings)Instance._Settings;
         public static SkinModHelperSession Session => (SkinModHelperSession)Instance._Session;
@@ -43,8 +42,7 @@ namespace Celeste.Mod.SkinModHelper
         #endregion
 
         #region
-        private void BuildPlayerSkinSelectMenu(TextMenu menu, bool inGame)
-        {
+        private void BuildPlayerSkinSelectMenu(TextMenu menu, bool inGame) {
             TextMenu.Option<string> skinSelectMenu = new(Dialog.Clean("SkinModHelper_Settings_PlayerSkin_Selected"));
 
             skinSelectMenu.Add(Dialog.Clean("SkinModHelper_Settings_DefaultPlayer"), DEFAULT, true);
@@ -62,7 +60,15 @@ namespace Celeste.Mod.SkinModHelper
             }
 
             // Set our update action on our complete menu
-            skinSelectMenu.Change(skinId => UpdateSkin(skinId, inGame));
+            skinSelectMenu.Change(skinId => {
+                UpdateSkin(skinId, inGame);
+                ChangeUnselectedColor(skinSelectMenu, 0);
+            });
+
+            // if our settings don't exist...
+            if (skinSelectMenu.Index == 0 && Settings.SelectedPlayerSkin != DEFAULT) {
+                ChangeUnselectedColor(skinSelectMenu, 1); // if our settings don't exist...
+            }
 
             if (Disabled(inGame)) {
                 skinSelectMenu.Disabled = true;
@@ -70,8 +76,7 @@ namespace Celeste.Mod.SkinModHelper
             menu.Add(skinSelectMenu);
         }
 
-        private void BuildSilhouetteSkinSelectMenu(TextMenu menu, bool inGame)
-        {
+        private void BuildSilhouetteSkinSelectMenu(TextMenu menu, bool inGame) {
             TextMenu.Option<string> skinSelectMenu = new(Dialog.Clean("SkinModHelper_Settings_SilhouetteSkin_Selected"));
 
             skinSelectMenu.Add(Dialog.Clean("SkinModHelper_Settings_DefaultSilhouette"), DEFAULT, true);
@@ -89,7 +94,16 @@ namespace Celeste.Mod.SkinModHelper
                 skinSelectMenu.Add(name, config.SkinName, selected);
             }
 
-            skinSelectMenu.Change(skinId => UpdateSilhouetteSkin(skinId, inGame));
+            // Set our update action on our complete menu
+            skinSelectMenu.Change(skinId => {
+                UpdateSilhouetteSkin(skinId, inGame);
+                ChangeUnselectedColor(skinSelectMenu, 0);
+            });
+
+            // if our settings don't exist...
+            if (skinSelectMenu.Index == 0 && Settings.SelectedSilhouetteSkin != DEFAULT) {
+                ChangeUnselectedColor(skinSelectMenu, 1);
+            }
 
             menu.Add(skinSelectMenu);
         }
@@ -137,7 +151,9 @@ namespace Celeste.Mod.SkinModHelper
 
         public void Build_SkinFreeConfig_NewMenu(TextMenu menu, bool inGame) {
 
+            List<TextMenu.Option<string>> allOptions = new();
             TextMenu.OnOff SkinFreeConfig_OnOff = new TextMenu.OnOff(Dialog.Clean("SkinModHelper_SkinFreeConfig_OnOff"), Settings.FreeCollocations_OffOn);
+
             SkinFreeConfig_OnOff.Change(OnOff => RefreshSkinValues(OnOff, inGame));
 
             if (Disabled(inGame)) {
@@ -168,16 +184,27 @@ namespace Celeste.Mod.SkinModHelper
                 if (Dialog.Has($"SkinModHelper_Sprite__{SpriteID}")) {
                     TextDescription = TextDescription + $"({Dialog.Clean($"SkinModHelper_Sprite__{SpriteID}")})";
                 }
+
+
                 TextMenu.Option<string> skinSelectMenu = new(SpriteText);
-
-
                 if (!Settings.FreeCollocations_Sprites.ContainsKey(SpriteID)) {
                     Settings.FreeCollocations_Sprites[SpriteID] = DEFAULT;
                 }
+                allOptions.Add(skinSelectMenu);
+                string actually = SpriteSkin_record[SpriteID];
+
+                skinSelectMenu.Change(skinId => {
+                    actually = RefreshSkinValues_Sprites(SpriteID, skinId, inGame);
+
+                    if (actually == null) {
+                        ChangeUnselectedColor(skinSelectMenu, 1);
+                    } else if (actually == (GetPlayerSkinName() + "_+") && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2)) {
+                        ChangeUnselectedColor(skinSelectMenu, 2);
+                    } else {
+                        ChangeUnselectedColor(skinSelectMenu, 0);
+                    }
+                });
                 string selected = Settings.FreeCollocations_Sprites[SpriteID];
-                skinSelectMenu.Change(skinId => RefreshSkinValues_Sprites(SpriteID, skinId, inGame));
-
-
                 skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_Original"), ORIGINAL, true);
                 skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_Default"), DEFAULT, selected == DEFAULT);
                 skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_LockedToPlayer"), LockedToPlayer, selected == LockedToPlayer);
@@ -198,6 +225,15 @@ namespace Celeste.Mod.SkinModHelper
                     }
                     skinSelectMenu.Add(SkinText, SkinName, (SkinName == selected));
                 }
+
+                if (actually == null || (skinSelectMenu.Index == 0 && selected != ORIGINAL)) {
+                    ChangeUnselectedColor(skinSelectMenu, 1);
+                } else if (actually == (GetPlayerSkinName() + "_+") && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2)) {
+                    ChangeUnselectedColor(skinSelectMenu, 2);
+                } else {
+                    ChangeUnselectedColor(skinSelectMenu, 0);
+                }
+
                 menu.Add(skinSelectMenu);
                 skinSelectMenu.AddDescription(menu, TextDescription);
             }
@@ -226,16 +262,27 @@ namespace Celeste.Mod.SkinModHelper
                 if (Dialog.Has($"SkinModHelper_Portraits__{SpriteID}")) {
                     TextDescription = TextDescription + $"({Dialog.Clean($"SkinModHelper_Portraits__{SpriteID}")})";
                 }
+
+
                 TextMenu.Option<string> skinSelectMenu = new(SpriteText);
-
-
                 if (!Settings.FreeCollocations_Portraits.ContainsKey(SpriteID)) {
                     Settings.FreeCollocations_Portraits[SpriteID] = DEFAULT;
                 }
+                allOptions.Add(skinSelectMenu);
+                string actually = PortraitsSkin_record[SpriteID];
+
+                skinSelectMenu.Change(skinId => {
+                    actually = RefreshSkinValues_Portraits(SpriteID, skinId, inGame);
+
+                    if (actually == null) {
+                        ChangeUnselectedColor(skinSelectMenu, 1);
+                    } else if (actually == (GetPlayerSkinName() + "_+") && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2)) {
+                        ChangeUnselectedColor(skinSelectMenu, 2);
+                    } else {
+                        ChangeUnselectedColor(skinSelectMenu, 0);
+                    }
+                });
                 string selected = Settings.FreeCollocations_Portraits[SpriteID];
-                skinSelectMenu.Change(skinId => RefreshSkinValues_Portraits(SpriteID, skinId, inGame));
-
-
                 skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_Original"), ORIGINAL, true);
                 skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_Default"), DEFAULT, selected == DEFAULT);
                 skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_LockedToPlayer"), LockedToPlayer, selected == LockedToPlayer);
@@ -256,6 +303,15 @@ namespace Celeste.Mod.SkinModHelper
                     }
                     skinSelectMenu.Add(SkinText, SkinName, (SkinName == selected));
                 }
+
+                if (actually == null || (skinSelectMenu.Index == 0 && selected != ORIGINAL)) {
+                    ChangeUnselectedColor(skinSelectMenu, 1);
+                } else if (actually == (GetPlayerSkinName() + "_+") && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2)) {
+                    ChangeUnselectedColor(skinSelectMenu, 2);
+                } else {
+                    ChangeUnselectedColor(skinSelectMenu, 0);
+                }
+
                 menu.Add(skinSelectMenu);
                 skinSelectMenu.AddDescription(menu, TextDescription);
             }
@@ -282,22 +338,43 @@ namespace Celeste.Mod.SkinModHelper
                         SpriteText = SpriteText.Remove(index) + "...";
                     }
                 }
+
+
                 TextMenu.Option<string> skinSelectMenu = new(SpriteText);
-
-
                 if (!Settings.FreeCollocations_OtherExtra.ContainsKey(SpriteID)) {
                     Settings.FreeCollocations_OtherExtra[SpriteID] = DEFAULT;
                 }
+                allOptions.Add(skinSelectMenu);
+                string actually = OtherSkin_record[SpriteID];
+
+                skinSelectMenu.Change(skinId => {
+                    actually = RefreshSkinValues_OtherExtra(SpriteID, skinId, inGame);
+
+                    if (recordID.Value.Contains(GetPlayerSkinName() + "_+") && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2)) {
+                        ChangeUnselectedColor(skinSelectMenu, 2);
+                    } else if (skinSelectMenu.Index == 2) {
+                        ChangeUnselectedColor(skinSelectMenu, 1);
+                    } else if (skinSelectMenu.Index == 1) {
+                        ChangeUnselectedColor(skinSelectMenu, 1);
+                        foreach (SkinModHelperConfig config in OtherskinConfigs.Values) {
+                            if (recordID.Value.Contains(config.SkinName) && Settings.ExtraXmlList.ContainsKey(config.SkinName) && Settings.ExtraXmlList[config.SkinName]) {
+                                ChangeUnselectedColor(skinSelectMenu, 0);
+                                break;
+                            }
+                        }
+                    } else {
+                        ChangeUnselectedColor(skinSelectMenu, 0);
+                    }
+                });
                 string selected = Settings.FreeCollocations_OtherExtra[SpriteID];
-                skinSelectMenu.Change(skinId => RefreshSkinValues_OtherExtra(SpriteID, skinId, inGame));
-
-
                 skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_Original"), ORIGINAL, true);
                 skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_Default"), DEFAULT, selected == DEFAULT);
                 skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_LockedToPlayer"), LockedToPlayer, selected == LockedToPlayer);
 
 
                 foreach (string SkinName in recordID.Value) {
+                    if (SkinName.EndsWith("_+")) { continue; }
+
                     string SkinText;
                     if (Dialog.Has($"SkinModHelper_Other__{SpriteID}__{SkinName}")) {
                         SkinText = Dialog.Clean($"SkinModHelper_Other__{SpriteID}__{SkinName}");
@@ -312,6 +389,23 @@ namespace Celeste.Mod.SkinModHelper
                     }
                     skinSelectMenu.Add(SkinText, SkinName, (SkinName == selected));
                 }
+
+                if (recordID.Value.Contains(GetPlayerSkinName() + "_+") && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2)) {
+                    ChangeUnselectedColor(skinSelectMenu, 2);
+                } else if (skinSelectMenu.Index == 2 || (skinSelectMenu.Index == 0 && selected != ORIGINAL)) {
+                    ChangeUnselectedColor(skinSelectMenu, 1);
+                } else if (skinSelectMenu.Index == 1) {
+                    ChangeUnselectedColor(skinSelectMenu, 1);
+                    foreach (SkinModHelperConfig config in OtherskinConfigs.Values) {
+                        if (recordID.Value.Contains(config.SkinName) && Settings.ExtraXmlList.ContainsKey(config.SkinName) && Settings.ExtraXmlList[config.SkinName]) {
+                            ChangeUnselectedColor(skinSelectMenu, 0);
+                            break;
+                        }
+                    }
+                } else {
+                    ChangeUnselectedColor(skinSelectMenu, 0);
+                }
+
                 menu.Add(skinSelectMenu);
                 skinSelectMenu.AddDescription(menu, TextDescription);
             }
@@ -327,6 +421,10 @@ namespace Celeste.Mod.SkinModHelper
                 }
             }
             return false;
+        }
+        /// <summary> 0 - White(default) / 1 - Gray(false setting) / 2 - Goldenrod(special settings)</summary>
+        public static void ChangeUnselectedColor<T>(TextMenu.Option<T> options, int index) {
+            options.UnselectedColor = index == 1 ? Color.Gray : index == 2 ? Color.Goldenrod : Color.White;
         }
     }
     #region

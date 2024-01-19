@@ -183,11 +183,10 @@ namespace Celeste.Mod.SkinModHelper {
                 }
             }
             first_build = true;
-
-            if (Settings.SelectedPlayerSkin == null || !skinConfigs.ContainsKey(Settings.SelectedPlayerSkin)) {
+            if (Settings.SelectedPlayerSkin == null) {
                 Settings.SelectedPlayerSkin = DEFAULT;
             }
-            if (Settings.SelectedSilhouetteSkin == null || !skinConfigs.ContainsKey(Settings.SelectedSilhouetteSkin)) {
+            if (Settings.SelectedSilhouetteSkin == null) {
                 Settings.SelectedSilhouetteSkin = DEFAULT;
             }
         }
@@ -307,10 +306,12 @@ namespace Celeste.Mod.SkinModHelper {
                     RecordSpriteBanks(GFX.SpriteBank, DEFAULT, spritesXmlPath);
                     RecordSpriteBanks(GFX.PortraitsSpriteBank, DEFAULT, portraitsXmlPath);
 
-                    RecordOtherSprite(GFX.Game, $"{config.OtherSprite_Path}/death_particle", "death_particle", DEFAULT);
-                    RecordOtherSprite(GFX.Game, $"{config.OtherSprite_Path}/objects/dreamblock/particles", "dreamblock_particles", DEFAULT);
-                    RecordOtherSprite(GFX.Game, $"{config.OtherSprite_Path}/particles/feather", "feather_particles", DEFAULT);
-                    RecordOtherSprite(MTN.Mountain, $"{config.OtherSprite_Path}/marker/runBackpack", "Mountain_marker", DEFAULT, true);
+                    // This name is not actually used... just for ease of search (why?)
+                    string Name = config.SkinName + "_+";
+                    RecordOtherSprite(GFX.Game, $"{config.OtherSprite_Path}/death_particle", "death_particle", Name);
+                    RecordOtherSprite(GFX.Game, $"{config.OtherSprite_Path}/objects/dreamblock/particles", "dreamblock_particles", Name);
+                    RecordOtherSprite(GFX.Game, $"{config.OtherSprite_Path}/particles/feather", "feather_particles", Name);
+                    RecordOtherSprite(MTN.Mountain, $"{config.OtherSprite_Path}/marker/runBackpack", "Mountain_marker", Name, true);
                 }
             }
 
@@ -577,9 +578,11 @@ namespace Celeste.Mod.SkinModHelper {
         }
         public static string getSkinDefaultValues(SpriteBank selfBank, string SpriteID) {
 
-            string playerSkinID = GetPlayerSkinConfig(Player_Skinid_verify).SkinName;
-            if (playerSkinID != null && selfBank.Has(SpriteID + $"{playerSkinID}_+")) {
-                return $"{playerSkinID}_+";
+            string playerSkinName = GetPlayerSkinName(Player_Skinid_verify) + "_+";
+            if (playerSkinName != null) {
+                if (selfBank.Has(SpriteID + playerSkinName)) {
+                    return playerSkinName;
+                }
             }
 
             if ((selfBank == GFX.SpriteBank && Settings.FreeCollocations_Sprites.ContainsKey(SpriteID) && Settings.FreeCollocations_Sprites[SpriteID] == LockedToPlayer)

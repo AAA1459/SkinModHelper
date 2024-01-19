@@ -105,10 +105,11 @@ namespace Celeste.Mod.SkinModHelper {
                 }
             }
 
-            Dictionary<int, List<Color>> HairColors = new();
             // 0~99 as specify-segment Hair's color.
             // -100~-1 as reverse-order of hair.
-            HairColors[100] = GeneratedHairColors; // 100 as each-segment Hair's Default color, or as Player's Dash Color and Silhouette color.
+            Dictionary<int, List<Color>> HairColors = new() {
+                [100] = GeneratedHairColors // 100 as each-segment Hair's Default color, or as Player's Dash Color and Silhouette color.
+            };
 
             if (build_object.HairColors != null) {
                 foreach (HairColor hairColor in build_object.HairColors) {
@@ -201,9 +202,9 @@ namespace Celeste.Mod.SkinModHelper {
                     GeneratedHairColors[i] = GeneratedHairColors[i - 1];
                 }
             }
-
-            Dictionary<int, List<Color>> HairColors = new();
-            HairColors[100] = GeneratedHairColors;
+            Dictionary<int, List<Color>> HairColors = new() {
+                [100] = GeneratedHairColors
+            };
 
             return HairColors;
         }

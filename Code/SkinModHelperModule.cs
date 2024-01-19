@@ -146,7 +146,7 @@ namespace Celeste.Mod.SkinModHelper {
             }
         }
 
-        public static void RefreshSkinValues_Sprites(string SpriteID, string SkinId, bool inGame, bool Setting = true) {
+        public static string RefreshSkinValues_Sprites(string SpriteID, string SkinId, bool inGame, bool Setting = true) {
             if (Setting) {
                 Settings.FreeCollocations_Sprites[SpriteID] = SkinId;
             }
@@ -160,9 +160,10 @@ namespace Celeste.Mod.SkinModHelper {
             } else {
                 SpriteSkin_record[SpriteID] = value[SpriteID];
             }
+            return SpriteSkin_record[SpriteID];
         }
 
-        public static void RefreshSkinValues_Portraits(string SpriteID, string SkinId, bool inGame, bool Setting = true) {
+        public static string RefreshSkinValues_Portraits(string SpriteID, string SkinId, bool inGame, bool Setting = true) {
             if (Setting) {
                 Settings.FreeCollocations_Portraits[SpriteID] = SkinId;
             }
@@ -177,8 +178,9 @@ namespace Celeste.Mod.SkinModHelper {
             } else {
                 PortraitsSkin_record[SpriteID] = value[SpriteID];
             }
+            return PortraitsSkin_record[SpriteID];
         }
-        public static void RefreshSkinValues_OtherExtra(string SpriteID, string SkinId, bool inGame, bool Setting = true) {
+        public static string RefreshSkinValues_OtherExtra(string SpriteID, string SkinId, bool inGame, bool Setting = true) {
             if (Setting) {
                 Settings.FreeCollocations_OtherExtra[SpriteID] = SkinId;
             }
@@ -191,6 +193,7 @@ namespace Celeste.Mod.SkinModHelper {
             } else {
                 OtherSkin_record[SpriteID] = value[SpriteID];
             }
+            return OtherSkin_record[SpriteID];
         }
 
 
@@ -219,11 +222,12 @@ namespace Celeste.Mod.SkinModHelper {
             }
             return GetPlayerSkin(skin_suffix, skinName);
         }
-        public static SkinModHelperConfig GetPlayerSkinConfig(int hashValues) {
+        public static string GetPlayerSkinName(int hashValues = -1) {
+            if (hashValues < 0) { hashValues = Player_Skinid_verify; }
             try {
-                return skinConfigs.Values.Where(config => config.hashValues == hashValues).First();
+                return skinConfigs.Values.Where(config => config.hashValues == hashValues).First().SkinName;
             } catch {
-                return new();
+                return null;
             }
         }
     }
