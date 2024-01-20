@@ -365,6 +365,7 @@ namespace Celeste.Mod.SkinModHelper
                     } else {
                         ChangeUnselectedColor(skinSelectMenu, 0);
                     }
+                    UpdateParticles();
                 });
                 string selected = Settings.FreeCollocations_OtherExtra[SpriteID];
                 skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_Original"), ORIGINAL, true);

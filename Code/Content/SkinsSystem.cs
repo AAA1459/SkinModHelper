@@ -424,7 +424,6 @@ namespace Celeste.Mod.SkinModHelper {
 
             string SpriteID = "feather_particles";
             if (OtherSkins_records.ContainsKey(SpriteID)) {
-                RefreshSkinValues_OtherExtra(SpriteID, null, true, false);
                 CustomPath = getOtherSkin_ReskinPath(GFX.Game, "particles/feather", SpriteID, OtherSkin_record[SpriteID]);
             }
 
@@ -541,7 +540,6 @@ namespace Celeste.Mod.SkinModHelper {
                 RecordSpriteBanks_Start();
                 Logger.SetLogLevel("Atlas", logLevel);
             }
-            UpdateParticles();
             RefreshSkinValues(null, inGame);
         }
 
@@ -600,41 +598,34 @@ namespace Celeste.Mod.SkinModHelper {
             return SkinID;
         }
         public static string getAnimationRootPath(object type) {
-            string spriteName = "";
             if (type is PlayerSprite playerSprite) {
-                spriteName = (string)new DynData<PlayerSprite>(playerSprite)["spriteName"];
+                string spriteName = (string)new DynData<PlayerSprite>(playerSprite)["spriteName"];
 
-            } else if (type is Sprite sprite) {
-                type = sprite.Has("idle") ? sprite.GetFrame("idle", 0) : sprite.Texture;
-            } else {
-                spriteName = $"{type}";
+                if (GFX.SpriteBank.SpriteData.ContainsKey(spriteName)) {
+                    SpriteData spriteData = GFX.SpriteBank.SpriteData[spriteName];
 
-                if (spriteName.EndsWith("_")) {
-                    spriteName = spriteName.Remove(spriteName.LastIndexOf("_"));
-                } else if (SpriteSkin_record.ContainsKey(spriteName)) {
-                    spriteName = spriteName + SpriteSkin_record[spriteName];
+                    if (!string.IsNullOrEmpty(spriteData.Sources[0].OverridePath)) {
+                        return spriteData.Sources[0].OverridePath;
+                    } else {
+                        return spriteData.Sources[0].Path;
+                    }
                 }
+            } else if (type is Sprite sprite) {
+                type = $"{(sprite.Has("idle") ? sprite.GetFrame("idle", 0) : sprite.Texture)}";
+            } else {
+                type = $"{type}";
             }
 
-            if (type is MTexture) {
-                spriteName = $"{type}";
-                if (spriteName != null && spriteName.LastIndexOf("/") >= 0) {
-                    return spriteName.Remove(spriteName.LastIndexOf("/") + 1);
-                }
-
-            } else if (GFX.SpriteBank.SpriteData.ContainsKey(spriteName)) {
-                SpriteData spriteData = GFX.SpriteBank.SpriteData[spriteName];
-
-                if (!string.IsNullOrEmpty(spriteData.Sources[0].OverridePath)) {
-                    return spriteData.Sources[0].OverridePath;
-                } else {
-                    return spriteData.Sources[0].Path;
-                }
+            if (type is string path && path != null && path.LastIndexOf("/") >= 0) {
+                return path.Remove(path.LastIndexOf("/") + 1);
             }
             return "";
         }
         public static string getAnimationRootPath(Sprite sprite, string id) {
             return sprite.Has(id) ? getAnimationRootPath(sprite.GetFrame(id, 0)) : getAnimationRootPath(sprite);
+        }
+        public static string getAnimationRootPath(object type, out string returnValue) {
+            return returnValue = getAnimationRootPath(type);
         }
 
         public static string getOtherSkin_ReskinPath(Atlas atlas, string origPath, string SpriteID, string SkinId, bool number_search = false) {

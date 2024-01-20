@@ -144,6 +144,7 @@ namespace Celeste.Mod.SkinModHelper {
             foreach (string SpriteID in OtherSkins_records.Keys) {
                 RefreshSkinValues_OtherExtra(SpriteID, null, inGame, false);
             }
+            UpdateParticles();
         }
 
         public static string RefreshSkinValues_Sprites(string SpriteID, string SkinId, bool inGame, bool Setting = true) {

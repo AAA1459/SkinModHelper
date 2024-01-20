@@ -31,7 +31,7 @@ namespace Celeste.Mod.SkinModHelper {
             On.Celeste.Player.GetTrailColor += PlayerGetTrailColorHook;
             On.Celeste.Player.StartDash += PlayerStartDashHook;
             IL.Celeste.Player.DashUpdate += PlayerDashUpdateIlHook;
-
+            
             IL.Celeste.Player.Render += PlayerRenderIlHook_Color;
 
             On.Celeste.PlayerHair.Render += PlayerHairRenderHook;
@@ -303,6 +303,7 @@ namespace Celeste.Mod.SkinModHelper {
                     }
                     //---
                 }
+                selfData["ColorGrade_Path"] = colorGrade_Path;
             }
 
             int? get_dashCount;
@@ -316,11 +317,16 @@ namespace Celeste.Mod.SkinModHelper {
                 get_dashCount = GetDashCount(self);
             }
 
-            if (get_dashCount != null) {
+            if (self.Color == Color.White && atlas.Has(getAnimationRootPath(colorGrade_Path, out string value) + "flash")) {
+                selfData["ColorGrade_Atlas"] = atlas;
+                selfData["ColorGrade_Path"] = colorGrade_Path = $"{value}flash";
+
+            } else if (get_dashCount != null) {
+                colorGrade_Path = getAnimationRootPath(colorGrade_Path) + "dash";
+
                 while (char.IsDigit(colorGrade_Path, colorGrade_Path.Length - 1)) {
                     colorGrade_Path = colorGrade_Path.Remove(colorGrade_Path.Length - 1);
                 }
-
                 int dashCount = Math.Max(Math.Min((int)get_dashCount, MAX_DASHES), 0);
                 while (dashCount > 2 && !GFX.Game.Has($"{colorGrade_Path}{dashCount}")) {
                     dashCount--;
