@@ -308,10 +308,11 @@ namespace Celeste.Mod.SkinModHelper {
 
             int? get_dashCount;
             if (self.Entity is Player player) {
-                if (player.MaxDashes <= 0 && player.Dashes < 2) {
+                int lastDashes = new DynData<Player>(player).Get<int>("lastDashes");
+                if (player.MaxDashes <= 0 && lastDashes < 2) {
                     get_dashCount = 1;
                 } else {
-                    get_dashCount = Math.Max(Math.Min(player.Dashes, MAX_DASHES), 0);
+                    get_dashCount = Math.Max(Math.Min(lastDashes, MAX_DASHES), 0);
                 }
             } else {
                 get_dashCount = GetDashCount(self);
@@ -675,10 +676,11 @@ namespace Celeste.Mod.SkinModHelper {
                 get_dashCount = (int)new DynData<BadelineOldsite>(badelineOldsite)["index"];
             } else if (type is Player player) {
                 if (player.StateMachine.State != Player.StStarFly) {
-                    if (player.MaxDashes <= 0 && player.Dashes < 2) {
+                    int lastDashes = new DynData<Player>(player).Get<int>("lastDashes");
+                    if (player.MaxDashes <= 0 && lastDashes < 2) {
                         get_dashCount = 1;
                     } else {
-                        get_dashCount = Math.Max(Math.Min(player.Dashes, MAX_DASHES), 0);
+                        get_dashCount = Math.Max(Math.Min(lastDashes, MAX_DASHES), 0);
                     }
                 }
             } else if (type is PlayerPlayback) {
