@@ -47,6 +47,9 @@ namespace Celeste.Mod.SkinModHelper {
             IL.Celeste.Player.UpdateHair += patch_SpriteMode_Badeline;
             IL.Celeste.Player.DashUpdate += patch_SpriteMode_Badeline;
             IL.Celeste.Player.GetTrailColor += patch_SpriteMode_Badeline;
+;
+            doneILHooks.Add(new ILHook(typeof(Player).GetMethod("<.ctor>b__280_2", BindingFlags.NonPublic | BindingFlags.Instance), patch_SpriteMode_BackPack));
+            doneILHooks.Add(new ILHook(typeof(Player).GetMethod("<.ctor>b__280_1", BindingFlags.NonPublic | BindingFlags.Instance), patch_SpriteMode_BackPack));
 
             if (JungleHelperInstalled) {
                 Assembly assembly = Everest.Modules.Where(m => m.Metadata?.Name == "JungleHelper").First().GetType().Assembly;
@@ -83,7 +86,9 @@ namespace Celeste.Mod.SkinModHelper {
             IL.Celeste.Player.DashUpdate -= patch_SpriteMode_Badeline;
             IL.Celeste.Player.GetTrailColor -= patch_SpriteMode_Badeline;
         }
-
+        #endregion
+        #region
+        public static bool actualBackpack;
         #endregion
 
         //-----------------------------PlayerSprite-----------------------------
@@ -621,6 +626,18 @@ namespace Celeste.Mod.SkinModHelper {
                         }
                     }
                     return orig;
+                });
+            }
+        }
+        private static void patch_SpriteMode_BackPack(ILContext il) {
+            ILCursor cursor = new ILCursor(il);
+            if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchCallvirt<PlayerSprite>("get_Mode"))) {
+                cursor.EmitDelegate<Func<PlayerSpriteMode, PlayerSpriteMode>>((orig) => {
+                    if (backpackOn) {
+                        return 0;
+                    } else {
+                        return (PlayerSpriteMode)1;
+                    }
                 });
             }
         }
