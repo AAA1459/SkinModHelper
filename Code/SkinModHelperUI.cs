@@ -154,7 +154,12 @@ namespace Celeste.Mod.SkinModHelper
             List<TextMenu.Option<string>> allOptions = new();
             TextMenu.OnOff SkinFreeConfig_OnOff = new TextMenu.OnOff(Dialog.Clean("SkinModHelper_SkinFreeConfig_OnOff"), Settings.FreeCollocations_OffOn);
 
-            SkinFreeConfig_OnOff.Change(OnOff => RefreshSkinValues(OnOff, inGame));
+            SkinFreeConfig_OnOff.Change(OnOff => { 
+                RefreshSkinValues(OnOff, inGame);
+                foreach (var options in allOptions) {
+                    options.Disabled = !OnOff;
+                }
+            });
 
             if (Disabled(inGame)) {
                 SkinFreeConfig_OnOff.Disabled = true;
@@ -411,6 +416,10 @@ namespace Celeste.Mod.SkinModHelper
                 skinSelectMenu.AddDescription(menu, TextDescription);
             }
             #endregion
+
+            foreach (var options in allOptions) {
+                options.Disabled = !Settings.FreeCollocations_OffOn;
+            }
         }
         #endregion
 

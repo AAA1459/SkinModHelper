@@ -20,6 +20,8 @@ namespace Celeste.Mod.SkinModHelper {
             "",
             ""
         };
+        [SettingIgnore]
+        public bool PlayerSkinGreatestPriority { get; set; } = false;
 
         public enum BackpackMode { Default, Invert, Off, On }
         private BackpackMode backpack = BackpackMode.Default;

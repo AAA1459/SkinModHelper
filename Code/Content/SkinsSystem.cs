@@ -426,7 +426,7 @@ namespace Celeste.Mod.SkinModHelper {
 
             string SpriteID = "feather_particles";
             if (OtherSkins_records.ContainsKey(SpriteID)) {
-                CustomPath = getOtherSkin_ReskinPath(GFX.Game, "particles/feather", SpriteID, OtherSkin_record[SpriteID]);
+                CustomPath = getOtherSkin_ReskinPath(GFX.Game, "particles/feather", SpriteID);
             }
 
             if (CustomPath != null) {
@@ -461,7 +461,8 @@ namespace Celeste.Mod.SkinModHelper {
 
             if (SpriteID != null && OtherSkins_records.ContainsKey(SpriteID)) {
                 RefreshSkinValues_OtherExtra(SpriteID, null, true, false);
-                path = getOtherSkin_ReskinPath(self, path, SpriteID, OtherSkin_record[SpriteID], number_search);
+                path = getOtherSkin_ReskinPath(self, path, SpriteID, number_search);
+                Logger.Log(LogLevel.Error, "SkinModHelper", $"{SpriteID}: {path}");
             }
             return orig(self, path);
         }
@@ -479,7 +480,7 @@ namespace Celeste.Mod.SkinModHelper {
 
             if (SpriteID != null && OtherSkins_records.ContainsKey(SpriteID)) {
                 RefreshSkinValues_OtherExtra(SpriteID, null, true, false);
-                path = getOtherSkin_ReskinPath(atlas, path, SpriteID, OtherSkin_record[SpriteID], number_search);
+                path = getOtherSkin_ReskinPath(atlas, path, SpriteID, number_search);
             }
             orig(self, atlas, path);
         }
@@ -579,24 +580,24 @@ namespace Celeste.Mod.SkinModHelper {
             return default(T);
         }
         public static string getSkinDefaultValues(SpriteBank selfBank, string SpriteID) {
+            string SkinID = null;
 
             string playerSkinName = GetPlayerSkinName(Player_Skinid_verify) + "_+";
             if (playerSkinName != null) {
                 if (selfBank.Has(SpriteID + playerSkinName)) {
-                    return playerSkinName;
+                    SkinID = playerSkinName;
+                    if (Settings.PlayerSkinGreatestPriority) { return SkinID; }
                 }
             }
 
-            if ((selfBank == GFX.SpriteBank && Settings.FreeCollocations_Sprites.ContainsKey(SpriteID) && Settings.FreeCollocations_Sprites[SpriteID] == LockedToPlayer)
-                || (selfBank == GFX.PortraitsSpriteBank && Settings.FreeCollocations_Portraits.ContainsKey(SpriteID) && Settings.FreeCollocations_Portraits[SpriteID] == LockedToPlayer)) { return null; }
+            bool lockedToPlayer = ((selfBank == GFX.SpriteBank && Settings.FreeCollocations_Sprites.ContainsKey(SpriteID) && Settings.FreeCollocations_Sprites[SpriteID] == LockedToPlayer)
+                || (selfBank == GFX.PortraitsSpriteBank && Settings.FreeCollocations_Portraits.ContainsKey(SpriteID) && Settings.FreeCollocations_Portraits[SpriteID] == LockedToPlayer));
 
-            string SkinID = null;
+            if (lockedToPlayer) { return SkinID; }
+
             foreach (SkinModHelperConfig config in OtherskinConfigs.Values) {
-                if ((selfBank == GFX.SpriteBank && SpriteSkins_records[SpriteID].Contains(config.SkinName)) ||
-                    (selfBank == GFX.PortraitsSpriteBank && PortraitsSkins_records[SpriteID].Contains(config.SkinName))) {
-                    if (Settings.ExtraXmlList.ContainsKey(config.SkinName) && Settings.ExtraXmlList[config.SkinName]) {
-                        SkinID = config.SkinName;
-                    }
+                if (Settings.ExtraXmlList.ContainsKey(config.SkinName) && Settings.ExtraXmlList[config.SkinName] && selfBank.Has(SpriteID + config.SkinName)) {
+                    SkinID = config.SkinName;
                 }
             }
             return SkinID;
@@ -632,26 +633,28 @@ namespace Celeste.Mod.SkinModHelper {
             return returnValue = getAnimationRootPath(type);
         }
 
-        public static string getOtherSkin_ReskinPath(Atlas atlas, string origPath, string SpriteID, string SkinId, bool number_search = false) {
-            string get_number = "";
-            string CustomPath = null;
-            bool Default = !Settings.FreeCollocations_OffOn || SkinId == DEFAULT || SkinId == LockedToPlayer
-                           || !OtherSkin_record.ContainsKey(SpriteID) || OtherSkin_record[SpriteID] == DEFAULT || OtherSkin_record[SpriteID] == LockedToPlayer;
+        public static string getOtherSkin_ReskinPath(Atlas atlas, string origPath, string SpriteID, bool number_search = false) {
+            string SkinId = !Settings.FreeCollocations_OffOn || OtherSkin_record.ContainsKey(SpriteID) ? OtherSkin_record[SpriteID] : DEFAULT;
+            if (SkinId == ORIGINAL) { return origPath; }
+            bool Default = SkinId == DEFAULT || SkinId == LockedToPlayer;
+
+            string CustomPath = origPath;
             if (Default) {
-                foreach (SkinModHelperConfig config in skinConfigs.Values) {
-                    if (Player_Skinid_verify == config.hashValues) {
-                        if (!string.IsNullOrEmpty(config.OtherSprite_Path)) {
-                            CustomPath = $"{config.OtherSprite_Path}/{origPath}";
-                            if ((number_search && atlas.HasAtlasSubtexturesAt(CustomPath, 0)) || atlas.Has(CustomPath)) {
-                                return CustomPath;
-                            }
+                string SkinName = GetPlayerSkinName();
+                if (SkinName != null) {
+                    string spritePath = skinConfigs[SkinName].OtherSprite_Path;
+                    if (!string.IsNullOrEmpty(spritePath)) {
+                        spritePath = $"{spritePath}/{origPath}";
+                        if ((number_search && atlas.HasAtlasSubtexturesAt(spritePath, 0)) || atlas.Has(spritePath)) {
+                            CustomPath = spritePath;
+
+                            if (Settings.PlayerSkinGreatestPriority) { return CustomPath; }
                         }
                     }
                 }
             }
-            if (SkinId == LockedToPlayer || (OtherSkin_record.ContainsKey(SpriteID) && OtherSkin_record[SpriteID] == LockedToPlayer)) { return origPath; }
+            if (SkinId == LockedToPlayer) { return CustomPath; }
 
-            CustomPath = null;
             foreach (SkinModHelperConfig config in OtherskinConfigs.Values) {
                 if (!string.IsNullOrEmpty(config.OtherSprite_ExPath)) {
                     string spritePath = $"{config.OtherSprite_ExPath}/{origPath}";
@@ -664,7 +667,7 @@ namespace Celeste.Mod.SkinModHelper {
                     }
                 }
             }
-            return atlas.Has(CustomPath + get_number) ? CustomPath : origPath;
+            return CustomPath;
         }
         public static Color ColorBlend(Color c1, object obj) {
             if (obj is Color c2) {

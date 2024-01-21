@@ -150,16 +150,16 @@ namespace Celeste.Mod.SkinModHelper {
         public static string RefreshSkinValues_Sprites(string SpriteID, string SkinId, bool inGame, bool Setting = true) {
             if (Setting) {
                 Settings.FreeCollocations_Sprites[SpriteID] = SkinId;
+            } else if (!Settings.FreeCollocations_Sprites.ContainsKey(SpriteID)) {
+                Settings.FreeCollocations_Sprites[SpriteID] = DEFAULT;
             }
-            var value = Settings.FreeCollocations_Sprites;
+            var value = Setting || SkinId == null ? Settings.FreeCollocations_Sprites[SpriteID] : SkinId;
 
 
-            bool boolen = SkinId == DEFAULT || SkinId == LockedToPlayer
-                          || !value.ContainsKey(SpriteID) || value[SpriteID] == DEFAULT || value[SpriteID] == LockedToPlayer;
-            if (!Settings.FreeCollocations_OffOn || boolen) {
+            if (!Settings.FreeCollocations_OffOn || value == DEFAULT || value == LockedToPlayer) {
                 SpriteSkin_record[SpriteID] = getSkinDefaultValues(GFX.SpriteBank, SpriteID);
             } else {
-                SpriteSkin_record[SpriteID] = value[SpriteID];
+                SpriteSkin_record[SpriteID] = value;
             }
             return SpriteSkin_record[SpriteID];
         }
@@ -167,32 +167,32 @@ namespace Celeste.Mod.SkinModHelper {
         public static string RefreshSkinValues_Portraits(string SpriteID, string SkinId, bool inGame, bool Setting = true) {
             if (Setting) {
                 Settings.FreeCollocations_Portraits[SpriteID] = SkinId;
+            } else if (!Settings.FreeCollocations_Portraits.ContainsKey(SpriteID)) {
+                Settings.FreeCollocations_Portraits[SpriteID] = DEFAULT;
             }
+            var value = Setting || SkinId == null ? Settings.FreeCollocations_Portraits[SpriteID] : SkinId;
 
-            var value = Settings.FreeCollocations_Portraits;
 
-
-            bool boolen = SkinId == DEFAULT || SkinId == LockedToPlayer
-                          || !value.ContainsKey(SpriteID) || value[SpriteID] == DEFAULT || value[SpriteID] == LockedToPlayer;
-            if (!Settings.FreeCollocations_OffOn || boolen) {
+            if (!Settings.FreeCollocations_OffOn || value == DEFAULT || value == LockedToPlayer) {
                 PortraitsSkin_record[SpriteID] = getSkinDefaultValues(GFX.PortraitsSpriteBank, SpriteID);
             } else {
-                PortraitsSkin_record[SpriteID] = value[SpriteID];
+                PortraitsSkin_record[SpriteID] = value;
             }
             return PortraitsSkin_record[SpriteID];
         }
         public static string RefreshSkinValues_OtherExtra(string SpriteID, string SkinId, bool inGame, bool Setting = true) {
             if (Setting) {
                 Settings.FreeCollocations_OtherExtra[SpriteID] = SkinId;
+            } else if (!Settings.FreeCollocations_OtherExtra.ContainsKey(SpriteID)) {
+                Settings.FreeCollocations_OtherExtra[SpriteID] = DEFAULT;
             }
-            var value = Settings.FreeCollocations_OtherExtra;
+            var value = Setting || SkinId == null ? Settings.FreeCollocations_OtherExtra[SpriteID] : SkinId;
 
 
-            bool boolen = SkinId == DEFAULT || !value.ContainsKey(SpriteID) || value[SpriteID] == DEFAULT;
-            if (!Settings.FreeCollocations_OffOn || boolen) {
+            if (!Settings.FreeCollocations_OffOn) {
                 OtherSkin_record[SpriteID] = DEFAULT;
             } else {
-                OtherSkin_record[SpriteID] = value[SpriteID];
+                OtherSkin_record[SpriteID] = value;
             }
             return OtherSkin_record[SpriteID];
         }

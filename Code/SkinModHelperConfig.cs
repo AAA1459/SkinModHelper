@@ -16,7 +16,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         public SkinModHelperConfig(SkinModHelperOldConfig old_config) {
             SkinName = old_config.SkinId;
-            SkinDialogKey = old_config.SkinDialogKey;
+            SkinDialogKey = old_config.SkinDialogKey ?? SkinName;
             OtherSprite_ExPath = old_config.SkinId.Replace('_', '/');
         }
 
