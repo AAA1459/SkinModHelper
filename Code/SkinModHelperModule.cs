@@ -23,7 +23,7 @@ namespace Celeste.Mod.SkinModHelper {
 
         public override Type SettingsType => typeof(SkinModHelperSettings);
         public override Type SessionType => typeof(SkinModHelperSession);
-        
+
 
         public static SkinModHelperSettings Settings => (SkinModHelperSettings)Instance._Settings;
         public static SkinModHelperSession Session => (SkinModHelperSession)Instance._Session;
@@ -172,7 +172,7 @@ namespace Celeste.Mod.SkinModHelper {
             var value = Settings.FreeCollocations_Portraits;
 
 
-            bool boolen = SkinId == DEFAULT || SkinId == LockedToPlayer 
+            bool boolen = SkinId == DEFAULT || SkinId == LockedToPlayer
                           || !value.ContainsKey(SpriteID) || value[SpriteID] == DEFAULT || value[SpriteID] == LockedToPlayer;
             if (!Settings.FreeCollocations_OffOn || boolen) {
                 PortraitsSkin_record[SpriteID] = getSkinDefaultValues(GFX.PortraitsSpriteBank, SpriteID);
@@ -230,6 +230,9 @@ namespace Celeste.Mod.SkinModHelper {
             } catch {
                 return null;
             }
+        }
+        public static string GetPlayerSkinName(out string returnValue, int hashValues = -1) {
+            return returnValue = GetPlayerSkinName(hashValues);
         }
     }
 }

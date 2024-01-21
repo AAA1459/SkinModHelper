@@ -87,9 +87,6 @@ namespace Celeste.Mod.SkinModHelper {
             IL.Celeste.Player.GetTrailColor -= patch_SpriteMode_Badeline;
         }
         #endregion
-        #region
-        public static bool actualBackpack;
-        #endregion
 
         //-----------------------------PlayerSprite-----------------------------
         #region
@@ -631,9 +628,9 @@ namespace Celeste.Mod.SkinModHelper {
         }
         private static void patch_SpriteMode_BackPack(ILContext il) {
             ILCursor cursor = new ILCursor(il);
-            if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchCallvirt<PlayerSprite>("get_Mode"))) {
+            while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchCallvirt<PlayerSprite>("get_Mode"))) {
                 cursor.EmitDelegate<Func<PlayerSpriteMode, PlayerSpriteMode>>((orig) => {
-                    if (backpackOn) {
+                    if (actualBackpack ?? backpackOn) {
                         return 0;
                     } else {
                         return (PlayerSpriteMode)1;

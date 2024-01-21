@@ -74,6 +74,8 @@ namespace Celeste.Mod.SkinModHelper {
         public static readonly string LockedToPlayer = "LockedToPlayer";
 
         public static int Player_Skinid_verify;
+
+        public static bool? actualBackpack;
         public static bool backpackOn = true;
 
         /// <summary> 0-Default, 1-Invert, 2-Off, 3-On </summary>
@@ -546,13 +548,15 @@ namespace Celeste.Mod.SkinModHelper {
         private static void PlayerUpdateHook(On.Celeste.Player.orig_Update orig, Player self) {
             orig(self);
 
+            actualBackpack = null;
             int player_skinid_verify = 0;
-            foreach (SkinModHelperConfig config in skinConfigs.Values) {
-                if ((int)self.Sprite.Mode == config.hashValues) {
-                    player_skinid_verify = config.hashValues;
-                    break;
-                }
+            string SkinName = GetPlayerSkinName((int)self.Sprite.Mode);
+
+            if (SkinName != null) {
+                player_skinid_verify = (int)self.Sprite.Mode;
+                actualBackpack = !SkinName.EndsWith("_NB");
             }
+
             if (Player_Skinid_verify != player_skinid_verify) {
                 Player_Skinid_verify = player_skinid_verify;
                 RefreshSkins(false);

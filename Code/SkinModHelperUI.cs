@@ -423,9 +423,9 @@ namespace Celeste.Mod.SkinModHelper
             }
             return false;
         }
-        /// <summary> 0 - White(default) / 1 - Gray(false setting) / 2 - Goldenrod(special settings)</summary>
+        /// <summary> 0 - White(default) / 1 - DimGray(false setting) / 2 - Goldenrod(special settings)</summary>
         public static void ChangeUnselectedColor<T>(TextMenu.Option<T> options, int index) {
-            options.UnselectedColor = index == 1 ? Color.Gray : index == 2 ? Color.Goldenrod : Color.White;
+            options.UnselectedColor = index == 1 ? Color.DimGray : index == 2 ? Color.Goldenrod : Color.White;
         }
     }
     #region

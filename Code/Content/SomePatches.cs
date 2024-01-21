@@ -210,6 +210,8 @@ namespace Celeste.Mod.SkinModHelper {
                         return;
                     } else if (self.LastAnimationID.Contains("jumpCrazy") && (id == "jumpFast" || id == "runFast")) {
                         return;
+                    } else if (origID == "runStumble") {
+                        return;
                     }
                 }
                 #endregion
