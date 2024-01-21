@@ -462,7 +462,6 @@ namespace Celeste.Mod.SkinModHelper {
             if (SpriteID != null && OtherSkins_records.ContainsKey(SpriteID)) {
                 RefreshSkinValues_OtherExtra(SpriteID, null, true, false);
                 path = getOtherSkin_ReskinPath(self, path, SpriteID, number_search);
-                Logger.Log(LogLevel.Error, "SkinModHelper", $"{SpriteID}: {path}");
             }
             return orig(self, path);
         }

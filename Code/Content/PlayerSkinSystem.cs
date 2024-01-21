@@ -630,7 +630,7 @@ namespace Celeste.Mod.SkinModHelper {
             ILCursor cursor = new ILCursor(il);
             while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchCallvirt<PlayerSprite>("get_Mode"))) {
                 cursor.EmitDelegate<Func<PlayerSpriteMode, PlayerSpriteMode>>((orig) => {
-                    if (actualBackpack ?? backpackOn) {
+                    if ((int)orig != 4 && (actualBackpack ?? backpackOn)) {
                         return 0;
                     } else {
                         return (PlayerSpriteMode)1;
