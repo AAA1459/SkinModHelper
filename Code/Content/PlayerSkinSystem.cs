@@ -327,9 +327,6 @@ namespace Celeste.Mod.SkinModHelper {
             } else if (get_dashCount != null) {
                 colorGrade_Path = getAnimationRootPath(colorGrade_Path) + "dash";
 
-                while (char.IsDigit(colorGrade_Path, colorGrade_Path.Length - 1)) {
-                    colorGrade_Path = colorGrade_Path.Remove(colorGrade_Path.Length - 1);
-                }
                 int dashCount = Math.Max(Math.Min((int)get_dashCount, MAX_DASHES), 0);
                 while (dashCount > 2 && !GFX.Game.Has($"{colorGrade_Path}{dashCount}")) {
                     dashCount--;
