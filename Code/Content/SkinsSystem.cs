@@ -399,21 +399,6 @@ namespace Celeste.Mod.SkinModHelper {
                 return null;
             }
         }
-
-        // Add any missing vanilla animations to an overridden sprite
-        private static void PatchSprite(Sprite origSprite, Sprite newSprite) {
-            Dictionary<string, Sprite.Animation> newAnims = newSprite.GetAnimations();
-
-            // Shallow copy... sometimes new animations get added mid-update?
-            Dictionary<string, Sprite.Animation> oldAnims = new(origSprite.GetAnimations());
-            foreach (KeyValuePair<string, Sprite.Animation> animEntry in oldAnims) {
-                string origAnimId = animEntry.Key;
-                Sprite.Animation origAnim = animEntry.Value;
-                if (!newAnims.ContainsKey(origAnimId)) {
-                    newAnims[origAnimId] = origAnim;
-                }
-            }
-        }
         #endregion
 
         //-----------------------------Other Sprite-----------------------------
@@ -567,6 +552,21 @@ namespace Celeste.Mod.SkinModHelper {
 
         //-----------------------------Method-----------------------------
         #region
+        // Add any missing animations to an overridden sprite.
+        public static void PatchSprite(Sprite origSprite, Sprite newSprite) {
+            Dictionary<string, Sprite.Animation> newAnims = newSprite.GetAnimations();
+
+            // Shallow copy... sometimes new animations get added mid-update?
+            Dictionary<string, Sprite.Animation> oldAnims = new(origSprite.GetAnimations());
+            foreach (KeyValuePair<string, Sprite.Animation> animEntry in oldAnims) {
+                string origAnimId = animEntry.Key;
+                Sprite.Animation origAnim = animEntry.Value;
+                if (!newAnims.ContainsKey(origAnimId)) {
+                    newAnims[origAnimId] = origAnim;
+                }
+            }
+        }
+
         public static T LoadConfigFile<T>(ModAsset skinConfigYaml) {
             return skinConfigYaml.Deserialize<T>();
         }

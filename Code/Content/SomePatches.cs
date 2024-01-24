@@ -60,6 +60,7 @@ namespace Celeste.Mod.SkinModHelper {
                     Logger.Log(LogLevel.Warn, "SkinModHelper", $"SkinModHelperPlus trying interruption the code of orig SkinModHelper, but it failed in the hook No.{tracking_numbers}.\n {e}\n");
                 }
             }
+            IL.Celeste.TrailManager.BeforeRender += TrailManagerBeforeRenderHook;
         }
 
         public static void Unload() {
@@ -284,6 +285,7 @@ namespace Celeste.Mod.SkinModHelper {
                     return orig;
                 });
             }
+            Logger.Log(LogLevel.Warn, "SkinModHelper", $"{cursor.Context}");
         }
         #endregion
 
@@ -302,27 +304,34 @@ namespace Celeste.Mod.SkinModHelper {
         #region
         private static void DeathEffectRenderHook(On.Celeste.DeathEffect.orig_Render orig, DeathEffect self) {
 
-            string spritePath = (string)new DynData<DeathEffect>(self)["spritePath"];
+            var spritePath = new DynData<DeathEffect>(self).Get<string>("spritePath");
+            bool? deathAnimating = new DynData<DeathEffect>(self).Get<bool?>("deathAnimating");
 
             if (self.Entity != null && spritePath == null) {
+                spritePath = "";
 
-                var sprite = GetFieldPlus<Sprite>(self.Entity, "sprite");
+                var sprite = new DynData<DeathEffect>(self).Get<Sprite>("sprite") ?? GetFieldPlus<Sprite>(self.Entity, "sprite");
                 if (sprite != null) {
+                    if (sprite.Has("deathExAnim")) {
+                        InsertDeathAnimation(self, sprite, "deathExAnim");
+                    }
                     spritePath = getAnimationRootPath(sprite) + "death_particle";
                 }
-
                 if (self.Entity is PlayerDeadBody) {
                     string SpriteID = "death_particle";
-                        if (OtherSkins_records.ContainsKey(SpriteID)) {
-                            RefreshSkinValues_OtherExtra(SpriteID, null, true, false);
-                            string overridePath = getOtherSkin_ReskinPath(GFX.Game, "death_particle", SpriteID);
+                    if (OtherSkins_records.ContainsKey(SpriteID)) {
+                        RefreshSkinValues_OtherExtra(SpriteID, null, true, false);
+                        string overridePath = getOtherSkin_ReskinPath(GFX.Game, "death_particle", SpriteID);
 
-                            spritePath = overridePath == "death_particle" ? spritePath : overridePath;
-                        }
+                        spritePath = overridePath == "death_particle" ? spritePath : overridePath;
+                    }
                 }
                 new DynData<DeathEffect>(self)["spritePath"] = spritePath;
             }
-            if (self.Entity != null) {
+
+            if (deathAnimating == true) {
+                self.Percent = 0.0f;
+            } else if (self.Entity != null) {
                 DeathEffectNewDraw(self.Entity.Position + self.Position, self.Color, self.Percent, spritePath);
             }
         }
@@ -345,10 +354,43 @@ namespace Celeste.Mod.SkinModHelper {
                 mTexture.DrawCentered(position + value2, color2, new Vector2(num, num));
             }
         }
+        public static void InsertDeathAnimation(DeathEffect self, Sprite sprite, string id = "deathExAnim") {
+            Entity entity = new(self.Entity.Position);
+
+            // Clone the animation, At least make sure it's playing speed doesn't different in some case.
+            Sprite deathAnim = new Sprite(null, null);
+            PatchSprite(sprite, deathAnim);
+
+            deathAnim.Scale = new(1f, 1f);
+            deathAnim.Justify = new(0.5f, 0.5f); // Center the texture.
+            deathAnim.Visible = true;
+            deathAnim.Active = true;
+
+            entity.Add(deathAnim);
+            Scene scene = self.Entity.Scene;
+            scene.Add(entity);
+            entity.Depth = -1000000;
+
+            // Make sure animation playing for player pause retry.
+            if (self.Entity is PlayerDeadBody || scene[Tags.PauseUpdate].Contains(self.Entity)) {
+                scene[Tags.PauseUpdate].Add(entity);
+            }
+
+            deathAnim.Play(id);
+            new DynData<DeathEffect>(self)["deathAnimating"] = true;
+
+            deathAnim.OnFinish = anim => {
+                deathAnim.Visible = false;
+                entity.RemoveSelf();
+                new DynData<DeathEffect>(self)["deathAnimating"] = false;
+            };
+        }
+
 
         // Although in "DeathEffectRenderHook", we blocked the original method. but only Player will still run this Hook
         private static void DeathEffectDrawHook(ILContext il) {
             ILCursor cursor = new(il);
+
             while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdstr("characters/player/hair00"))) {
                 cursor.EmitDelegate<Func<string, string>>((orig) => {
 
@@ -405,6 +447,14 @@ namespace Celeste.Mod.SkinModHelper {
             }
         }
         #endregion
+        private static void TrailManagerBeforeRenderHook(ILContext il) {
+            ILCursor cursor = new ILCursor(il);
+
+            while (cursor.TryGotoNext(MoveType.Before, instr => instr.MatchLdcR4(64f) && (cursor.Index == 100 || cursor.Index == 108))) {
+                cursor.Remove();
+                cursor.Emit(OpCodes.Ldc_R4, 128f);
+            }
+        }
 
 
         #region

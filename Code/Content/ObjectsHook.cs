@@ -171,7 +171,7 @@ namespace Celeste.Mod.SkinModHelper {
 
                     // 'Celeste.Seeker' Created new 'Monocle.Entity' to made an 'Celeste.DeathEffect'
                     // But that let we cannot get Seeker's data by {orig.Entity} in DeathEffect, so we self to add that data
-                    new DynData<DeathEffect>(orig)["spritePath"] = getAnimationRootPath(new DynData<Seeker>(self)["sprite"] as Sprite) + "death_particle";
+                    new DynData<DeathEffect>(orig)["sprite"] = new DynData<Seeker>(self)["sprite"];
                     return orig;
                 });
             }
