@@ -60,7 +60,6 @@ namespace Celeste.Mod.SkinModHelper {
                     Logger.Log(LogLevel.Warn, "SkinModHelper", $"SkinModHelperPlus trying interruption the code of orig SkinModHelper, but it failed in the hook No.{tracking_numbers}.\n {e}\n");
                 }
             }
-            IL.Celeste.TrailManager.BeforeRender += TrailManagerBeforeRenderHook;
         }
 
         public static void Unload() {
@@ -285,7 +284,6 @@ namespace Celeste.Mod.SkinModHelper {
                     return orig;
                 });
             }
-            Logger.Log(LogLevel.Warn, "SkinModHelper", $"{cursor.Context}");
         }
         #endregion
 
@@ -447,15 +445,6 @@ namespace Celeste.Mod.SkinModHelper {
             }
         }
         #endregion
-        private static void TrailManagerBeforeRenderHook(ILContext il) {
-            ILCursor cursor = new ILCursor(il);
-
-            while (cursor.TryGotoNext(MoveType.Before, instr => instr.MatchLdcR4(64f) && (cursor.Index == 100 || cursor.Index == 108))) {
-                cursor.Remove();
-                cursor.Emit(OpCodes.Ldc_R4, 128f);
-            }
-        }
-
 
         #region
         // Maybe... maybe maybe...
