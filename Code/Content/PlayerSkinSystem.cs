@@ -529,8 +529,8 @@ namespace Celeste.Mod.SkinModHelper {
             string detectPath = getAnimationRootPath(self.Sprite.Texture);
 
             if (detectPath.StartsWith("characters/player_no_backpack/") || detectPath.StartsWith("characters/player/") || detectPath.StartsWith("characters/player_badeline/") || detectPath.StartsWith("characters/player_playback/") || detectPath.StartsWith("characters/badeline/")) {
+                if (new DynData<PlayerHair>(self)["SMH_DisposableLog_aPhggdddd"] == null && new DynData<PlayerSprite>(self.Sprite)["isGhost"] == null && GFX.Game.HasAtlasSubtexturesAt(spritePath + "bangs", 0) && !detectPath.StartsWith(spritePath)) {
 
-                if (new DynData<PlayerHair>(self)["SMH_DisposableLog_aPhggdddd"] == null && new DynData<PlayerSprite>(self.Sprite)["isGhost"] == null && !detectPath.StartsWith(spritePath)) {
                     Logger.Log(LogLevel.Info, "SkinModHelper", $"Avoid the possible invisible hair texture work to vanilla characters...");
                     new DynData<PlayerHair>(self)["SMH_DisposableLog_aPhggdddd"] = "aPhggdddd";
                 }
