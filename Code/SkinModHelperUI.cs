@@ -8,6 +8,8 @@ using Celeste.Mod.UI;
 using System.Collections;
 using System.Reflection;
 using System.Threading;
+using FMOD.Studio;
+using System.Linq;
 
 using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
@@ -41,6 +43,7 @@ namespace Celeste.Mod.SkinModHelper
         }
         #endregion
 
+        //-----------------------------Options-----------------------------
         #region
         private void BuildPlayerSkinSelectMenu(TextMenu menu, bool inGame) {
             TextMenu.Option<string> skinSelectMenu = new(Dialog.Clean("SkinModHelper_Settings_PlayerSkin_Selected"));
@@ -154,7 +157,7 @@ namespace Celeste.Mod.SkinModHelper
             List<TextMenu.Option<string>> allOptions = new();
             TextMenu.OnOff SkinFreeConfig_OnOff = new TextMenu.OnOff(Dialog.Clean("SkinModHelper_SkinFreeConfig_OnOff"), Settings.FreeCollocations_OffOn);
 
-            SkinFreeConfig_OnOff.Change(OnOff => { 
+            SkinFreeConfig_OnOff.Change(OnOff => {
                 RefreshSkinValues(OnOff, inGame);
                 foreach (var options in allOptions) {
                     options.Disabled = !OnOff;
@@ -170,7 +173,7 @@ namespace Celeste.Mod.SkinModHelper
             if (SpriteSkins_records.Count > 0) {
                 menu.Add(buildHeading(menu, "SpritesXml"));
             }
-            foreach (KeyValuePair<string, List<string>> recordID in SpriteSkins_records) {
+            foreach (KeyValuePair<string, List<string>> recordID in DictionarySort(SpriteSkins_records)) {
                 string SpriteID = recordID.Key;
 
                 string SpriteText = SpriteID;
@@ -248,7 +251,7 @@ namespace Celeste.Mod.SkinModHelper
             if (PortraitsSkins_records.Count > 0) {
                 menu.Add(buildHeading(menu, "PortraitsXml"));
             }
-            foreach (KeyValuePair<string, List<string>> recordID in PortraitsSkins_records) {
+            foreach (KeyValuePair<string, List<string>> recordID in DictionarySort(PortraitsSkins_records)) {
                 string SpriteID = recordID.Key;
 
                 string SpriteText = SpriteID;
@@ -326,7 +329,7 @@ namespace Celeste.Mod.SkinModHelper
             if (OtherSkins_records.Count > 0) {
                 menu.Add(buildHeading(menu, "OtherExtra"));
             }
-            foreach (KeyValuePair<string, List<string>> recordID in OtherSkins_records) {
+            foreach (KeyValuePair<string, List<string>> recordID in DictionarySort(OtherSkins_records)) {
                 string SpriteID = recordID.Key;
 
                 string SpriteText = Dialog.Clean($"SkinModHelper_Other__{SpriteID}");
@@ -423,6 +426,8 @@ namespace Celeste.Mod.SkinModHelper
         }
         #endregion
 
+        //-----------------------------Method-----------------------------
+        #region
         public static bool Disabled(bool inGame) {
             if (inGame) {
                 Player player = Engine.Scene?.Tracker.GetEntity<Player>();
@@ -436,7 +441,18 @@ namespace Celeste.Mod.SkinModHelper
         public static void ChangeUnselectedColor<T>(TextMenu.Option<T> options, int index) {
             options.UnselectedColor = index == 1 ? Color.DimGray : index == 2 ? Color.Goldenrod : Color.White;
         }
+        public static Dictionary<string, T> DictionarySort<T>(Dictionary<string, T> dict) {
+            dict = new(dict);
+            var sorts = dict.OrderBy(dict => dict.Key, StringComparer.InvariantCulture).ToList();
+            dict.Clear();
+            foreach (var index in sorts) {
+                dict[index.Key] = index.Value;
+            }
+            return dict;
+        }
+        #endregion
     }
+    //-----------------------------Submenu System (from ExtendedVariant)-----------------------------
     #region
     public class OuiSkinModHelperSubmenu : AbstractSubmenu {
         private int savedMenuIndex = -1;

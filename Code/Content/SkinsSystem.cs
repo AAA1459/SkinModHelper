@@ -258,7 +258,9 @@ namespace Celeste.Mod.SkinModHelper {
             }
             return orig(self, sprite, id);
         }
+        #endregion
 
+        #region
         // Combine skin mod XML with a vanilla sprite bank
         private static void CombineSpriteBanks(SpriteBank origBank, string skinId, string xmlPath, bool Enabled) {
             SpriteBank newBank = BuildBank(origBank, skinId, xmlPath);
