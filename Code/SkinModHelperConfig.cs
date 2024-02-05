@@ -12,9 +12,9 @@ using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 namespace Celeste.Mod.SkinModHelper {
     public class SkinModHelperConfig {
 
-        public SkinModHelperConfig() {
+        public SkinModHelperConfig() : base() {
         }
-        public SkinModHelperConfig(SkinModHelperOldConfig old_config) {
+        public SkinModHelperConfig(SkinModHelperOldConfig old_config) : this() {
             SkinName = old_config.SkinId;
             SkinDialogKey = old_config.SkinDialogKey ?? SkinName;
             OtherSprite_ExPath = old_config.SkinId.Replace('_', '/');
@@ -45,14 +45,14 @@ namespace Celeste.Mod.SkinModHelper {
 
 
     public class CharacterConfig {
-        public CharacterConfig() {
+        public CharacterConfig() : base() {
         }
-        public CharacterConfig(CharacterConfig config, PlayerSpriteMode mode) {
-            if (config.BadelineMode == null) {
-                config.BadelineMode = mode == (PlayerSpriteMode)2 || mode == (PlayerSpriteMode)3;
-            } 
-            if (config.SilhouetteMode == null) {
-                config.SilhouetteMode = mode == (PlayerSpriteMode)4;
+        public void ModeInitialize(PlayerSpriteMode mode) {
+            if (BadelineMode == null) {
+                BadelineMode = mode == (PlayerSpriteMode)2 || mode == (PlayerSpriteMode)3;
+            }
+            if (SilhouetteMode == null) {
+                SilhouetteMode = mode == (PlayerSpriteMode)4;
             }
         }
         public bool? BadelineMode { get; set; }
@@ -62,8 +62,9 @@ namespace Celeste.Mod.SkinModHelper {
     }
 
 
-
     public class HairConfig {
+        public HairConfig() : base() {
+        }
         public string OutlineColor { get; set; }
         public bool? HairFlash { get; set; }
 

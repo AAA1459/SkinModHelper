@@ -31,7 +31,7 @@ namespace Celeste.Mod.SkinModHelper {
             On.Celeste.Player.GetTrailColor += PlayerGetTrailColorHook;
             On.Celeste.Player.StartDash += PlayerStartDashHook;
             IL.Celeste.Player.DashUpdate += PlayerDashUpdateIlHook;
-            
+
             IL.Celeste.Player.Render += PlayerRenderIlHook_Color;
 
             On.Celeste.PlayerHair.Render += PlayerHairRenderHook;
@@ -47,7 +47,7 @@ namespace Celeste.Mod.SkinModHelper {
             IL.Celeste.Player.UpdateHair += patch_SpriteMode_Badeline;
             IL.Celeste.Player.DashUpdate += patch_SpriteMode_Badeline;
             IL.Celeste.Player.GetTrailColor += patch_SpriteMode_Badeline;
-;
+
             doneILHooks.Add(new ILHook(typeof(Player).GetMethod("<.ctor>b__280_2", BindingFlags.NonPublic | BindingFlags.Instance), patch_SpriteMode_BackPack));
             doneILHooks.Add(new ILHook(typeof(Player).GetMethod("<.ctor>b__280_1", BindingFlags.NonPublic | BindingFlags.Instance), patch_SpriteMode_BackPack));
 
@@ -121,7 +121,7 @@ namespace Celeste.Mod.SkinModHelper {
                 if (hash_object == GetPlayerSkin()) { hash_object = null; }
             }
 
-            
+
             if (hash_object != null) {
                 mode = (PlayerSpriteMode)skinConfigs[!backpackOn ? GetPlayerSkin("_NB", hash_object) : hash_object].hashValues;
             } else if (!backpackOn && mode == PlayerSpriteMode.Madeline) {
@@ -240,8 +240,8 @@ namespace Celeste.Mod.SkinModHelper {
                     string ConfigPath = $"Graphics/Atlases/Gameplay/{getAnimationRootPath(player.Sprite)}skinConfig/" + "CharacterConfig";
 
                     DynData<PlayerHair> selfData = new DynData<PlayerHair>(player.Hair);
-                    CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>(ConfigPath) ?? new();
-                    new CharacterConfig(ModeConfig, player.Sprite.Mode);
+                    CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>(ConfigPath);
+                    ModeConfig.ModeInitialize(player.Sprite.Mode);
 
                     object backup = null;
                     if (ModeConfig.LowStaminaFlashColor != null && new Regex(@"^[a-fA-F0-9]{6}$").IsMatch(ModeConfig.LowStaminaFlashColor)) {
@@ -269,8 +269,8 @@ namespace Celeste.Mod.SkinModHelper {
                 cursor.EmitDelegate<Func<Color, Player, Color>>((orig, self) => {
                     string ConfigPath = $"Graphics/Atlases/Gameplay/{getAnimationRootPath(self.Sprite)}skinConfig/" + "CharacterConfig";
 
-                    CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>(ConfigPath) ?? new();
-                    new CharacterConfig(ModeConfig, self.Sprite.Mode);
+                    CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>(ConfigPath);
+                    ModeConfig.ModeInitialize(self.Sprite.Mode);
 
                     if (ModeConfig.SilhouetteMode == true) {
                         return self.Hair.Color;
@@ -386,8 +386,8 @@ namespace Celeste.Mod.SkinModHelper {
             if (selfData["SMH_OncePerFrame"] == null) {
                 if (self.Entity is not Player && selfData["isGhost"] == null) {
                     string rootPath = getAnimationRootPath(self);
-                    CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "CharacterConfig") ?? new();
-                    new CharacterConfig(ModeConfig, self.Mode);
+                    CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "CharacterConfig");
+                    ModeConfig.ModeInitialize(self.Mode);
 
                     if (ModeConfig.SilhouetteMode == true) {
                         self.Color = (Color?)selfData["CurrentHairColor"] ?? self.Color;
@@ -424,10 +424,9 @@ namespace Celeste.Mod.SkinModHelper {
                 //---
 
                 string rootPath = getAnimationRootPath(self.Sprite);
-                HairConfig hairConfig = searchSkinConfig<HairConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "HairConfig") ?? new();
-                CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "CharacterConfig") ?? new();
-
-                new CharacterConfig(ModeConfig, self.Sprite.Mode);
+                HairConfig hairConfig = searchSkinConfig<HairConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "HairConfig");
+                CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "CharacterConfig");
+                ModeConfig.ModeInitialize(self.Sprite.Mode);
 
                 bool Build_switch = hairConfig.HairColors != null;
                 if (hairConfig.HairFlash == false) {
@@ -439,6 +438,7 @@ namespace Celeste.Mod.SkinModHelper {
                 } else {
                     selfData["HairColors"] = null;
                 }
+
                 #endregion
             }
             orig(self);
@@ -463,10 +463,10 @@ namespace Celeste.Mod.SkinModHelper {
                 //---
 
                 string rootPath = getAnimationRootPath(self.Sprite);
-                HairConfig hairConfig = searchSkinConfig<HairConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "HairConfig") ?? new();
-                CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "CharacterConfig") ?? new();
+                HairConfig hairConfig = searchSkinConfig<HairConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "HairConfig");
+                CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "CharacterConfig");
 
-                new CharacterConfig(ModeConfig, self.Sprite.Mode);
+                ModeConfig.ModeInitialize(self.Sprite.Mode);
 
                 if (hairConfig.OutlineColor != null && new Regex(@"^[a-fA-F0-9]{6}$").IsMatch(hairConfig.OutlineColor)) {
                     self.Border = Calc.HexToColor(hairConfig.OutlineColor);
@@ -627,11 +627,7 @@ namespace Celeste.Mod.SkinModHelper {
             ILCursor cursor = new ILCursor(il);
             while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchCallvirt<PlayerSprite>("get_Mode"))) {
                 cursor.EmitDelegate<Func<PlayerSpriteMode, PlayerSpriteMode>>((orig) => {
-                    if ((int)orig != 4 && (actualBackpack ?? backpackOn)) {
-                        return 0;
-                    } else {
-                        return (PlayerSpriteMode)1;
-                    }
+                    return orig = (PlayerSpriteMode)(actualBackpack((int)orig) ? 0 : 1);
                 });
             }
         }
@@ -708,6 +704,10 @@ namespace Celeste.Mod.SkinModHelper {
                 }
             }
             return null;
+        }
+        public static bool actualBackpack(int mode) {
+            string skinName = GetPlayerSkinName(mode);
+            return !(skinName?.EndsWith("_NB") ?? mode == 4);
         }
         #endregion
 

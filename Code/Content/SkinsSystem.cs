@@ -535,13 +535,16 @@ namespace Celeste.Mod.SkinModHelper {
         private static void PlayerUpdateHook(On.Celeste.Player.orig_Update orig, Player self) {
             orig(self);
 
-            actualBackpack = null;
+            // PandorasBox have an function that can generate the second player entity, we don't want to detect it.
+            if (Engine.Scene?.Tracker.GetEntity<Player>() != self) {
+                return;
+            }
+
             int player_skinid_verify = 0;
             string SkinName = GetPlayerSkinName((int)self.Sprite.Mode);
 
             if (SkinName != null) {
                 player_skinid_verify = (int)self.Sprite.Mode;
-                actualBackpack = !SkinName.EndsWith("_NB");
             }
 
             if (Player_Skinid_verify != player_skinid_verify) {
