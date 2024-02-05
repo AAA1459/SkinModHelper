@@ -52,7 +52,10 @@ Credits
 * Maddie
 * Viv
 
+
+
 **Special Thanks**:
 * crowberry
 * Nikko
-* Zaro
+* Zaro  ———— Initial to now, gave me lots of moral support and help 
+* kuksa  ———— Many ideas and tests, and helps people for this
