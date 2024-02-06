@@ -156,13 +156,13 @@ namespace Celeste.Mod.SkinModHelper {
         #region
         private static void PlayerSuperWallJumpHook(On.Celeste.Player.orig_SuperWallJump orig, Player self, int dir) {
             orig(self, dir);
-            if (!self.Sprite.CurrentAnimationID.Contains("dreamDashOut")
-                && self.Sprite.Has("jumpCrazy")) { self.Sprite.Play("jumpCrazy"); }
+            if (!self.Sprite.CurrentAnimationID.Contains("dreamDashOut") && SpriteExt_TryPlay(self.Sprite, "jumpCrazy")) {
+            }
         }
         private static void PlayerSuperJumpHook(On.Celeste.Player.orig_SuperJump orig, Player self) {
             orig(self);
-            if (!self.Sprite.CurrentAnimationID.Contains("dreamDashOut")
-                && self.Sprite.Has("jumpCrazy")) { self.Sprite.Play("jumpCrazy"); }
+            if (!self.Sprite.CurrentAnimationID.Contains("dreamDashOut") && SpriteExt_TryPlay(self.Sprite, "jumpCrazy")) {
+            }
         }
 
         private static void PlayerSpritePlayHook(On.Monocle.Sprite.orig_Play orig, Sprite self, string id, bool restart = false, bool randomizeFrame = false) {
