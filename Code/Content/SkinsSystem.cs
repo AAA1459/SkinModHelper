@@ -708,6 +708,13 @@ namespace Celeste.Mod.SkinModHelper {
             }
             return Everest.Content.TryGet<T>(path, out ModAsset asset);
         }
+        public static bool SpriteExt_TryPlay(Sprite sprite, string id, bool restart = false) {
+            if (sprite.Has(id)) {
+                sprite.Play(id, restart);
+                return true;
+            }
+            return false;
+        }
         #endregion
     }
 }

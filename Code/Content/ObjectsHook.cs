@@ -146,6 +146,7 @@ namespace Celeste.Mod.SkinModHelper {
             string SpriteID = null;
 
             Sprite sprite = selfData.Get<Sprite>("sprite");
+            Sprite flash = selfData.Get<Sprite>("flash");
             string SpritePath = getAnimationRootPath(sprite);
             
             // Filter the refills that using texture different than vanilla.
@@ -153,9 +154,26 @@ namespace Celeste.Mod.SkinModHelper {
                 if (SpritePath == "objects/refillTwo/") { SpriteID = "refillTwo"; }
 
             if (SpriteID != null) {
+                Sprite backup = new Sprite(null, null);
+                PatchSprite(sprite, backup);
+
                 GFX.SpriteBank.CreateOn(sprite, SpriteID);
-                GFX.SpriteBank.CreateOn(selfData.Get<Sprite>("flash"), SpriteID);
+                GFX.SpriteBank.CreateOn(flash, SpriteID);
+                flash.Visible = false; // we need reset it's visible after CreateOn...
+
+                PatchSprite(backup, sprite);
+
+                if (selfData.Get<bool>("oneUse")) {
+                    if (SpritePath == getAnimationRootPath(sprite) && SpriteExt_TryPlay(sprite, "idlenr", true)) {
+                        // I guess we don't want to make the BetterRefillGems cannot work, but only for vanilla.
+                    } else {
+                        sprite.Play("oneuse_idle", true);
+                    }
+                } else {
+                    sprite.Play("idle", true);
+                }
             }
+
             SpritePath = getAnimationRootPath(sprite) + "outline";
             if (GFX.Game.Has(SpritePath)) {
                 Image outline = selfData["outline"] as Image;

@@ -240,7 +240,7 @@ namespace Celeste.Mod.SkinModHelper {
                     string ConfigPath = $"Graphics/Atlases/Gameplay/{getAnimationRootPath(player.Sprite)}skinConfig/" + "CharacterConfig";
 
                     DynData<PlayerHair> selfData = new DynData<PlayerHair>(player.Hair);
-                    CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>(ConfigPath);
+                    CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>(ConfigPath) ?? new();
                     ModeConfig.ModeInitialize(player.Sprite.Mode);
 
                     object backup = null;
@@ -269,7 +269,7 @@ namespace Celeste.Mod.SkinModHelper {
                 cursor.EmitDelegate<Func<Color, Player, Color>>((orig, self) => {
                     string ConfigPath = $"Graphics/Atlases/Gameplay/{getAnimationRootPath(self.Sprite)}skinConfig/" + "CharacterConfig";
 
-                    CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>(ConfigPath);
+                    CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>(ConfigPath) ?? new();
                     ModeConfig.ModeInitialize(self.Sprite.Mode);
 
                     if (ModeConfig.SilhouetteMode == true) {
@@ -386,7 +386,7 @@ namespace Celeste.Mod.SkinModHelper {
             if (selfData["SMH_OncePerFrame"] == null) {
                 if (self.Entity is not Player && selfData["isGhost"] == null) {
                     string rootPath = getAnimationRootPath(self);
-                    CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "CharacterConfig");
+                    CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "CharacterConfig") ?? new();
                     ModeConfig.ModeInitialize(self.Mode);
 
                     if (ModeConfig.SilhouetteMode == true) {
@@ -424,8 +424,8 @@ namespace Celeste.Mod.SkinModHelper {
                 //---
 
                 string rootPath = getAnimationRootPath(self.Sprite);
-                HairConfig hairConfig = searchSkinConfig<HairConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "HairConfig");
-                CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "CharacterConfig");
+                HairConfig hairConfig = searchSkinConfig<HairConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "HairConfig") ?? new();
+                CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "CharacterConfig") ?? new();
                 ModeConfig.ModeInitialize(self.Sprite.Mode);
 
                 bool Build_switch = hairConfig.HairColors != null;
@@ -463,8 +463,8 @@ namespace Celeste.Mod.SkinModHelper {
                 //---
 
                 string rootPath = getAnimationRootPath(self.Sprite);
-                HairConfig hairConfig = searchSkinConfig<HairConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "HairConfig");
-                CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "CharacterConfig");
+                HairConfig hairConfig = searchSkinConfig<HairConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "HairConfig") ?? new();
+                CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "CharacterConfig") ?? new();
 
                 ModeConfig.ModeInitialize(self.Sprite.Mode);
 
