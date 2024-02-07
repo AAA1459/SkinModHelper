@@ -54,7 +54,7 @@ namespace Celeste.Mod.SkinModHelper {
                                          typeof(SomePatches).GetMethod("EmptyBlocks_0_boolen", BindingFlags.NonPublic | BindingFlags.Static)));
                     tracking_numbers++;
                     doneHooks.Add(new Hook(OldModule.GetMethod("CreateModMenuSection", BindingFlags.Public | BindingFlags.Instance),
-                                         typeof(SomePatches).GetMethod("OrigSMH_optionsBlocks", BindingFlags.NonPublic | BindingFlags.Static)));
+                                         typeof(SomePatches).GetMethod("modOptions_EmptyBlocks", BindingFlags.NonPublic | BindingFlags.Static)));
                 } catch (Exception e) {
                     Logger.Log(LogLevel.Warn, "SkinModHelper", $"SkinModHelperPlus trying interruption the code of orig SkinModHelper, but it failed in the hook No.{tracking_numbers}.\n {e}\n");
                 }
@@ -449,7 +449,7 @@ namespace Celeste.Mod.SkinModHelper {
         // Maybe... maybe maybe...
         private static void EmptyBlocks_1(object obj) { }
         private static bool EmptyBlocks_0_boolen() { return false; }
-        private static void OrigSMH_optionsBlocks(Action<EverestModule, TextMenu, bool, EventInstance> orig, EverestModule self, TextMenu menu, bool inGame, EventInstance snapshot) {
+        private static void modOptions_EmptyBlocks(Action<EverestModule, TextMenu, bool, EventInstance> orig, EverestModule self, TextMenu menu, bool inGame, EventInstance snapshot) {
         }
         #endregion
     }

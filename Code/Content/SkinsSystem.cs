@@ -144,7 +144,7 @@ namespace Celeste.Mod.SkinModHelper {
                         if (!string.IsNullOrEmpty(config.OtherSprite_ExPath)) {
                             if (config.OtherSprite_ExPath.EndsWith("/")) { config.OtherSprite_ExPath = config.OtherSprite_ExPath.Remove(config.OtherSprite_ExPath.LastIndexOf("/")); }
 
-                            Logger.Log(LogLevel.Info, "SkinModHelper", $"Registered new General skin: {config.SkinName}");
+                            Logger.Log(config.General_List == false ? LogLevel.Debug : LogLevel.Info, "SkinModHelper", $"Registered new General skin: {config.SkinName}");
                             OtherskinConfigs.Add(config.SkinName, config);
                         }
                         //--------------------------------------------------------#

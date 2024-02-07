@@ -707,7 +707,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         public static bool actualBackpack(int mode) {
             string skinName = GetPlayerSkinName(mode);
-            return !(skinName?.EndsWith("_NB") ?? mode == 4);
+            return !(skinName?.EndsWith("_NB") ?? mode == 1 || mode == 4);
         }
         #endregion
 

@@ -59,6 +59,7 @@ namespace Celeste.Mod.SkinModHelper {
         public bool? SilhouetteMode { get; set; }
         public string LowStaminaFlashColor { get; set; }
         public bool? LowStaminaFlashHair { get; set; }
+        public string TrailsColor { get; set; }
     }
 
 

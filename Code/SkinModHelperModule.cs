@@ -59,6 +59,7 @@ namespace Celeste.Mod.SkinModHelper {
             PlayerSkinSystem.Load();
             ObjectsHook.Load();
             SomePatches.Load();
+            TrailRecolor.Load();
         }
         public override void Initialize() {
             base.Initialize();
@@ -73,6 +74,7 @@ namespace Celeste.Mod.SkinModHelper {
             PlayerSkinSystem.Unload();
             ObjectsHook.Unload();
             SomePatches.Unload();
+            TrailRecolor.Unload();
 
             foreach (ILHook h in doneILHooks) {
                 h.Dispose();

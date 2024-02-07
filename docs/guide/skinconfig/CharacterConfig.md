@@ -13,6 +13,8 @@ SilhouetteMode: [true/false]
 
 LowStaminaFlashHair: [true/false]
 LowStaminaFlashColor: [use six digit RGB hex code]
+
+TrailsColor: [use six digit RGB hex code]
 ```
 
 
@@ -35,5 +37,17 @@ and if you want that flash to work on skin's hair, then use this:
 ```
 LowStaminaFlashHair: true
 ```
+
+TrailsColor
+-----------------------------------
+Some entities will generate their trails at sometimes... be like bird, oshiro_boss, seeker...
+if you want to recolor those trails, so you can use this:
+```
+TrailsColor: [use six digit RGB hex code]
+  # if object is badeline, so you can setting this to special "HairColor"
+```
+Note: This can't works on player or silhouette.
+
+
 
 [previous page](/docs/guide/README.md#more-miscellaneous)
