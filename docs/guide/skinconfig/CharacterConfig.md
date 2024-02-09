@@ -15,16 +15,18 @@ LowStaminaFlashHair: [true/false]
 LowStaminaFlashColor: [use six digit RGB hex code]
 
 TrailsColor: [use six digit RGB hex code]
+DeathParticleColor: [use six digit RGB hex code]
 ```
 
 
-Character's effect setting
+SilhouetteMode
 -----------------------------------
-If you want to set it's character-effect for object-ID, 
-Then you can choose to add the effect you want:
+If you want to Color the entire object-ID with its hair color, be like as silhouette.
+Then you can use this:
 ```
-SilhouetteMode: true     # Color the entire object-ID with its hair color, like a silhouette
+SilhouetteMode: true
 ```
+
 
 LowStaminaFlash
 -----------------------------------
@@ -46,8 +48,15 @@ if you want to recolor those trails, so you can use this:
 TrailsColor: [use six digit RGB hex code]
   # if object is badeline, so you can setting this to special "HairColor"
 ```
-Note: This can't works on player or silhouette.
+NOTE: this is unusable for player or silhouette.
 
+
+DeathParticleColor
+-----------------------------------
+Some entities will generate their own particle with it's color, you can use this to recolor that particle.
+```
+DeathParticleColor: [use six digit RGB hex code]
+```
 
 
 [previous page](/docs/guide/README.md#more-miscellaneous)
