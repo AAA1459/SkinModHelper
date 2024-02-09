@@ -11,6 +11,7 @@ using System.Reflection;
 using Mono.Cecil.Cil;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
@@ -23,7 +24,7 @@ namespace Celeste.Mod.SkinModHelper {
 
         public static void Load() {
             On.Celeste.DeathEffect.Render += DeathEffectRenderHook;
-            IL.Celeste.DeathEffect.Draw += DeathEffectDrawHook;
+            On.Celeste.DeathEffect.Draw += DeathEffectDrawHook;
 
             On.Monocle.Sprite.Play += PlayerSpritePlayHook;
             On.Celeste.Player.SuperJump += PlayerSuperJumpHook;
@@ -63,7 +64,7 @@ namespace Celeste.Mod.SkinModHelper {
 
         public static void Unload() {
             On.Celeste.DeathEffect.Render -= DeathEffectRenderHook;
-            IL.Celeste.DeathEffect.Draw -= DeathEffectDrawHook;
+            On.Celeste.DeathEffect.Draw -= DeathEffectDrawHook;
 
             On.Monocle.Sprite.Play -= PlayerSpritePlayHook;
 
@@ -301,18 +302,25 @@ namespace Celeste.Mod.SkinModHelper {
         #region
         private static void DeathEffectRenderHook(On.Celeste.DeathEffect.orig_Render orig, DeathEffect self) {
 
-            var spritePath = new DynData<DeathEffect>(self).Get<string>("spritePath");
-            bool? deathAnimating = new DynData<DeathEffect>(self).Get<bool?>("deathAnimating");
+            DynData<DeathEffect> selfData = new DynData<DeathEffect>(self);
+
+            var spritePath = selfData.Get<string>("spritePath");
+            bool? deathAnimating = selfData.Get<bool?>("deathAnimating");
 
             if (self.Entity != null && spritePath == null) {
                 spritePath = "";
 
-                var sprite = new DynData<DeathEffect>(self).Get<Sprite>("sprite") ?? GetFieldPlus<Sprite>(self.Entity, "sprite");
+                var sprite = new DynData<DeathEffect>(self).Get<Sprite>("sprite") ?? self.Entity.Get<Sprite>();
                 if (sprite != null) {
                     if (sprite.Has("deathExAnim")) {
                         InsertDeathAnimation(self, sprite, "deathExAnim");
                     }
-                    spritePath = getAnimationRootPath(sprite) + "death_particle";
+                    spritePath = getAnimationRootPath(sprite);
+                    string scolor = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{spritePath}skinConfig/" + "CharacterConfig")?.DeathParticleColor;
+                    if (scolor != null && new Regex(@"^[a-fA-F0-9]{6}$").IsMatch(scolor)) {
+                        self.Color = Calc.HexToColor(scolor);
+                    }
+                    spritePath = spritePath + "death_particle";
                 }
                 if (self.Entity is PlayerDeadBody) {
                     string SpriteID = "death_particle";
@@ -323,27 +331,31 @@ namespace Celeste.Mod.SkinModHelper {
                         spritePath = overridePath == "death_particle" ? spritePath : overridePath;
                     }
                 }
-                new DynData<DeathEffect>(self)["spritePath"] = spritePath;
+                selfData["spritePath"] = spritePath;
             }
 
             if (deathAnimating == true) {
                 self.Percent = 0.0f;
             } else if (self.Entity != null) {
-                DeathEffectNewDraw(self.Entity.Position + self.Position, self.Color, self.Percent, spritePath);
+                float alpha = self.Entity.Get<PlayerHair>()?.Alpha ?? self.Color.A / 255f;
+                DeathEffectNewDraw(self.Entity.Position + self.Position, self.Color, alpha, self.Percent, spritePath);
             }
         }
-        public static void DeathEffectNewDraw(Vector2 position, Color color, float ease, string spritePath = "") {
+        public static void DeathEffectNewDraw(Vector2 position, Color color, float alpha, float ease, string spritePath = "") {
             spritePath = (spritePath == null || !GFX.Game.Has(spritePath)) ? "characters/player/hair00" : spritePath;
 
-            Color color2 = (Math.Floor(ease * 10f) % 2.0 == 0.0) ? color : Color.White;
-            MTexture mTexture = GFX.Game[spritePath];
+            Color outline = Color.Black * alpha;
+            Color color2 = (Math.Floor(ease * 10f) % 2.0 == 0.0) ? color : Color.White * alpha;
+
+            var mTexture = GFX.Game[spritePath];
             float num = (ease < 0.5f) ? (0.5f + ease) : Ease.CubeOut(1f - (ease - 0.5f) * 2f);
+
             for (int i = 0; i < 8; i++) {
                 Vector2 value = Calc.AngleToVector(((float)i / 8f + ease * 0.25f) * ((float)Math.PI * 2f), Ease.CubeOut(ease) * 24f);
-                mTexture.DrawCentered(position + value + new Vector2(-1f, 0f), Color.Black, new Vector2(num, num));
-                mTexture.DrawCentered(position + value + new Vector2(1f, 0f), Color.Black, new Vector2(num, num));
-                mTexture.DrawCentered(position + value + new Vector2(0f, -1f), Color.Black, new Vector2(num, num));
-                mTexture.DrawCentered(position + value + new Vector2(0f, 1f), Color.Black, new Vector2(num, num));
+                mTexture.DrawCentered(position + value + new Vector2(-1f, 0f), outline, new Vector2(num, num));
+                mTexture.DrawCentered(position + value + new Vector2(1f, 0f), outline, new Vector2(num, num));
+                mTexture.DrawCentered(position + value + new Vector2(0f, -1f), outline, new Vector2(num, num));
+                mTexture.DrawCentered(position + value + new Vector2(0f, 1f), outline, new Vector2(num, num));
             }
 
             for (int j = 0; j < 8; j++) {
@@ -351,17 +363,34 @@ namespace Celeste.Mod.SkinModHelper {
                 mTexture.DrawCentered(position + value2, color2, new Vector2(num, num));
             }
         }
-        public static void InsertDeathAnimation(DeathEffect self, Sprite sprite, string id = "deathExAnim") {
+
+        public static void InsertDeathAnimation(DeathEffect self, Sprite sprite, string id = "deathExAnim_Alt") {
             Entity entity = new(self.Entity.Position);
 
             // Clone the animation, At least make sure it's playing speed doesn't different in some case.
-            Sprite deathAnim = new Sprite(null, null);
+            object clone = sprite is PlayerSprite ? new PlayerSprite((sprite as PlayerSprite).Mode) : new Sprite(null, null);
+            if (clone is not Sprite deathAnim) {
+                return;
+            } else if (deathAnim is PlayerSprite) {
+                #region 
+                DynData<PlayerSprite> origData = new DynData<PlayerSprite>(sprite as PlayerSprite);
+                DynData<PlayerSprite> deathAnimData = new DynData<PlayerSprite>(deathAnim as PlayerSprite);
+
+                // Clone ColorGrade that smh+ gave origSprite...
+                new DynData<PlayerSprite>(deathAnim as PlayerSprite)["ColorGrade_Atlas"] = new DynData<PlayerSprite>(sprite as PlayerSprite)["ColorGrade_Atlas"];
+                new DynData<PlayerSprite>(deathAnim as PlayerSprite)["ColorGrade_Path"] = new DynData<PlayerSprite>(sprite as PlayerSprite)["ColorGrade_Path"];
+                #endregion
+            }
             PatchSprite(sprite, deathAnim);
+            if (sprite.Scale.X < 0f && deathAnim.Has(id + "_Alt")) {
+                id = id + "_Alt"; // Mirror animation if entity facing left-side?
+            }
 
             deathAnim.Scale = new(1f, 1f);
             deathAnim.Justify = new(0.5f, 0.5f); // Center the texture.
             deathAnim.Visible = true;
             deathAnim.Active = true;
+            deathAnim.Color = sprite.Color;
 
             entity.Add(deathAnim);
             Scene scene = self.Entity.Scene;
@@ -382,34 +411,42 @@ namespace Celeste.Mod.SkinModHelper {
                 new DynData<DeathEffect>(self)["deathAnimating"] = false;
             };
         }
+        #endregion
+        #region
+        // Although in "DeathEffectRenderHook", we blocked the original method. but only Player will still run this...
+        private static void DeathEffectDrawHook(On.Celeste.DeathEffect.orig_Draw orig, Vector2 position, Color color, float ease) {
+            Entity entity = null;
+            foreach (Player player in (Engine.Scene as Level)?.Tracker?.GetEntities<Player>()) {
+                if (player.Hair.Color == color && player.Center + new DynData<Player>(player).Get<Vector2>("deadOffset") == position) {
+                    entity = player;
+                    break;
+                }
+            }
+            PlayerHair hair = entity?.Get<PlayerHair>();
+            Sprite sprite = hair?.Sprite ?? entity?.Get<Sprite>();
+            if (sprite != null) {
+                string spritePath = getAnimationRootPath(sprite);
+                string scolor = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{spritePath}skinConfig/" + "CharacterConfig")?.DeathParticleColor;
 
+                if (scolor != null && new Regex(@"^[a-fA-F0-9]{6}$").IsMatch(scolor)) {
+                    color = Calc.HexToColor(scolor);
+                }
+                spritePath = spritePath + "death_particle";
 
-        // Although in "DeathEffectRenderHook", we blocked the original method. but only Player will still run this Hook
-        private static void DeathEffectDrawHook(ILContext il) {
-            ILCursor cursor = new(il);
+                if (entity is Player) {
+                    string SpriteID = "death_particle";
+                    if (OtherSkins_records.ContainsKey(SpriteID)) {
+                        RefreshSkinValues_OtherExtra(SpriteID, null, true, false);
+                        string skinPath = getOtherSkin_ReskinPath(GFX.Game, "death_particle", SpriteID);
 
-            while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdstr("characters/player/hair00"))) {
-                cursor.EmitDelegate<Func<string, string>>((orig) => {
-
-                    string spritePath = orig;
-                    if (Engine.Scene is Level) {
-                        Sprite On_sprite = Engine.Scene.Tracker?.GetEntity<Player>().Sprite;
-                        spritePath = getAnimationRootPath(On_sprite) + "death_particle";
-
-                        spritePath = !GFX.Game.Has(spritePath) ? orig : spritePath;
+                        spritePath = skinPath == "death_particle" ? spritePath : skinPath;
                     }
+                }
 
-                    if (spritePath == orig) {
-                        string SpriteID = "death_particle";
-                        if (OtherSkins_records.ContainsKey(SpriteID)) {
-                            RefreshSkinValues_OtherExtra(SpriteID, null, true, false);
-                            string SkinId = getOtherSkin_ReskinPath(GFX.Game, "death_particle", SpriteID);
-
-                            spritePath = SkinId == "death_particle" ? spritePath : SkinId;
-                        }
-                    }
-                    return spritePath;
-                });
+                float alpha = hair?.Alpha ?? color.A / 255f;
+                DeathEffectNewDraw(position, color, alpha, ease, spritePath);
+            } else {
+                orig(position, color, ease);
             }
         }
         #endregion

@@ -608,9 +608,8 @@ namespace Celeste.Mod.SkinModHelper {
         }
         public static string getAnimationRootPath(object type) {
             if (type is PlayerSprite playerSprite) {
-                string spriteName = (string)new DynData<PlayerSprite>(playerSprite)["spriteName"];
-
-                if (GFX.SpriteBank.SpriteData.ContainsKey(spriteName)) {
+                string spriteName = new DynData<PlayerSprite>(playerSprite).Get<string>("spriteName");
+                if (spriteName != null && GFX.SpriteBank.SpriteData.ContainsKey(spriteName)) {
                     SpriteData spriteData = GFX.SpriteBank.SpriteData[spriteName];
 
                     if (!string.IsNullOrEmpty(spriteData.Sources[0].OverridePath)) {
@@ -619,8 +618,11 @@ namespace Celeste.Mod.SkinModHelper {
                         return spriteData.Sources[0].Path;
                     }
                 }
-            } else if (type is Sprite sprite) {
+            } 
+            if (type is Sprite sprite) {
                 type = $"{(sprite.Has("idle") ? sprite.GetFrame("idle", 0) : sprite.Texture)}";
+            } else if (type is Image image) {
+                type = $"{image.Texture}";
             } else {
                 type = $"{type}";
             }
@@ -675,9 +677,9 @@ namespace Celeste.Mod.SkinModHelper {
         }
         public static Color ColorBlend(Color c1, object obj) {
             if (obj is Color c2) {
-                return new(c1.R * c2.R / 255, c1.G * c2.G / 255, c1.B * c2.B / 255);
+                return new Color(c1.R * c2.R / 255, c1.G * c2.G / 255, c1.B * c2.B / 255, c1.A * c2.A / 255);
             } else if (obj is float f) {
-                return new((int)(c1.R * f), (int)(c1.G * f), (int)(c1.B * f));
+                return new Color((int)(c1.R * f), (int)(c1.G * f), (int)(c1.B * f), c1.A);
             }
             return c1;
         }
@@ -692,7 +694,7 @@ namespace Celeste.Mod.SkinModHelper {
             }
             return field;
         }
-        public static T GetFieldPlus<T>(Entity obj, string name) {
+        public static T GetFieldPlus<T>(object obj, string name) {
             FieldInfo field = GetFieldPlus(obj.GetType(), name);
             if (field != null && field.GetValue(obj) is T value) {
                 return value;

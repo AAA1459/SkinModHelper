@@ -23,52 +23,34 @@ namespace Celeste.Mod.SkinModHelper {
         #region
 
         public static void Load() {
-            On.Celeste.TrailManager.Add_Entity_Color_float_bool_bool += onTrailManager_Add_ECFBB;
-            On.Celeste.TrailManager.Add_Entity_Vector2_Color_float += onTrailManager_Add_EV2CF;
+            On.Celeste.TrailManager.Add_Vector2_Image_PlayerHair_Vector2_Color_int_float_bool_bool += onTrailManager_Add_V2IV2CIFBB;
         }
 
         public static void Unload() {
+            On.Celeste.TrailManager.Add_Vector2_Image_PlayerHair_Vector2_Color_int_float_bool_bool -= onTrailManager_Add_V2IV2CIFBB;
         }
         #endregion
 
         //-----------------------------Hooks-----------------------------
+        private static TrailManager.Snapshot onTrailManager_Add_V2IV2CIFBB(On.Celeste.TrailManager.orig_Add_Vector2_Image_PlayerHair_Vector2_Color_int_float_bool_bool orig,
+            Vector2 position, Image image, PlayerHair hair, Vector2 scale, Color color, int depth, float duration, bool frozenUpdate, bool useRawDeltaTime) {
 
-        private static void onTrailManager_Add_ECFBB(On.Celeste.TrailManager.orig_Add_Entity_Color_float_bool_bool orig,  Entity entity, Color color, float duration, bool frozenUpdate, bool useRawDeltaTime) {
-            color = TrailsRecolor(entity, color);
-            orig(entity, color, duration, frozenUpdate, useRawDeltaTime);
-        }
-        private static void onTrailManager_Add_EV2CF(On.Celeste.TrailManager.orig_Add_Entity_Vector2_Color_float orig, Entity entity, Vector2 scale, Color color, float duration) {
-            color = TrailsRecolor(entity, color);
-            orig(entity, scale, color, duration);
+            color = TrailsRecolor(color, image, hair);
+            return orig(position, image, hair, scale, color, depth, duration, frozenUpdate, useRawDeltaTime);
         }
 
-        public static Color TrailsRecolor(Entity entity, Color color) {
-
-            PlayerHair hair = entity.Get<PlayerHair>();
+        public static Color TrailsRecolor(Color color, Image sprite, PlayerHair hair) {
             if (hair != null && hair.Sprite?.Mode != PlayerSpriteMode.Badeline) {
-                return color;
-                // Exclude players and silhouette.
+                return color; // Exclude players and silhouette.
             }
 
-            Sprite sprite = hair?.Sprite ?? GetFieldPlus<Sprite>(entity, "Sprite") ?? GetFieldPlus<Sprite>(entity, "sprite");
-            if (sprite != null) {
+            string rootPath = getAnimationRootPath(sprite);
+            string TrailsColor = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "CharacterConfig")?.TrailsColor;
 
-                // --- observable entity objects ---
-                // badeline =>         BadelineOldsite, BadelineDummy.
-                // badeline_boss  =>   FinalBoss.
-                // badelineBoost  =>   BadelineBoost.
-                // oshiro_boss  =>     AngryOshiro.
-                // bird  =>            BirdNPC, FlingBird.
-                // seeker  =>          Seeker, PlayerSeeker.
-
-                string rootPath = getAnimationRootPath(sprite);
-                string TrailsColor = (searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "CharacterConfig") ?? new()).TrailsColor;
-
-                if (TrailsColor != null && new Regex(@"^[a-fA-F0-9]{6}$").IsMatch(TrailsColor)) {
-                    return Calc.HexToColor(TrailsColor);
-                } else if (TrailsColor == "HairColor" && hair != null) {
-                    return hair.Color;
-                }
+            if (TrailsColor != null && new Regex(@"^[a-fA-F0-9]{6}$").IsMatch(TrailsColor)) {
+                return Calc.HexToColor(TrailsColor);
+            } else if (TrailsColor == "HairColor" && hair != null) {
+                return hair.Color;
             }
             return color;
         }

@@ -12,7 +12,7 @@ using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 namespace Celeste.Mod.SkinModHelper {
     public class SkinModHelperConfig {
 
-        public SkinModHelperConfig() : base() {
+        public SkinModHelperConfig() {
         }
         public SkinModHelperConfig(SkinModHelperOldConfig old_config) : this() {
             SkinName = old_config.SkinId;
@@ -45,7 +45,7 @@ namespace Celeste.Mod.SkinModHelper {
 
 
     public class CharacterConfig {
-        public CharacterConfig() : base() {
+        public CharacterConfig() {
         }
         public void ModeInitialize(PlayerSpriteMode mode) {
             if (BadelineMode == null) {
@@ -59,12 +59,14 @@ namespace Celeste.Mod.SkinModHelper {
         public bool? SilhouetteMode { get; set; }
         public string LowStaminaFlashColor { get; set; }
         public bool? LowStaminaFlashHair { get; set; }
+
         public string TrailsColor { get; set; }
+        public string DeathParticleColor { get; set; }
     }
 
 
     public class HairConfig {
-        public HairConfig() : base() {
+        public HairConfig() {
         }
         public string OutlineColor { get; set; }
         public bool? HairFlash { get; set; }
