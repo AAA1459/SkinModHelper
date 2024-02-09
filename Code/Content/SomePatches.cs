@@ -364,7 +364,7 @@ namespace Celeste.Mod.SkinModHelper {
             }
         }
 
-        public static void InsertDeathAnimation(DeathEffect self, Sprite sprite, string id = "deathExAnim_Alt") {
+        public static void InsertDeathAnimation(DeathEffect self, Sprite sprite, string id = "deathExAnim") {
             Entity entity = new(self.Entity.Position);
 
             // Clone the animation, At least make sure it's playing speed doesn't different in some case.
