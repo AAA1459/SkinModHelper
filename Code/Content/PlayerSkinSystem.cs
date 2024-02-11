@@ -251,7 +251,7 @@ namespace Celeste.Mod.SkinModHelper {
                         }
                     } else if (ModeConfig.SilhouetteMode == true) {
                         color = ColorBlend(player.Hair.Color, (backup = 0.5f));
-                    } else if (ModeConfig.SilhouetteMode == false) {
+                    } else {
                         color = Color.Red;
                     }
 
@@ -274,10 +274,8 @@ namespace Celeste.Mod.SkinModHelper {
 
                     if (ModeConfig.SilhouetteMode == true) {
                         return self.Hair.Color;
-                    } else if (ModeConfig.SilhouetteMode == false) {
-                        return Color.White;
                     }
-                    return orig;
+                    return Color.White;
                 });
             }
         }
@@ -368,7 +366,14 @@ namespace Celeste.Mod.SkinModHelper {
 
                 GameplayRenderer.End();
                 Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, colorGradeEffect, matrix);
+
+                // --- When the texture is darkened by alpha value, restore its brightness for make sure the colorgrade can recognize it.
+                // Color backup = self.Color;
+                // self.Color = ColorBlend(self.Color, 255f / self.Color.A);
                 orig(self);
+                // self.Color = backup;
+                // --- We don't want to use it for now, until we cannot find a better way when really try to make the colorgrade compatible with CelesteNet...
+
                 GameplayRenderer.End();
                 Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, null, matrix);
                 return;
@@ -390,9 +395,12 @@ namespace Celeste.Mod.SkinModHelper {
                     ModeConfig.ModeInitialize(self.Mode);
 
                     if (ModeConfig.SilhouetteMode == true) {
-                        self.Color = (Color?)selfData["CurrentHairColor"] ?? self.Color;
+                        PlayerHair hair = self.Entity.Get<PlayerHair>();
+                        if (hair?.Sprite == self) {
+                            self.Color = hair.Color * hair.Alpha;
+                        }
                     } else if (ModeConfig.SilhouetteMode == false) {
-                        self.Color = Color.White;
+                        self.Color = Color.White * GetAlpha(self.Color);
                     }
                 }
                 selfData["SMH_OncePerFrame"] = true;
@@ -499,7 +507,6 @@ namespace Celeste.Mod.SkinModHelper {
                         }
                     }
                 }
-                new DynData<PlayerSprite>(self.Sprite)["CurrentHairColor"] = self.Color;
                 if (ModeConfig.SilhouetteMode == true) { self.Border = ColorBlend(self.Border, self.Color); }
                 orig(self);
 

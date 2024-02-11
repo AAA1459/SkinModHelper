@@ -204,10 +204,7 @@ namespace Celeste.Mod.SkinModHelper {
         //-----------------------------Method-----------------------------
         public static string GetPlayerSkin(string skin_suffix = null, string skinName = null) {
             if (skinName == null) {
-                skinName = Settings.SelectedPlayerSkin ?? "";
-                if (Session != null && Session.SessionPlayerSkin != null) {
-                    skinName = Session.SessionPlayerSkin;
-                }
+                skinName = Session?.SessionPlayerSkin ?? Settings.SelectedPlayerSkin ?? "";
             }
 
             if (skinConfigs.ContainsKey(skinName + skin_suffix)) {
@@ -219,19 +216,20 @@ namespace Celeste.Mod.SkinModHelper {
             }
         }
         public static string GetSilhouetteSkin(string skin_suffix = null) {
-            string skinName = Settings.SelectedSilhouetteSkin ?? "";
-            if (Session != null && Session.SessionSilhouetteSkin != null) {
-                skinName = Session.SessionSilhouetteSkin;
-            }
+            string skinName = Session?.SessionSilhouetteSkin ?? Settings.SelectedSilhouetteSkin ?? "";
+
             return GetPlayerSkin(skin_suffix, skinName);
         }
         public static string GetPlayerSkinName(int hashValues = -1) {
             if (hashValues < 0) { hashValues = Player_Skinid_verify; }
-            try {
-                return skinConfigs.Values.Where(config => config.hashValues == hashValues).First().SkinName;
-            } catch {
-                return null;
+
+            if (skinConfigs.Count > 0) {
+                var v = skinConfigs.Values.Where(config => config.hashValues == hashValues);
+                if (v.Count() > 0) {
+                    return v.First().SkinName;
+                }
             }
+            return null;
         }
         public static string GetPlayerSkinName(out string returnValue, int hashValues = -1) {
             return returnValue = GetPlayerSkinName(hashValues);

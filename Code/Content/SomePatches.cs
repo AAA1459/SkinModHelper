@@ -224,13 +224,13 @@ namespace Celeste.Mod.SkinModHelper {
                     selfData["spriteName_orig"] = null;
                 }
 
-                try {
+                if (self.Has(id)) {
                     orig(self, id, restart, randomizeFrame);
                     if (origID == "startStarFly") {
                         new DynData<Sprite>(self)["CurrentAnimationID"] = origID;
                     }
                     return;
-                } catch {
+                } else {
                     if (selfData["spriteName_orig"] == null && selfData.Get<string>("spriteName") != "") {
                         Logger.Log(LogLevel.Error, "SkinModHelper", $"'{selfData["spriteName"]}' missing animation: {id}");
                         selfData["spriteName_orig"] = selfData["spriteName"];
@@ -318,7 +318,7 @@ namespace Celeste.Mod.SkinModHelper {
                     spritePath = getAnimationRootPath(sprite);
                     string scolor = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{spritePath}skinConfig/" + "CharacterConfig")?.DeathParticleColor;
                     if (scolor != null && new Regex(@"^[a-fA-F0-9]{6}$").IsMatch(scolor)) {
-                        self.Color = Calc.HexToColor(scolor);
+                        self.Color = Calc.HexToColor(scolor) * GetAlpha(self.Color);
                     }
                     spritePath = spritePath + "death_particle";
                 }
@@ -337,11 +337,12 @@ namespace Celeste.Mod.SkinModHelper {
             if (deathAnimating == true) {
                 self.Percent = 0.0f;
             } else if (self.Entity != null) {
-                float alpha = self.Entity.Get<PlayerHair>()?.Alpha ?? self.Color.A / 255f;
-                DeathEffectNewDraw(self.Entity.Position + self.Position, self.Color, alpha, self.Percent, spritePath);
+                DeathEffectNewDraw(self.Entity.Position + self.Position, self.Color, self.Percent, spritePath);
             }
         }
-        public static void DeathEffectNewDraw(Vector2 position, Color color, float alpha, float ease, string spritePath = "") {
+        public static void DeathEffectNewDraw(Vector2 position, Color color, float ease, string spritePath = "") {
+            float alpha = GetAlpha(color);
+            if (alpha <= 0f) { return; }
             spritePath = (spritePath == null || !GFX.Game.Has(spritePath)) ? "characters/player/hair00" : spritePath;
 
             Color outline = Color.Black * alpha;
@@ -368,7 +369,7 @@ namespace Celeste.Mod.SkinModHelper {
             Entity entity = new(self.Entity.Position);
 
             // Clone the animation, At least make sure it's playing speed doesn't different in some case.
-            object clone = sprite is PlayerSprite ? new PlayerSprite((sprite as PlayerSprite).Mode) : new Sprite(null, null);
+            object clone = sprite is PlayerSprite ? new PlayerSprite((PlayerSpriteMode)(-1)) : new Sprite(null, null);
             if (clone is not Sprite deathAnim) {
                 return;
             } else if (deathAnim is PlayerSprite) {
@@ -376,11 +377,12 @@ namespace Celeste.Mod.SkinModHelper {
                 DynData<PlayerSprite> origData = new DynData<PlayerSprite>(sprite as PlayerSprite);
                 DynData<PlayerSprite> deathAnimData = new DynData<PlayerSprite>(deathAnim as PlayerSprite);
 
-                // Clone ColorGrade that smh+ gave origSprite...
-                new DynData<PlayerSprite>(deathAnim as PlayerSprite)["ColorGrade_Atlas"] = new DynData<PlayerSprite>(sprite as PlayerSprite)["ColorGrade_Atlas"];
-                new DynData<PlayerSprite>(deathAnim as PlayerSprite)["ColorGrade_Path"] = new DynData<PlayerSprite>(sprite as PlayerSprite)["ColorGrade_Path"];
+                // Clone ColorGrade that smh+ gave origSprite... or other things...
+                deathAnimData["ColorGrade_Atlas"] = origData["ColorGrade_Atlas"];
+                deathAnimData["ColorGrade_Path"] = origData["ColorGrade_Path"];
                 #endregion
             }
+            deathAnim.ClearAnimations();
             PatchSprite(sprite, deathAnim);
             if (sprite.Scale.X < 0f && deathAnim.Has(id + "_Alt")) {
                 id = id + "_Alt"; // Mirror animation if entity facing left-side?
@@ -388,8 +390,7 @@ namespace Celeste.Mod.SkinModHelper {
 
             deathAnim.Scale = new(1f, 1f);
             deathAnim.Justify = new(0.5f, 0.5f); // Center the texture.
-            deathAnim.Visible = true;
-            deathAnim.Active = true;
+            deathAnim.Visible = deathAnim.Active = true;
             deathAnim.Color = sprite.Color;
 
             entity.Add(deathAnim);
@@ -422,14 +423,13 @@ namespace Celeste.Mod.SkinModHelper {
                     break;
                 }
             }
-            PlayerHair hair = entity?.Get<PlayerHair>();
-            Sprite sprite = hair?.Sprite ?? entity?.Get<Sprite>();
+            Sprite sprite = entity?.Get<PlayerSprite>() ?? entity?.Get<Sprite>();
             if (sprite != null) {
                 string spritePath = getAnimationRootPath(sprite);
                 string scolor = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{spritePath}skinConfig/" + "CharacterConfig")?.DeathParticleColor;
 
                 if (scolor != null && new Regex(@"^[a-fA-F0-9]{6}$").IsMatch(scolor)) {
-                    color = Calc.HexToColor(scolor);
+                    color = Calc.HexToColor(scolor) * GetAlpha(color);
                 }
                 spritePath = spritePath + "death_particle";
 
@@ -442,9 +442,7 @@ namespace Celeste.Mod.SkinModHelper {
                         spritePath = skinPath == "death_particle" ? spritePath : skinPath;
                     }
                 }
-
-                float alpha = hair?.Alpha ?? color.A / 255f;
-                DeathEffectNewDraw(position, color, alpha, ease, spritePath);
+                DeathEffectNewDraw(position, color, ease, spritePath);
             } else {
                 orig(position, color, ease);
             }
