@@ -64,7 +64,7 @@ namespace Celeste.Mod.SkinModHelper
 
             // Set our update action on our complete menu
             skinSelectMenu.Change(skinId => {
-                UpdateSkin(skinId, inGame);
+                UpdatePlayerSkin(skinId, inGame);
                 ChangeUnselectedColor(skinSelectMenu, 0);
             });
 
@@ -135,7 +135,7 @@ namespace Celeste.Mod.SkinModHelper
 
                     Options_name = !string.IsNullOrEmpty(config.SkinDialogKey) ? config.SkinDialogKey : Options_name;
                     TextMenu.OnOff Options = new TextMenu.OnOff(Dialog.Clean(Options_name), Options_OnOff);
-                    Options.Change(OnOff => UpdateExtraXml(config.SkinName, OnOff, inGame));
+                    Options.Change(OnOff => UpdateGeneralSkin(config.SkinName, OnOff, inGame));
 
                     subMenu.Add(Options);
                 }

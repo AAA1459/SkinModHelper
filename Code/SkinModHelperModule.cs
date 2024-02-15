@@ -19,24 +19,21 @@ using static Celeste.Mod.SkinModHelper.SkinsSystem;
 
 namespace Celeste.Mod.SkinModHelper {
     public class SkinModHelperModule : EverestModule {
+        #region
         public static SkinModHelperModule Instance;
-
         public override Type SettingsType => typeof(SkinModHelperSettings);
         public override Type SessionType => typeof(SkinModHelperSession);
-
-
         public static SkinModHelperSettings Settings => (SkinModHelperSettings)Instance._Settings;
         public static SkinModHelperSession Session => (SkinModHelperSession)Instance._Session;
 
-
         public static SkinModHelperUI UI;
 
-
-
-        public static List<ILHook> doneILHooks = new List<ILHook>();
         public static List<Hook> doneHooks = new List<Hook>();
+        public static List<ILHook> doneILHooks = new List<ILHook>();
+        #endregion
 
-        //-----------------------------
+        //-----------------------------Hooks-----------------------------
+        #region
         public static bool JungleHelperInstalled = false;
         public static bool SaveFilePortraits = false;
         public static bool OrigSkinModHelper_loaded = false;
@@ -85,10 +82,10 @@ namespace Celeste.Mod.SkinModHelper {
             }
             doneHooks.Clear();
         }
-        //-----------------------------
-        public override void LoadContent(bool firstLoad) {
-            base.LoadContent(firstLoad);
-        }
+        #endregion
+
+        //-----------------------------UI-----------------------------
+        #region
         public override void CreateModMenuSection(TextMenu menu, bool inGame, EventInstance snapshot) {
             base.CreateModMenuSection(menu, inGame, snapshot);
 
@@ -101,13 +98,13 @@ namespace Celeste.Mod.SkinModHelper {
                 OuiModOptions.Instance.Overworld.Goto<OuiModOptions>();
             }, menu, inGame, forceEnabled: false);
         }
-
-
+        #endregion
 
         //-----------------------------Setting update-----------------------------
-        public static void UpdateSkin(string newSkinId, bool inGame = false) {
+        #region
+        public static void UpdatePlayerSkin(string newSkinId, bool inGame) {
             if (Session != null) {
-                Session.SessionPlayerSkin = null;
+                SessionSet_PlayerSkin(null);
             }
             Settings.SelectedPlayerSkin = newSkinId;
             if (inGame) {
@@ -118,20 +115,61 @@ namespace Celeste.Mod.SkinModHelper {
         }
         public static void UpdateSilhouetteSkin(string newSkinId, bool inGame) {
             if (Session != null) {
-                Session.SessionSilhouetteSkin = null;
+                SessionSet_SilhouetteSkin(null);
             }
-
             Settings.SelectedSilhouetteSkin = newSkinId;
         }
-        public static void UpdateExtraXml(string SkinId, bool OnOff, bool inGame) {
-            if (Session != null && Session.SessionExtraXml.ContainsKey(SkinId)) {
-                Session.SessionExtraXml.Remove(SkinId);
+        public static void UpdateGeneralSkin(string SkinId, bool OnOff, bool inGame) {
+            if (Session != null) {
+                SessionSet_GeneralSkin(SkinId, null);
             }
             Settings.ExtraXmlList[SkinId] = OnOff;
             RefreshSkins(false, inGame);
         }
+        #endregion
 
-        //-----------------------------FreeCollocations Update / Skins Refresh-----------------------------
+        //-----------------------------Session update-----------------------------
+        #region
+        public static void SessionSet_PlayerSkin(string newSkinId) {
+            if (Session == null) {
+                Logger.Log(LogLevel.Warn, "SkinModHelper", $"The player is not in the level, cannot setting session!");
+                return;
+            } else if (newSkinId != null && GetPlayerSkin(null, newSkinId) == null) {
+                Logger.Log(LogLevel.Warn, "SkinModHelper", $"PlayerSkin '{newSkinId}' does not exist!");
+                return;
+            }
+            Session.SelectedPlayerSkin = newSkinId;
+            PlayerSkinSystem.RefreshPlayerSpriteMode();
+        }
+        public static void SessionSet_SilhouetteSkin(string newSkinId) {
+            if (Session == null) {
+                Logger.Log(LogLevel.Warn, "SkinModHelper", $"The player is not in the level, cannot setting session!");
+                return;
+            } else if (newSkinId != null && GetPlayerSkin(null, newSkinId) == null) {
+                Logger.Log(LogLevel.Warn, "SkinModHelper", $"PlayerSkin '{newSkinId}' does not exist!");
+                return;
+            }
+            Session.SelectedSilhouetteSkin = newSkinId;
+        }
+        public static void SessionSet_GeneralSkin(string newSkin, bool? OnOff) {
+            if (Session == null) {
+                Logger.Log(LogLevel.Warn, "SkinModHelper", $"The player is not in the level, cannot setting session!");
+                return;
+            } else if (GetGeneralSkin(newSkin) == null) {
+                Logger.Log(LogLevel.Warn, "SkinModHelper", $"GeneralSkin '{newSkin}' does not exist!");
+                return;
+            }
+
+            if (OnOff == null && Session.ExtraXmlList.ContainsKey(newSkin)) {
+                Session.ExtraXmlList.Remove(newSkin);
+            } else {
+                Session.ExtraXmlList[newSkin] = OnOff == true;
+            }
+        }
+        #endregion
+
+        //-----------------------------Skins Refresh-----------------------------
+        #region
         public static void RefreshSkinValues(bool? Setting, bool inGame) {
             if (Setting != null) {
                 Settings.FreeCollocations_OffOn = (bool)Setting;
@@ -198,13 +236,17 @@ namespace Celeste.Mod.SkinModHelper {
             }
             return OtherSkin_record[SpriteID];
         }
+        #endregion
 
+        //-----------------------------Method----------------------------- 
+        #region
 
-
-        //-----------------------------Method-----------------------------
+        /// <returns> 
+        /// Return settings or specified PlayerSkin if it exist, or with suffix.
+        /// </returns>
         public static string GetPlayerSkin(string skin_suffix = null, string skinName = null) {
             if (skinName == null) {
-                skinName = Session?.SessionPlayerSkin ?? Settings.SelectedPlayerSkin ?? "";
+                skinName = Session?.SelectedPlayerSkin ?? Settings.SelectedPlayerSkin ?? "";
             }
 
             if (skinConfigs.ContainsKey(skinName + skin_suffix)) {
@@ -215,11 +257,70 @@ namespace Celeste.Mod.SkinModHelper {
                 return null;
             }
         }
+
+        /// <returns> 
+        /// Return SilhouetteSkin of settings if it exist, or with suffix.
+        /// </returns>
         public static string GetSilhouetteSkin(string skin_suffix = null) {
-            string skinName = Session?.SessionSilhouetteSkin ?? Settings.SelectedSilhouetteSkin ?? "";
+            string skinName = Session?.SelectedSilhouetteSkin ?? Settings.SelectedSilhouetteSkin ?? "";
 
             return GetPlayerSkin(skin_suffix, skinName);
         }
+
+        /// <returns> 
+        /// Return the enabled status of an GeneralSkin, return null if it does not exist.
+        /// </returns>
+        public static bool? GetGeneralSkin(string skinName) {
+            if (!OtherskinConfigs.ContainsKey(skinName)) {
+                return null;
+            }
+            if (Session?.ExtraXmlList.ContainsKey(skinName) == true) {
+                return Session.ExtraXmlList[skinName];
+            }
+            return Settings.ExtraXmlList.ContainsKey(skinName) ? Settings.ExtraXmlList[skinName] : false;
+        }
+
+        #endregion
+        #region
+        public static string GetSpriteBankIDSkin(string SpriteId) {
+            if (Session?.SpriteSkin_record.ContainsKey(SpriteId) == true) {
+                return SpriteId + Session.SpriteSkin_record[SpriteId];
+
+            } else if (SpriteSkin_record.ContainsKey(SpriteId)) {
+                return SpriteId + SpriteSkin_record[SpriteId];
+            }
+            return SpriteId;
+        }
+        public static string GetPortraitsBankIDSkin(string SpriteId) {
+            if (Session?.PortraitsSkin_record.ContainsKey(SpriteId) == true) {
+                return SpriteId + Session.SpriteSkin_record[SpriteId];
+
+            } else if (PortraitsSkin_record.ContainsKey(SpriteId)) {
+                return SpriteId + PortraitsSkin_record[SpriteId];
+            }
+            return SpriteId;
+        }
+        public static string GetOtherIDSkin(string id) {
+            if (Session?.OtherSkin_record.ContainsKey(id) == true) {
+                return Session.OtherSkin_record[id];
+
+            } else if (OtherSkin_record.ContainsKey(id)) {
+                return OtherSkin_record[id];
+            }
+            return ORIGINAL;
+        }
+        #endregion
+        #region
+        public static List<SkinModHelperConfig> GetEnabledGeneralSkins() {
+            if (OtherskinConfigs.Count > 0) {
+                return OtherskinConfigs.Values.Where(config => GetGeneralSkin(config.SkinName) == true).ToList();
+            }
+            return new();
+        }
+
+        /// <summary> 
+        /// A method to get PlayerSkin's name based on it's hashValue. The hash defaults as player's current skin
+        /// </summary>
         public static string GetPlayerSkinName(int hashValues = -1) {
             if (hashValues < 0) { hashValues = Player_Skinid_verify; }
 
@@ -231,8 +332,6 @@ namespace Celeste.Mod.SkinModHelper {
             }
             return null;
         }
-        public static string GetPlayerSkinName(out string returnValue, int hashValues = -1) {
-            return returnValue = GetPlayerSkinName(hashValues);
-        }
+        #endregion
     }
 }

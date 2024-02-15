@@ -30,13 +30,13 @@ namespace Celeste.Mod.SkinModHelper {
         public override void OnEnter(Player player) {
             base.OnEnter(player);
 
-            oldskinId = Session.SessionPlayerSkin;
+            oldskinId = Session.SelectedPlayerSkin;
 
             string hash_object = skinId;
             if (skinConfigs.ContainsKey(skinId) || skinId == DEFAULT) {
-                Session.SessionPlayerSkin = hash_object;
+                Session.SelectedPlayerSkin = hash_object;
             } else if (skinId == "Null")  {
-                Session.SessionPlayerSkin = null;
+                Session.SelectedPlayerSkin = null;
             } else {
                 Logger.Log(LogLevel.Warn, "SkinModHelper/SkinSwapTrigger", $"Tried to swap to unknown SkinID: {skinId}");
                 return;
@@ -48,7 +48,7 @@ namespace Celeste.Mod.SkinModHelper {
         public override void OnLeave(Player player) {
             base.OnLeave(player);
             if (revertOnLeave) {
-                Session.SessionPlayerSkin = oldskinId;
+                Session.SelectedPlayerSkin = oldskinId;
 
                 PlayerSkinSystem.RefreshPlayerSpriteMode();
             }

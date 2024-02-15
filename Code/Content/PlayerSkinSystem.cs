@@ -334,16 +334,33 @@ namespace Celeste.Mod.SkinModHelper {
             }
 
             if (colorGrade_Path != null && atlas.Has(colorGrade_Path)) {
+                Texture2D colorGrade;
                 Effect colorGradeEffect = GFX.FxColorGrading;
                 colorGradeEffect.CurrentTechnique = colorGradeEffect.Techniques["ColorGradeSingle"];
-                Engine.Graphics.GraphicsDevice.Textures[1] = atlas[colorGrade_Path].Texture.Texture_Safe;
+                Engine.Graphics.GraphicsDevice.Textures[1] = colorGrade = atlas[colorGrade_Path].Texture.Texture_Safe;
 
                 DynData<SpriteBatch> spriteData = new DynData<SpriteBatch>(Draw.SpriteBatch);
                 Matrix matrix = (Matrix)spriteData["transformMatrix"];
 
                 GameplayRenderer.End();
                 Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, colorGradeEffect, matrix);
-                orig(self);
+
+                if (self.Alpha < 1f) {
+                    #region 
+                    ColorGrade_MultiplyAlpha(colorGrade, self.Alpha);
+                    Color backup1 = self.Color;
+                    Color backup2 = self.Border;
+                    self.Color = new(self.Color, self.Alpha);
+                    self.Border = new(self.Border, self.Alpha);
+                    self.Alpha = 1f;
+                    orig(self);
+                    self.Alpha = GetAlpha(self.Color);
+                    self.Color = backup1;
+                    self.Border = backup2;
+                    #endregion
+                } else {
+                    orig(self);
+                }
                 GameplayRenderer.End();
                 Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, null, matrix);
                 return;
@@ -357,9 +374,10 @@ namespace Celeste.Mod.SkinModHelper {
             string colorGrade_Path = (string)selfData["ColorGrade_Path"];
 
             if (colorGrade_Path != null && atlas.Has(colorGrade_Path)) {
+                Texture2D colorGrade;
                 Effect colorGradeEffect = GFX.FxColorGrading;
                 colorGradeEffect.CurrentTechnique = colorGradeEffect.Techniques["ColorGradeSingle"];
-                Engine.Graphics.GraphicsDevice.Textures[1] = atlas[colorGrade_Path].Texture.Texture_Safe;
+                Engine.Graphics.GraphicsDevice.Textures[1] = colorGrade = atlas[colorGrade_Path].Texture.Texture_Safe;
 
                 DynData<SpriteBatch> spriteData = new DynData<SpriteBatch>(Draw.SpriteBatch);
                 Matrix matrix = (Matrix)spriteData["transformMatrix"];
@@ -368,10 +386,16 @@ namespace Celeste.Mod.SkinModHelper {
                 Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, colorGradeEffect, matrix);
 
                 // --- When the texture is darkened by alpha value, restore its brightness for make sure the colorgrade can recognize it.
-                // Color backup = self.Color;
-                // self.Color = ColorBlend(self.Color, 255f / self.Color.A);
-                orig(self);
-                // self.Color = backup;
+                float alpha = GetAlpha(self.Color);
+                if (alpha < 1f) {
+                    ColorGrade_MultiplyAlpha(colorGrade, alpha);
+                    Color backup = self.Color;
+                    self.Color = ColorBlend(self.Color, 1f / alpha);
+                    orig(self);
+                    self.Color = backup;
+                } else {
+                    orig(self);
+                }
                 // --- We don't want to use it for now, until we cannot find a better way when really try to make the colorgrade compatible with CelesteNet...
 
                 GameplayRenderer.End();
@@ -379,6 +403,24 @@ namespace Celeste.Mod.SkinModHelper {
                 return;
             }
             orig(self);
+        }
+        #endregion
+
+        #region
+        /// <summary> 
+        /// Set the brightness of all pixels of colorGrade to alpha brightness
+        /// </summary>
+        private static void ColorGrade_MultiplyAlpha(Texture2D colorGrade, float alpha) {
+            Color[] pixels = new Color[colorGrade.Width * colorGrade.Height];
+            colorGrade.GetData(pixels);
+            if (alpha < 1f) {
+                for (int p = pixels.Length; p > 0; p--) {
+                    pixels[p] = ColorBlend(pixels[p], alpha);
+                }
+            }
+            Texture2D newColorGrade = new Texture2D(Celeste.Instance.GraphicsDevice, colorGrade.Width, colorGrade.Height);
+            newColorGrade.SetData(pixels);
+            Engine.Graphics.GraphicsDevice.Textures[1] = newColorGrade;
         }
         #endregion
 

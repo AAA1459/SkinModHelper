@@ -5,16 +5,17 @@ using System.IO;
 namespace Celeste.Mod.SkinModHelper {
 
     public class SkinModHelperSession : EverestModuleSession {
+        public string SelectedPlayerSkin { get; set; }
+
+        public string SelectedSilhouetteSkin { get; set; }
+
+        public Dictionary<string, bool> ExtraXmlList { get; set; } = new();
 
 
-        public string SessionPlayerSkin { get; set; } = null;
-        public string SessionSilhouetteSkin { get; set; } = null;
-        public Dictionary<string, bool> SessionExtraXml { get; set; } = new();
+        public Dictionary<string, string> SpriteSkin_record = new();
 
-        public static Dictionary<string, List<string>> SpriteSkins_session { get; set; } = new Dictionary<string, List<string>>();
+        public Dictionary<string, string> PortraitsSkin_record = new();
 
-        public static Dictionary<string, List<string>> PortraitsSkins_session { get; set; } = new Dictionary<string, List<string>>();
-
-        public static Dictionary<string, List<string>> OtherSkins_session { get; set; } = new Dictionary<string, List<string>>();
+        public Dictionary<string, string> OtherSkin_record = new();
     }
 }
