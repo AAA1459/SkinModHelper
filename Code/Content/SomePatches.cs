@@ -312,6 +312,9 @@ namespace Celeste.Mod.SkinModHelper {
 
                 var sprite = new DynData<DeathEffect>(self).Get<Sprite>("sprite") ?? self.Entity.Get<Sprite>();
                 if (sprite != null) {
+                    float alpha = GetAlpha(sprite.Color);
+                    if (alpha < 1f && self.Color.A == 1f) { self.Color = self.Color * alpha; }
+
                     if (sprite.Has("deathExAnim")) {
                         InsertDeathAnimation(self, sprite, "deathExAnim");
                     }
@@ -417,13 +420,16 @@ namespace Celeste.Mod.SkinModHelper {
         private static void DeathEffectDrawHook(On.Celeste.DeathEffect.orig_Draw orig, Vector2 position, Color color, float ease) {
             Entity entity = null;
             foreach (Player player in (Engine.Scene as Level)?.Tracker?.GetEntities<Player>()) {
-                if (player.Hair.Color == color && player.Center + new DynData<Player>(player).Get<Vector2>("deadOffset") == position) {
+                if (player.Center + new DynData<Player>(player).Get<Vector2>("deadOffset") == position) {
                     entity = player;
                     break;
                 }
             }
             Sprite sprite = entity?.Get<PlayerSprite>() ?? entity?.Get<Sprite>();
             if (sprite != null) {
+                float alpha = GetAlpha(sprite.Color);
+                if (alpha < 1f && color.A == 255) { color = color * alpha; }
+
                 string spritePath = getAnimationRootPath(sprite);
                 string scolor = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{spritePath}skinConfig/" + "CharacterConfig")?.DeathParticleColor;
 

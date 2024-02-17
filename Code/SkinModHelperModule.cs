@@ -100,6 +100,21 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
+        //-----------------------------Somethings-----------------------------
+        #region
+        public override void LoadContent(bool firstLoad) {
+            base.LoadContent(firstLoad);
+
+            IGraphicsDeviceService graphicsDeviceService =
+                Engine.Instance.Content.ServiceProvider
+                .GetService(typeof(IGraphicsDeviceService))
+                as IGraphicsDeviceService;
+
+            ModAsset asset = Everest.Content.Get("Effects/SkinModHelperShader.cso", true);
+            FxColorGrading_SMH = new Effect(graphicsDeviceService.GraphicsDevice, asset.Data);
+        }
+        #endregion
+
         //-----------------------------Setting update-----------------------------
         #region
         public static void UpdatePlayerSkin(string newSkinId, bool inGame) {
@@ -162,7 +177,7 @@ namespace Celeste.Mod.SkinModHelper {
 
             if (OnOff == null && Session.ExtraXmlList.ContainsKey(newSkin)) {
                 Session.ExtraXmlList.Remove(newSkin);
-            } else {
+            } else if (OnOff != null){
                 Session.ExtraXmlList[newSkin] = OnOff == true;
             }
         }
@@ -277,7 +292,10 @@ namespace Celeste.Mod.SkinModHelper {
             if (Session?.ExtraXmlList.ContainsKey(skinName) == true) {
                 return Session.ExtraXmlList[skinName];
             }
-            return Settings.ExtraXmlList.ContainsKey(skinName) ? Settings.ExtraXmlList[skinName] : false;
+            if (Settings.ExtraXmlList.ContainsKey(skinName)) {
+                return Settings.ExtraXmlList[skinName];
+            }
+            return false;
         }
 
         #endregion
@@ -303,7 +321,6 @@ namespace Celeste.Mod.SkinModHelper {
         public static string GetOtherIDSkin(string id) {
             if (Session?.OtherSkin_record.ContainsKey(id) == true) {
                 return Session.OtherSkin_record[id];
-
             } else if (OtherSkin_record.ContainsKey(id)) {
                 return OtherSkin_record[id];
             }
