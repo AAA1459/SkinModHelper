@@ -53,7 +53,7 @@ NOTE: this is unusable for player or silhouette.
 
 DeathParticleColor
 -----------------------------------
-Some entities will generate their own particle with it's color, you can use this to recolor that particle.
+Some entities will generate their own death particle with it's color, you can use this to recolor that particle.
 ```
 DeathParticleColor: [use six digit RGB hex code]
 ```
