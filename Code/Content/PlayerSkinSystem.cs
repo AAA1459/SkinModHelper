@@ -251,8 +251,6 @@ namespace Celeste.Mod.SkinModHelper {
                         }
                     } else if (ModeConfig.SilhouetteMode == true) {
                         color = ColorBlend(player.Hair.Color, (backup = 0.5f));
-                    } else {
-                        color = Color.Red;
                     }
 
                     if (ModeConfig.LowStaminaFlashHair == true || (ModeConfig.SilhouetteMode == true)) {
@@ -275,7 +273,7 @@ namespace Celeste.Mod.SkinModHelper {
                     if (ModeConfig.SilhouetteMode == true) {
                         return self.Hair.Color;
                     }
-                    return Color.White;
+                    return orig;
                 });
             }
         }
