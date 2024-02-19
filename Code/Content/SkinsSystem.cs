@@ -584,7 +584,7 @@ namespace Celeste.Mod.SkinModHelper {
             return default(T);
         }
         public static float GetAlpha(Color c) {
-            return c.A == 0 ? 0f : c.A;
+            return c.A == 0 ? 0f : c.A / 255f;
         }
         /// <summary> 
         /// A method similar to Color.Multiply, but ignore alpha value
@@ -592,7 +592,7 @@ namespace Celeste.Mod.SkinModHelper {
         public static Color ColorBlend(Color c1, object obj) {
             if (obj is Color c2 && c2.A != 0) {
                 // Restore c2's brightness when as 100% opacity, and assume its brightness if as c1's opacity.
-                c2 = c2 * (1f / c2.A) * GetAlpha(c1);
+                c2 = c2 * (255f / c2.A) * GetAlpha(c1);
                 return new Color(c1.R * c2.R / 255, c1.G * c2.G / 255, c1.B * c2.B / 255, c1.A);
             } else if (obj is float f) {
                 return new Color((int)(c1.R * f), (int)(c1.G * f), (int)(c1.B * f), c1.A);

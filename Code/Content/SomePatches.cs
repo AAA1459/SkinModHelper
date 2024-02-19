@@ -156,12 +156,15 @@ namespace Celeste.Mod.SkinModHelper {
         #region
         private static void PlayerSuperWallJumpHook(On.Celeste.Player.orig_SuperWallJump orig, Player self, int dir) {
             orig(self, dir);
-            if (!self.Sprite.CurrentAnimationID.Contains("dreamDashOut") && SpriteExt_TryPlay(self.Sprite, "jumpCrazy")) {
+            if (!self.Sprite.CurrentAnimationID.Contains("dreamDashOut") && !SpriteExt_TryPlay(self.Sprite, "wallBounce")) {
+                SpriteExt_TryPlay(self.Sprite, "jumpCrazy");
             }
         }
         private static void PlayerSuperJumpHook(On.Celeste.Player.orig_SuperJump orig, Player self) {
+            bool hyper = self.Ducking;
             orig(self);
-            if (!self.Sprite.CurrentAnimationID.Contains("dreamDashOut") && SpriteExt_TryPlay(self.Sprite, "jumpCrazy")) {
+            if (!self.Sprite.CurrentAnimationID.Contains("dreamDashOut") && !SpriteExt_TryPlay(self.Sprite, hyper ? "jumpHyper" : "jumpSuper")) {
+                SpriteExt_TryPlay(self.Sprite, "jumpCrazy");
             }
         }
 
@@ -172,6 +175,7 @@ namespace Celeste.Mod.SkinModHelper {
                 #region Animations modify and extended
 
                 if (!restart && self.LastAnimationID != null) {
+                    DynData<Player> playerData = new DynData<Player>(player);
                     bool SwimCheck = player.Collidable ? (bool)typeof(Player).GetMethod("SwimCheck", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(player, null) : false;
 
                     if (id == "walk" && player.Holding != null) {
@@ -208,10 +212,21 @@ namespace Celeste.Mod.SkinModHelper {
                     } else if ((origID != id || id == "duck" || id == "lookUp") && self.LastAnimationID.Contains(id)) {
                         // Make sure that The orig animations will not be forced replay or The new animations will not be forced cancel.
                         return;
-                    } else if (self.LastAnimationID.Contains("jumpCrazy") && (id == "jumpFast" || id == "runFast")) {
-                        return;
                     } else if (origID == "runStumble") {
                         return;
+                    } else if (self.LastAnimationID.Contains("jumpCrazy")) {
+                        if (player.OnGround() || origID == "jumpFast" || origID == "fallSlow" || origID == "runFast" || origID == "runWind") {
+                            return;
+                        }
+                    } else if (self.LastAnimationID.Contains("jumpHyper") || self.LastAnimationID.Contains("jumpSuper")) {
+                        if ((origID == "jumpFast" || origID == "fallFast" || origID == "runFast" || origID == "runWind" || (origID == "duck" && player.StartedDashing == false))
+                            && (!player.OnGround() || !playerData.Get<bool>("wasOnGround"))) {
+                            return;
+                        }
+                    } else if (self.LastAnimationID.Contains("wallBounce")) {
+                        if (player.OnGround() || origID == "jumpFast" || origID == "jumpSlow" || origID == "fallSlow" || origID == "fallFast") {
+                            return;
+                        }
                     }
                 }
                 #endregion

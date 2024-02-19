@@ -335,7 +335,7 @@ namespace Celeste.Mod.SkinModHelper {
 
             if (colorGrade_Path != null && atlas.Has(colorGrade_Path)) {
                 Effect colorGradeEffect = FxColorGrading_SMH;
-                colorGradeEffect.CurrentTechnique = colorGradeEffect.Techniques.First();
+                colorGradeEffect.CurrentTechnique = colorGradeEffect.Techniques["ColorGradeSingle"];
                 Engine.Graphics.GraphicsDevice.Textures[1] = atlas[colorGrade_Path].Texture.Texture_Safe;
 
                 DynData<SpriteBatch> spriteData = new DynData<SpriteBatch>(Draw.SpriteBatch);
@@ -358,7 +358,7 @@ namespace Celeste.Mod.SkinModHelper {
 
             if (colorGrade_Path != null && atlas.Has(colorGrade_Path)) {
                 Effect colorGradeEffect = FxColorGrading_SMH;
-                colorGradeEffect.CurrentTechnique = colorGradeEffect.Techniques.First();
+                colorGradeEffect.CurrentTechnique = colorGradeEffect.Techniques["ColorGradeSingle"];
                 Engine.Graphics.GraphicsDevice.Textures[1] = atlas[colorGrade_Path].Texture.Texture_Safe;
 
                 DynData<SpriteBatch> spriteData = new DynData<SpriteBatch>(Draw.SpriteBatch);
