@@ -215,7 +215,8 @@ namespace Celeste.Mod.SkinModHelper {
                     } else if (origID == "runStumble") {
                         return;
                     } else if (self.LastAnimationID.Contains("jumpCrazy")) {
-                        if (player.OnGround() || origID == "jumpFast" || origID == "fallSlow" || origID == "runFast" || origID == "runWind") {
+                        if ((origID == "jumpFast" || origID == "fallSlow" || origID == "runFast" || origID == "runWind") && 
+                            (!playerData.Get<bool>("onGround") || !player.OnGround())) {
                             return;
                         }
                     } else if (self.LastAnimationID.Contains("jumpHyper") || self.LastAnimationID.Contains("jumpSuper")) {
@@ -224,7 +225,8 @@ namespace Celeste.Mod.SkinModHelper {
                             return;
                         }
                     } else if (self.LastAnimationID.Contains("wallBounce")) {
-                        if (player.OnGround() || origID == "jumpFast" || origID == "jumpSlow" || origID == "fallSlow" || origID == "fallFast") {
+                        if ((origID == "jumpFast" || origID == "jumpSlow" || origID == "fallSlow" || origID == "fallFast") &&
+                            (!playerData.Get<bool>("onGround"))) {
                             return;
                         }
                     }
