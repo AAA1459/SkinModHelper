@@ -388,19 +388,12 @@ namespace Celeste.Mod.SkinModHelper {
             Entity entity = new(self.Entity.Position);
 
             // Clone the animation, At least make sure it's playing speed doesn't different in some case.
-            object clone = sprite is PlayerSprite ? new PlayerSprite((PlayerSpriteMode)(-1)) : new Sprite(null, null);
+            object clone = new Sprite(null, null);
             if (clone is not Sprite deathAnim) {
                 return;
-            } else if (deathAnim is PlayerSprite) {
-                #region 
-                DynData<PlayerSprite> origData = new DynData<PlayerSprite>(sprite as PlayerSprite);
-                DynData<PlayerSprite> deathAnimData = new DynData<PlayerSprite>(deathAnim as PlayerSprite);
-
-                // Clone ColorGrade that smh+ gave origSprite... or other things...
-                deathAnimData["ColorGrade_Atlas"] = origData["ColorGrade_Atlas"];
-                deathAnimData["ColorGrade_Path"] = origData["ColorGrade_Path"];
-                #endregion
             }
+            SkinModHelperInterop.CopyColorGrades(sprite, deathAnim);
+
             deathAnim.ClearAnimations();
             PatchSprite(sprite, deathAnim);
             if (sprite.Scale.X < 0f && deathAnim.Has(id + "_Alt")) {

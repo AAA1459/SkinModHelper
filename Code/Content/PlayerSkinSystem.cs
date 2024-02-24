@@ -34,7 +34,7 @@ namespace Celeste.Mod.SkinModHelper {
 
             IL.Celeste.Player.Render += PlayerRenderIlHook_Color;
 
-            On.Celeste.PlayerSprite.Render += OnPlayerSpriteRender_ColorGrade;
+            On.Monocle.Image.Render += OnImageRender_ColorGrade;
             On.Celeste.PlayerHair.Render += PlayerHairRenderHook_ColorGrade;
 
             On.Celeste.PlayerHair.Render += PlayerHairRenderHook;
@@ -76,7 +76,7 @@ namespace Celeste.Mod.SkinModHelper {
             On.Celeste.PlayerSprite.Render -= PlayerSpriteRenderHook;
             On.Celeste.PlayerHair.Update -= PlayerHairUpdateHook;
 
-            On.Celeste.PlayerSprite.Render -= OnPlayerSpriteRender_ColorGrade;
+            On.Monocle.Image.Render -= OnImageRender_ColorGrade;
             On.Celeste.PlayerHair.Render -= PlayerHairRenderHook_ColorGrade;
 
             On.Celeste.PlayerHair.GetHairColor -= PlayerHairGetHairColorHook;
@@ -166,7 +166,7 @@ namespace Celeste.Mod.SkinModHelper {
                     self.Play("idle", restart: true);
 
                     // when the look up animation finishes, rewind it to frame 7: this way we are getting 7-11 playing in a loop.
-                    self.OnFinish = anim => {
+                    self.OnFinish += anim => {
                         if (anim == "lookUp") {
                             self.Play("lookUp", restart: true);
                             self.SetAnimationFrame(5);
@@ -282,12 +282,12 @@ namespace Celeste.Mod.SkinModHelper {
         //-----------------------------ColorGrade-----------------------------
         #region
         private static void PlayerHairRenderHook_ColorGrade(On.Celeste.PlayerHair.orig_Render orig, PlayerHair self) {
-            DynData<PlayerSprite> selfData = new DynData<PlayerSprite>(self.Sprite);
+            DynData<Image> selfData = new DynData<Image>(self.Sprite);
 
-            // Save colorgrade in typeof(PlayerSprite).
+            // Save colorgrade in typeof(Image).
             // For make typeof(PlayerDeadBody) inherited typeof(Player)'s colorgrade, or similar situations.
-            Atlas atlas = (Atlas)selfData["ColorGrade_Atlas"] ?? GFX.Game;
-            string colorGrade_Path = (string)selfData["ColorGrade_Path"];
+            Atlas atlas = selfData.Get<Atlas>("ColorGrade_Atlas") ?? GFX.Game;
+            string colorGrade_Path = selfData.Get<string>("ColorGrade_Path");
 
             if (colorGrade_Path == null) {
                 colorGrade_Path = $"{getAnimationRootPath(self.Sprite)}ColorGrading/dash";
@@ -348,11 +348,11 @@ namespace Celeste.Mod.SkinModHelper {
             }
             orig(self);
         }
-        private static void OnPlayerSpriteRender_ColorGrade(On.Celeste.PlayerSprite.orig_Render orig, PlayerSprite self) {
-            DynData<PlayerSprite> selfData = new DynData<PlayerSprite>(self);
+        private static void OnImageRender_ColorGrade(On.Monocle.Image.orig_Render orig, Image self) {
+            DynData<Image> selfData = new DynData<Image>(self);
 
-            Atlas atlas = (Atlas)selfData["ColorGrade_Atlas"] ?? GFX.Game;
-            string colorGrade_Path = (string)selfData["ColorGrade_Path"];
+            Atlas atlas = selfData.Get<Atlas>("ColorGrade_Atlas") ?? GFX.Game;
+            string colorGrade_Path = selfData.Get<string>("ColorGrade_Path");
 
             if (colorGrade_Path != null && atlas.Has(colorGrade_Path)) {
                 Effect colorGradeEffect = FxColorGrading_SMH;
