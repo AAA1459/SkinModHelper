@@ -36,6 +36,8 @@ namespace Celeste.Mod.SkinModHelper {
 
             On.Monocle.Image.Render += OnImageRender_ColorGrade;
             On.Celeste.PlayerHair.Render += PlayerHairRenderHook_ColorGrade;
+            On.Celeste.Lookout.Update += LookoutUpdateHook_ColorGrade;
+            On.Celeste.Payphone.Update += PayphoneUpdateHook_ColorGrade;
 
             On.Celeste.PlayerHair.Render += PlayerHairRenderHook;
             On.Celeste.PlayerSprite.Render += PlayerSpriteRenderHook;
@@ -81,6 +83,8 @@ namespace Celeste.Mod.SkinModHelper {
 
             On.Celeste.PlayerHair.GetHairColor -= PlayerHairGetHairColorHook;
             On.Celeste.PlayerHair.GetHairTexture -= PlayerHairGetHairTextureHook;
+            On.Celeste.Lookout.Update -= LookoutUpdateHook_ColorGrade;
+            On.Celeste.Payphone.Update -= PayphoneUpdateHook_ColorGrade;
 
             IL.Celeste.Player.UpdateHair -= patch_SpriteMode_Badeline;
             IL.Celeste.Player.DashUpdate -= patch_SpriteMode_Badeline;
@@ -369,6 +373,20 @@ namespace Celeste.Mod.SkinModHelper {
                 Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, null, matrix);
                 return;
             }
+            orig(self);
+        }
+        #endregion
+        #region
+        private static void LookoutUpdateHook_ColorGrade(On.Celeste.Lookout.orig_Update orig, Lookout self) {
+            Player player = Engine.Scene?.Tracker.GetEntity<Player>();
+            SkinModHelperInterop.CopyColorGrades(player?.Sprite, new DynData<Lookout>(self).Get<Sprite>("sprite"));
+            orig(self);
+        }
+        private static void PayphoneUpdateHook_ColorGrade(On.Celeste.Payphone.orig_Update orig, Payphone self) {
+
+            // player's dashes is usually fixed at 1 for payphone cutscenes... so probably this no real works.
+            Player player = Engine.Scene?.Tracker.GetEntity<Player>();
+            SkinModHelperInterop.CopyColorGrades(player?.Sprite, self.Sprite);
             orig(self);
         }
         #endregion

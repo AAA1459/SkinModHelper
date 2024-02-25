@@ -21,11 +21,12 @@ float4 PS_Colorgrade(float4 inPosition : SV_Position, float4 spriteColor : COLOR
 	   // unmultiply the alpha before the colorgrade, which is the whole damn reason this shader exists.
 	   color = pixel * (1.0 / pixel.a);
 	   
-	   int x = int(color.r * 255.0) / 17;
-	   int z = int(color.b * 255.0) / 17;
-	   int y = int(color.g * 255.0) / 17;
+	   // Combine int conversion and +0.5 for rounding.
+	   int x = color.r * 15.0 + 0.5;
+	   int z = color.b * 15.0 + 0.5;
+	   int y = color.g * 15.0 + 0.5;
 	   
-	   // extract the coordinates and lock them with +0.5.
+	   // extract the coordinates and lock them with +0.5, make sure it doesn't mix with adjacent colors.
 	   float Y = (y + 0.5) / 16.0;
 	   float XZ = (x + (z * 16) + 0.5) / 256.0;
 	   
