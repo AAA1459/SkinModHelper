@@ -167,7 +167,7 @@ namespace Celeste.Mod.SkinModHelper {
                 SpriteExt_TryPlay(self.Sprite, "jumpCrazy");
             }
         }
-
+        private static MethodInfo Player_SwimCheck = typeof(Player).GetMethod("SwimCheck", BindingFlags.NonPublic | BindingFlags.Instance);
         private static void PlayerSpritePlayHook(On.Monocle.Sprite.orig_Play orig, Sprite self, string id, bool restart = false, bool randomizeFrame = false) {
             string origID = id;
 
@@ -176,7 +176,7 @@ namespace Celeste.Mod.SkinModHelper {
 
                 if (!restart && self.LastAnimationID != null) {
                     DynData<Player> playerData = new DynData<Player>(player);
-                    bool SwimCheck = player.Collidable ? (bool)typeof(Player).GetMethod("SwimCheck", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(player, null) : false;
+                    bool SwimCheck = player.Collidable ? (bool)Player_SwimCheck.Invoke(player, null) : false;
 
                     if (id == "walk" && player.Holding != null) {
                         // Patched on when player running in cutscene and carrying something.
@@ -220,10 +220,14 @@ namespace Celeste.Mod.SkinModHelper {
                             return;
                         }
                     } else if (self.LastAnimationID.Contains("jumpHyper") || self.LastAnimationID.Contains("jumpSuper")) {
-                        if ((origID == "jumpFast" || origID == "fallFast" || origID == "runFast" || origID == "runWind" || (origID == "duck" && player.StartedDashing == false))
-                            && (!player.OnGround() || !playerData.Get<bool>("wasOnGround"))) {
+
+                        if ((origID == "jumpFast" || origID == "fallFast" || origID == "runFast" || origID == "runWind" || (origID == "duck" && player.StartedDashing == false) || origID == "idle" || origID == "jumpSlow")
+                            && (!player.OnGround() || !playerData.Get<bool>("wasOnGround"))
+                            && (Math.Abs(player.Speed.X) > 110f 
+                               || (playerData.Get<float>("wallSpeedRetentionTimer") > 0f && Math.Abs(playerData.Get<float>("wallSpeedRetained")) > 110f))) {
                             return;
                         }
+
                     } else if (self.LastAnimationID.Contains("wallBounce")) {
                         if ((origID == "jumpFast" || origID == "jumpSlow" || origID == "fallSlow" || origID == "fallFast") &&
                             (!playerData.Get<bool>("onGround"))) {

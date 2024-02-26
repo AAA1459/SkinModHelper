@@ -5,8 +5,12 @@
   <refill path="objects/refill/" start="idle">
     <Justify x="0.5" y="0.5"/>
     <Loop id="idle" path="idle" delay="0.1"/>
-	<Loop id="oneuse_idle" path="idle" delay="0.1"/>
 	<Anim id="flash" path="flash" delay="0.05"/>
+	<Loop id="oneuse_idle" path="idle" delay="0.1"/>
+	
+	<!-- you could adds this, 
+	     unlike oneuse_idle, it works only when if player using another mod "BetterRefillGems" -->
+	<!-- <Loop id="idlenr" path="idlenr" delay="0.1"/>  -->
   </refill>
   
   <refillTwo path="objects/refillTwo/" copy="refill"/>

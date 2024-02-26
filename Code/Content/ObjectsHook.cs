@@ -157,6 +157,9 @@ namespace Celeste.Mod.SkinModHelper {
                 PatchSprite(sprite, backup);
                 backup.Y = sprite.Y;
 
+                // let we know that BetterRefillGems working...
+                bool idlenr = sprite.CurrentAnimationID == "idlenr";
+
                 GFX.SpriteBank.CreateOn(sprite, SpriteID);
                 GFX.SpriteBank.CreateOn(flash, SpriteID);
 
@@ -165,14 +168,15 @@ namespace Celeste.Mod.SkinModHelper {
                 flash.Y = sprite.Y = backup.Y;
                 PatchSprite(backup, sprite);
 
+                sprite.Play("idle", true);
                 if (selfData.Get<bool>("oneUse")) {
-                    if (SpritePath == getAnimationRootPath(sprite, "oneuse_idle") && SpriteExt_TryPlay(sprite, "idlenr", true)) {
-                        // I guess we don't want to make the BetterRefillGems cannot work, but only for vanilla.
-                    } else {
+                    if (idlenr && SpriteExt_TryPlay(sprite, "idlenr") && SpritePath != getAnimationRootPath(sprite, "idlenr")) {
+
+                    } else if (SpritePath != getAnimationRootPath(sprite, "oneuse_idle")) {
                         sprite.Play("oneuse_idle", true);
+                    } else if (SpritePath != getAnimationRootPath(sprite, "idle")) {
+                        sprite.Play("idle", true);
                     }
-                } else {
-                    sprite.Play("idle", true);
                 }
             }
 
