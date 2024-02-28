@@ -32,7 +32,7 @@ namespace Celeste.Mod.SkinModHelper {
             IL.Celeste.DreamBlock.ctor_Vector2_float_float_Nullable1_bool_bool_bool += Celeste_DreamBlock_ILHook;
 
             On.Celeste.Refill.Added += Celeste_Refill_Hook;
-            On.Celeste.BadelineBoost.OnPlayer += BadelineBoostOnPlayerHook;
+            On.Monocle.Entity.Added += EntityAddedHook;
 
             // Hooking an anonymous delegate of Seeker
             doneILHooks.Add(new ILHook(typeof(Seeker).GetMethod("<.ctor>b__58_2", BindingFlags.NonPublic | BindingFlags.Instance), Celeste_Seeker_ILHook));
@@ -48,7 +48,7 @@ namespace Celeste.Mod.SkinModHelper {
             IL.Celeste.DreamBlock.ctor_Vector2_float_float_Nullable1_bool_bool_bool -= Celeste_DreamBlock_ILHook;
 
             On.Celeste.Refill.Added -= Celeste_Refill_Hook;
-            On.Celeste.BadelineBoost.OnPlayer -= BadelineBoostOnPlayerHook;
+            On.Monocle.Entity.Added -= EntityAddedHook;
         }
         #endregion
 
@@ -225,17 +225,31 @@ namespace Celeste.Mod.SkinModHelper {
 
         //-----------------------------BadelineBoost-----------------------------
         #region
-        private static void BadelineBoostOnPlayerHook(On.Celeste.BadelineBoost.orig_OnPlayer orig, BadelineBoost self, Player player) {
-            DynData<BadelineBoost> selfData = new DynData<BadelineBoost>(self);
+        private static void EntityAddedHook(On.Monocle.Entity.orig_Added orig, Entity self, Scene scene) {
 
-            Sprite sprite = selfData.Get<Sprite>("sprite");
-            string SpritePath = getAnimationRootPath(sprite);
-
-            if (GFX.Game.Has(SpritePath + "stretch")) {
-                Image stretch = selfData.Get<Image>("stretch");
-                stretch.Texture = GFX.Game[SpritePath + "stretch"];
+            // You can see... DJMapHelper and StrawberryJam's BadelineBoost works not as an BadelineBoost type... so let hooking here
+            if (self.GetType().Name.Contains("BadelineBoost")) {
+                BadelineBoost_stretchReskin(self);
             }
-            orig(self, player);
+
+            orig(self, scene);
+        }
+        private static void BadelineBoost_stretchReskin(Entity self) {
+            Image stretch;
+            if (self is not BadelineBoost badelineBoost) {
+                stretch = GetFieldPlus<Image>(self, "stretch");
+            } else {
+                stretch = new DynData<BadelineBoost>(badelineBoost).Get<Image>("stretch");
+            }
+
+            if (stretch != null) {
+                Sprite sprite = GetFieldPlus<Sprite>(self, "sprite") ?? GetFieldPlus<Sprite>(self, "Sprite");
+                string SpritePath = getAnimationRootPath(sprite);
+
+                if (GFX.Game.Has(SpritePath + "stretch")) {
+                    stretch.Texture = GFX.Game[SpritePath + "stretch"];
+                }
+            }
         }
         #endregion
     }

@@ -76,7 +76,7 @@ namespace Celeste.Mod.SkinModHelper {
         public static void EntityReskin(Entity entity, string SpriteID) {
 
             string search = SpriteID;
-            if (search.EndsWith("_")) { search = search.Remove(search.LastIndexOf("_")); }
+            if (search.EndsWith("_")) { search.Substring(0, search.Length - 2); }
 
             if (SpriteID != null && GFX.SpriteBank.SpriteData.ContainsKey(search)) {
                 Type entityType = entity.GetType();
