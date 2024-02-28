@@ -17,6 +17,7 @@ using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 
 namespace Celeste.Mod.SkinModHelper {
     public class ObjectsHook {
+        #region
         public static SkinModHelperSettings Settings => (SkinModHelperSettings)Instance._Settings;
         public static SkinModHelperSession Session => (SkinModHelperSession)Instance._Session;
 
@@ -31,6 +32,7 @@ namespace Celeste.Mod.SkinModHelper {
             IL.Celeste.DreamBlock.ctor_Vector2_float_float_Nullable1_bool_bool_bool += Celeste_DreamBlock_ILHook;
 
             On.Celeste.Refill.Added += Celeste_Refill_Hook;
+            On.Celeste.BadelineBoost.OnPlayer += BadelineBoostOnPlayerHook;
 
             // Hooking an anonymous delegate of Seeker
             doneILHooks.Add(new ILHook(typeof(Seeker).GetMethod("<.ctor>b__58_2", BindingFlags.NonPublic | BindingFlags.Instance), Celeste_Seeker_ILHook));
@@ -46,10 +48,12 @@ namespace Celeste.Mod.SkinModHelper {
             IL.Celeste.DreamBlock.ctor_Vector2_float_float_Nullable1_bool_bool_bool -= Celeste_DreamBlock_ILHook;
 
             On.Celeste.Refill.Added -= Celeste_Refill_Hook;
+            On.Celeste.BadelineBoost.OnPlayer -= BadelineBoostOnPlayerHook;
         }
-
+        #endregion
 
         //-----------------------------Lookout-----------------------------
+        #region
         public static void on_Lookout_Interact(On.Celeste.Lookout.orig_Interact orig, Lookout self, Player player) {
             orig(self, player);
             if (Player_Skinid_verify != 0) {
@@ -60,8 +64,10 @@ namespace Celeste.Mod.SkinModHelper {
             }
             return;
         }
+        #endregion
 
         //-----------------------------flyFeather-----------------------------
+        #region
         public static void Celeste_flyFeather_Hook(On.Celeste.FlyFeather.orig_Added orig, FlyFeather self, Scene scene) {
             orig(self, scene);
             DynData<FlyFeather> selfData = new DynData<FlyFeather>(self);
@@ -72,7 +78,10 @@ namespace Celeste.Mod.SkinModHelper {
                 outline.Texture = GFX.Game[SpritePath];
             }
         }
+        #endregion
+
         //-----------------------------Cloud-----------------------------
+        #region
         public static void Celeste_Cloud_Hook(On.Celeste.Cloud.orig_Added orig, Cloud self, Scene scene) {
             orig(self, scene);
             Sprite sprite = new DynData<Cloud>(self)["sprite"] as Sprite;
@@ -87,7 +96,10 @@ namespace Celeste.Mod.SkinModHelper {
                 new DynData<Cloud>(self)["particleType"] = particleType;
             }
         }
+        #endregion
+
         //-----------------------------Booster-----------------------------
+        #region
         public static void Celeste_Booster_ILHook(ILContext il) {
             ILCursor cursor = new(il);
 
@@ -122,7 +134,10 @@ namespace Celeste.Mod.SkinModHelper {
                 });
             }
         }
+        #endregion
+
         //-----------------------------DreamBlock-----------------------------
+        #region
         public static void Celeste_DreamBlock_ILHook(ILContext il) {
             ILCursor cursor = new(il);
 
@@ -137,7 +152,10 @@ namespace Celeste.Mod.SkinModHelper {
                 });
             }
         }
+        #endregion
+
         //-----------------------------Refill-----------------------------
+        #region
         private static void Celeste_Refill_Hook(On.Celeste.Refill.orig_Added orig, Refill self, Scene scene) {
             orig(self, scene);
             DynData<Refill> selfData = new DynData<Refill>(self);
@@ -186,7 +204,10 @@ namespace Celeste.Mod.SkinModHelper {
                 outline.Texture = GFX.Game[SpritePath];
             }
         }
+        #endregion
+
         //-----------------------------Seeker-----------------------------
+        #region
         public static void Celeste_Seeker_ILHook(ILContext il) {
             ILCursor cursor = new(il);
             while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchNewobj("Celeste.DeathEffect"))) {
@@ -200,5 +221,22 @@ namespace Celeste.Mod.SkinModHelper {
                 });
             }
         }
+        #endregion
+
+        //-----------------------------BadelineBoost-----------------------------
+        #region
+        private static void BadelineBoostOnPlayerHook(On.Celeste.BadelineBoost.orig_OnPlayer orig, BadelineBoost self, Player player) {
+            DynData<BadelineBoost> selfData = new DynData<BadelineBoost>(self);
+
+            Sprite sprite = selfData.Get<Sprite>("sprite");
+            string SpritePath = getAnimationRootPath(sprite);
+
+            if (GFX.Game.Has(SpritePath + "stretch")) {
+                Image stretch = selfData.Get<Image>("stretch");
+                stretch.Texture = GFX.Game[SpritePath + "stretch"];
+            }
+            orig(self, player);
+        }
+        #endregion
     }
 }
