@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Threading;
 using FMOD.Studio;
 using System.Linq;
+using Microsoft.Xna.Framework.Input;
 
 using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
@@ -21,12 +22,14 @@ namespace Celeste.Mod.SkinModHelper
         public static SkinModHelperSettings Settings => (SkinModHelperSettings)Instance._Settings;
         public static SkinModHelperSession Session => (SkinModHelperSession)Instance._Session;
 
+        public NewMenuCategory Category;
         public enum NewMenuCategory {
             SkinFreeConfig, None
         }
         public void CreateAllOptions(NewMenuCategory category, bool includeMasterSwitch, bool includeCategorySubmenus, bool includeRandomizer,
             Action submenuBackAction, TextMenu menu, bool inGame, bool forceEnabled) {
 
+            Category = category;
             if (category == NewMenuCategory.None) {
                 BuildPlayerSkinSelectMenu(menu, inGame);
                 BuildSilhouetteSkinSelectMenu(menu, inGame);
@@ -36,6 +39,18 @@ namespace Celeste.Mod.SkinModHelper
             }
             if (category == NewMenuCategory.SkinFreeConfig) {
                 Build_SkinFreeConfig_NewMenu(menu, inGame);
+            }
+
+            Overworld overworld = inGame ? null : OuiModOptions.Instance.Overworld;
+            InputSearchUI SearchUI = InputSearchUI.Instance;
+            if (SearchUI == null || SearchUI.Overworld != overworld) {
+                SearchUI = new InputSearchUI(overworld);
+            }
+            Engine.Scene.Add(SearchUI);
+            if (category == NewMenuCategory.SkinFreeConfig) {
+                SearchUI.ShowSearchUI = true;
+            } else {
+                SearchUI.ShowSearchUI = false;
             }
         }
         private TextMenu.SubHeader buildHeading(TextMenu menu, string headingNameResource) {
@@ -153,7 +168,6 @@ namespace Celeste.Mod.SkinModHelper
         }
 
         public void Build_SkinFreeConfig_NewMenu(TextMenu menu, bool inGame) {
-
             List<TextMenu.Option<string>> allOptions = new();
             TextMenu.OnOff SkinFreeConfig_OnOff = new TextMenu.OnOff(Dialog.Clean("SkinModHelper_SkinFreeConfig_OnOff"), Settings.FreeCollocations_OffOn);
 
@@ -168,6 +182,13 @@ namespace Celeste.Mod.SkinModHelper
                 SkinFreeConfig_OnOff.Disabled = true;
             }
             menu.Add(SkinFreeConfig_OnOff);
+
+            Action startSearching= AddSearchBox(menu);
+            menu.OnUpdate = () => {
+                if (InputSearchUI.Key.Pressed) {
+                    startSearching.Invoke();
+                }
+            };
 
             #region
             if (SpriteSkins_records.Count > 0) {
@@ -451,64 +472,98 @@ namespace Celeste.Mod.SkinModHelper
             return dict;
         }
         #endregion
+        #region
+        // Reference to EverestCore.
+        static public Action AddSearchBox(TextMenu menu, Overworld overworld = null) {
+            TextMenuExt.TextBox textBox = new(overworld) {
+                PlaceholderText = Dialog.Clean("MODOPTIONS_COREMODULE_SEARCHBOX_PLACEHOLDER")
+            };
+
+            TextMenuExt.Modal modal = new(textBox, null, 120);
+            menu.Add(modal);
+
+            Action<TextMenuExt.TextBox> searchNextMod(bool inReverse) => (TextMenuExt.TextBox textBox) => {
+                string searchTarget = textBox.Text.ToLower();
+                List<TextMenu.Item> menuItems = menu.Items;
+
+                bool searchNextPredicate(TextMenu.Item item) {
+                    string SearchTarget = item.SearchLabel();
+                    int index = menu.IndexOf(item);
+                    // Combine target's description into search.
+                    if (index + 1 < menu.Items.Count && menu.Items[index + 1] is TextMenuExt.EaseInSubHeaderExt description) {
+                        SearchTarget = (SearchTarget + description.Title).Replace("......", "");
+                    }
+
+                    return item.Visible && item.Selectable && !item.Disabled && SearchTarget != null && SearchTarget.ToLower().Contains(searchTarget);
+                }
+
+
+                if (TextMenuExt.TextBox.WrappingLinearSearch(menuItems, searchNextPredicate, menu.Selection + (inReverse ? -1 : 1), inReverse, out int targetSelectionIndex)) {
+                    if (targetSelectionIndex >= menu.Selection) {
+                        Audio.Play(SFX.ui_main_roll_down);
+                    } else {
+                        Audio.Play(SFX.ui_main_roll_up);
+                    }
+                    // make sure comment-content close when we leave or enter it by searching.
+                    menu.Items[menu.Selection].OnLeave?.Invoke();
+                    menu.Items[targetSelectionIndex].OnEnter?.Invoke();
+
+                    menu.Selection = targetSelectionIndex;
+                } else {
+                    Audio.Play(SFX.ui_main_button_invalid);
+                }
+            };
+
+            void exitSearch(TextMenuExt.TextBox textBox) {
+                textBox.StopTyping();
+                modal.Visible = false;
+                textBox.ClearText();
+            }
+
+            textBox.OnTextInputCharActions['\t'] = searchNextMod(false);
+            textBox.OnTextInputCharActions['\n'] = (_) => { };
+            textBox.OnTextInputCharActions['\r'] = (textBox) => {
+                if (MInput.Keyboard.CurrentState.IsKeyDown(Keys.LeftShift)
+                    || MInput.Keyboard.CurrentState.IsKeyDown(Keys.RightShift)) {
+                    searchNextMod(true)(textBox);
+                } else {
+                    searchNextMod(false)(textBox);
+                }
+            };
+            textBox.OnTextInputCharActions['\b'] = (textBox) => {
+                if (textBox.DeleteCharacter()) {
+                    Audio.Play(SFX.ui_main_rename_entry_backspace);
+                } else {
+                    exitSearch(textBox);
+                    Input.MenuCancel.ConsumePress();
+                }
+            };
+
+
+            textBox.AfterInputConsumed = () => {
+                if (textBox.Typing) {
+                    if (Input.ESC.Pressed || Input.MenuLeft.Pressed || Input.MenuRight.Pressed) {
+                        exitSearch(textBox);
+                        Input.ESC.ConsumePress();
+                    } else if (Input.MenuDown.Pressed) {
+                        searchNextMod(false)(textBox);
+                    } else if (Input.MenuUp.Pressed) {
+                        searchNextMod(true)(textBox);
+                    }
+                }
+            };
+
+            return () => {
+                if (menu.Focused) {
+                    modal.Visible = true;
+                    textBox.StartTyping();
+                }
+            };
+        }
+        #endregion
     }
     //-----------------------------Submenu System (from ExtendedVariant)-----------------------------
     #region
-    public class OuiSkinModHelperSubmenu : AbstractSubmenu {
-        private int savedMenuIndex = -1;
-        private TextMenu currentMenu;
-
-        public OuiSkinModHelperSubmenu() : base("SkinModHelper_mod_name", null) { }
-
-        protected override void addOptionsToMenu(TextMenu menu, bool inGame, object[] parameters) {
-            currentMenu = menu;
-
-            // variants submenus + randomizer options
-            new SkinModHelperUI().CreateAllOptions(SkinModHelperUI.NewMenuCategory.None, false, true, true,
-                () => OuiModOptions.Instance.Overworld.Goto<OuiSkinModHelperSubmenu>(),
-                menu, inGame, false /* we don't care since there is no master switch */);
-        }
-
-        public override IEnumerator Enter(Oui from) {
-            // start running Enter, so that the menu is initialized
-            IEnumerator enterEnum = base.Enter(from);
-            if (enterEnum.MoveNext())
-                yield return enterEnum.Current;
-
-            // finish running Enter
-            while (enterEnum.MoveNext())
-                yield return enterEnum.Current;
-        }
-
-        public override IEnumerator Leave(Oui next) {
-            savedMenuIndex = currentMenu.Selection;
-            currentMenu = null;
-            return base.Leave(next);
-        }
-
-        protected override void gotoMenu(Overworld overworld) {
-            overworld.Goto<OuiSkinModHelperSubmenu>();
-        }
-
-        protected override string getMenuName(object[] parameters) {
-            return base.getMenuName(parameters).ToUpperInvariant();
-        }
-
-        protected override string getButtonName(object[] parameters) {
-            return Dialog.Clean($"SkinModHelper_{(((bool)parameters[0]) ? "PAUSEMENU" : "MODOPTIONS")}_BUTTON");
-        }
-    }
-
-
-
-
-
-
-
-
-
-
-
     public static class CommonExtensions
     {
         public static EaseInSubMenu Apply<EaseInSubMenu>(this EaseInSubMenu obj, Action<EaseInSubMenu> action)
@@ -517,7 +572,6 @@ namespace Celeste.Mod.SkinModHelper
             return obj;
         }
     }
-
 
     public abstract class AbstractSubmenu : Oui, OuiModOptions.ISubmenu {
 
@@ -680,6 +734,8 @@ namespace Celeste.Mod.SkinModHelper
 
                         Instance.SaveSettings();
                         thisMenu.Close();
+                        if (InputSearchUI.Instance != null)
+                            InputSearchUI.Instance.ShowSearchUI = false;
 
                         // and open the parent menu back (this should work, right? we only removed it from the scene earlier, but it still exists and is intact)
                         // "what could possibly go wrong?" ~ famous last words
@@ -695,6 +751,8 @@ namespace Celeste.Mod.SkinModHelper
 
                         Instance.SaveSettings();
                         thisMenu.Close();
+                        if (InputSearchUI.Instance != null)
+                            InputSearchUI.Instance.ShowSearchUI = false;
 
                         level.Paused = false;
                         Engine.FreezeTimer = 0.15f;
@@ -751,7 +809,7 @@ namespace Celeste.Mod.SkinModHelper
             SkinModHelperUI.NewMenuCategory category = (SkinModHelperUI.NewMenuCategory)parameters[0];
 
             // only put the category we're in
-            new SkinModHelperUI().CreateAllOptions(category, false, false, false, null /* we don't care because there is no submenu */,
+            InstanceUI.CreateAllOptions(category, false, false, false, null /* we don't care because there is no submenu */,
                 menu, inGame, false /* we don't care because there is no master switch */);
         }
 
@@ -765,6 +823,50 @@ namespace Celeste.Mod.SkinModHelper
 
         protected override string getMenuName(object[] parameters) {
             return Dialog.Clean($"SkinModHelper_NewMenu_{(SkinModHelperUI.NewMenuCategory)parameters[0]}_opened");
+        }
+    }
+    #endregion
+
+    //-----------------------------Search Button-----------------------------
+    #region
+    public class InputSearchUI : Entity {
+        public static VirtualButton Key = Input.QuickRestart;
+        public static InputSearchUI Instance;
+        public InputSearchUI(Overworld overworld) {
+            Instance = this;
+
+            Tag = Tags.HUD | Tags.PauseUpdate;
+            Depth = -10000;
+            Add(Wiggle);
+            Overworld = overworld;
+        }
+        private float WiggleDelay;
+        private Wiggler Wiggle = Wiggler.Create(0.4f, 4f, null, false, false);
+
+        public float inputEase;
+        public bool ShowSearchUI;
+        public Overworld Overworld;
+
+        public override void Update() {
+            if (Key.Pressed && WiggleDelay <= 0f) {
+                Wiggle.Start();
+                WiggleDelay = 0.5f;
+            }
+            WiggleDelay -= Engine.DeltaTime;
+            inputEase = Calc.Approach(inputEase, (ShowSearchUI ? 1 : 0), Engine.DeltaTime * 4f);
+            base.Update();
+        }
+        public override void Render() {
+            if (inputEase > 0f) {
+                float num = 0.5f;
+                float num2 = Overworld?.ShowInputUI == true ? 48f : 0f;
+                string label = Dialog.Clean("MAPLIST_SEARCH");
+                float num3 = ButtonUI.Width(label, Key);
+
+                Vector2 position = new Vector2(1880f, 1024f - num2);
+                position.X += (40f + num3 * num + 32f) * (1f - Ease.CubeOut(inputEase));
+                ButtonUI.Render(position, label, Key, num, 1f, Wiggle.Value * 0.05f, 1f);
+            }
         }
     }
     #endregion

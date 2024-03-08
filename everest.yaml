@@ -3,7 +3,7 @@
   DLL: Code/bin/SkinModHelperPlus.dll
   Dependencies:
     - Name: Everest
-      Version: 1.4465.0
+      Version: 1.4668.0
   OptionalDependencies:
     - Name: JungleHelper
       Version: 1.0.8

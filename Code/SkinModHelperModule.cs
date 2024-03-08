@@ -26,7 +26,7 @@ namespace Celeste.Mod.SkinModHelper {
         public static SkinModHelperSettings Settings => (SkinModHelperSettings)Instance._Settings;
         public static SkinModHelperSession Session => (SkinModHelperSession)Instance._Session;
 
-        public static SkinModHelperUI UI;
+        public static SkinModHelperUI InstanceUI;
 
         public static List<Hook> doneHooks = new List<Hook>();
         public static List<ILHook> doneILHooks = new List<ILHook>();
@@ -41,7 +41,7 @@ namespace Celeste.Mod.SkinModHelper {
 
         public SkinModHelperModule() {
             Instance = this;
-            UI = new SkinModHelperUI();
+            InstanceUI = new SkinModHelperUI();
 
             JungleHelperInstalled = Everest.Loader.DependencyLoaded(new EverestModuleMetadata { Name = "JungleHelper", Version = new Version(1, 0, 8) });
             SaveFilePortraits = Everest.Loader.DependencyLoaded(new EverestModuleMetadata { Name = "SaveFilePortraits", Version = new Version(1, 0, 0) });
@@ -91,10 +91,10 @@ namespace Celeste.Mod.SkinModHelper {
 
             //UI.CreateMenu(menu, inGame);
             if (inGame) {
-                new SkinModHelperUI().CreateAllOptions(SkinModHelperUI.NewMenuCategory.None, includeMasterSwitch: true, includeCategorySubmenus: false, includeRandomizer: false, null, menu, inGame, forceEnabled: false);
+                InstanceUI.CreateAllOptions(SkinModHelperUI.NewMenuCategory.None, includeMasterSwitch: true, includeCategorySubmenus: false, includeRandomizer: false, null, menu, inGame, forceEnabled: false);
                 return;
             }
-            new SkinModHelperUI().CreateAllOptions(SkinModHelperUI.NewMenuCategory.None, includeMasterSwitch: true, includeCategorySubmenus: true, includeRandomizer: true, delegate {
+            InstanceUI.CreateAllOptions(SkinModHelperUI.NewMenuCategory.None, includeMasterSwitch: true, includeCategorySubmenus: true, includeRandomizer: true, delegate {
                 OuiModOptions.Instance.Overworld.Goto<OuiModOptions>();
             }, menu, inGame, forceEnabled: false);
         }
