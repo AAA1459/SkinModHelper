@@ -185,7 +185,7 @@ namespace Celeste.Mod.SkinModHelper
 
             Action startSearching= AddSearchBox(menu);
             menu.OnUpdate = () => {
-                if (InputSearchUI.Key.Pressed) {
+                if (InputSearchUI.Instance?.Key.Pressed == true) {
                     startSearching.Invoke();
                 }
             };
@@ -830,7 +830,7 @@ namespace Celeste.Mod.SkinModHelper
     //-----------------------------Search Button-----------------------------
     #region
     public class InputSearchUI : Entity {
-        public static VirtualButton Key = Input.QuickRestart;
+        public VirtualButton Key;
         public static InputSearchUI Instance;
         public InputSearchUI(Overworld overworld) {
             Instance = this;
@@ -839,6 +839,7 @@ namespace Celeste.Mod.SkinModHelper
             Depth = -10000;
             Add(Wiggle);
             Overworld = overworld;
+            Key = Input.QuickRestart;
         }
         private float WiggleDelay;
         private Wiggler Wiggle = Wiggler.Create(0.4f, 4f, null, false, false);
