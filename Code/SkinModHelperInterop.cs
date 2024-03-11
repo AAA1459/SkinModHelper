@@ -19,17 +19,17 @@ namespace Celeste.Mod.SkinModHelper {
 
         /// <summary> 
         /// <para> Copy the ColorGrades of source to target. </para>
-        /// <para> if tracking is true and source is Monocle.Sprite, so send an delegate to doing this when source's frame change.</para>
+        /// <para> if tracking is true, so send an delegate to doing this when source's frame change.</para>
         /// </summary>
-        public static void CopyColorGrades(Monocle.Image source, Monocle.Image target, bool tracking = false) {
-            MonoMod.Utils.DynData<Monocle.Image> sourceData = new(source);
-            MonoMod.Utils.DynData<Monocle.Image> targetData = new(target);
+        public static void CopyColorGrades(Monocle.Sprite source, Monocle.Sprite target, bool tracking = false) {
+            MonoMod.Utils.DynData<Monocle.Sprite> sourceData = new(source);
+            MonoMod.Utils.DynData<Monocle.Sprite> targetData = new(target);
 
             targetData["ColorGrade_Path"] = sourceData.Get<string>("ColorGrade_Path");
             targetData["ColorGrade_Atlas"] = sourceData.Get<Monocle.Atlas>("ColorGrade_Atlas");
             
-            if (tracking && source is Monocle.Sprite s2) {
-                s2.OnFrameChange += frame => {
+            if (tracking) {
+                source.OnFrameChange += frame => {
                     targetData["ColorGrade_Path"] = sourceData.Get<string>("ColorGrade_Path");
                     targetData["ColorGrade_Atlas"] = sourceData.Get<Monocle.Atlas>("ColorGrade_Atlas");
                 };

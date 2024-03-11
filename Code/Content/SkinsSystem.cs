@@ -83,6 +83,7 @@ namespace Celeste.Mod.SkinModHelper {
 
         public static bool first_build = true;
         public static List<string> FailedXml_record = new();
+        public static Dictionary<string, SpriteBank> Xml_records = new();
 
         /// <summary> Similar to GFX.FxColorGrading, But indexing new color on colorGrade only based the rgb color of the texture source. </summary>
         public static Effect FxColorGrading_SMH;
@@ -379,25 +380,28 @@ namespace Celeste.Mod.SkinModHelper {
             }
         }
         private static SpriteBank BuildBank(SpriteBank origBank, string skinId, string xmlPath) {
-            try {
-                SpriteBank newBank = new(origBank.Atlas, xmlPath);
+            string dir = xmlPath.Remove(xmlPath.LastIndexOf("/"));
+
+            if (Xml_records.TryGetValue(xmlPath, out SpriteBank newBank)) {
                 return newBank;
-            } catch (Exception e) {
-                if (skinId == "Default") { return null; }
-                if (skinId.EndsWith("_+")) { skinId = skinId.Remove(skinId.Length - 2); }
 
-                string dir = xmlPath.Remove(xmlPath.LastIndexOf("/"));
-
-                if (!AssetExists<AssetTypeDirectory>(dir) && !FailedXml_record.Contains(dir)) {
-                    FailedXml_record.Add(dir);
-                    Logger.Log(LogLevel.Error, "SkinModHelper", $"The xmls directory of '{skinId}' does not exist: {dir}");
-
-                } else if (AssetExists<AssetTypeXml>(xmlPath) && !FailedXml_record.Contains(xmlPath)) {
-                    FailedXml_record.Add(xmlPath);
-                    Logger.Log(LogLevel.Error, "SkinModHelper", $"The {xmlPath.Substring(xmlPath.LastIndexOf("/") + 1)} of '{skinId}' build failed! \n {xmlPath}: {e.Message}");
-                } 
+            } else if (FailedXml_record.Contains(dir) || FailedXml_record.Contains(xmlPath)) {
                 return null;
+
+            } else if (!AssetExists<AssetTypeDirectory>(dir)) {
+                FailedXml_record.Add(dir);
+                Logger.Log(LogLevel.Error, "SkinModHelper", $"The xmls directory of '{skinId}' does not exist: {dir}");
+                return null;
+
+            } else if (AssetExists<AssetTypeXml>(xmlPath)) {
+                try {
+                    return Xml_records[xmlPath] = new SpriteBank(origBank.Atlas, xmlPath);
+                } catch (Exception e) {
+                    Logger.Log(LogLevel.Error, "SkinModHelper", $"The {xmlPath.Replace(dir + "/", "")} of '{skinId}' build failed! \n {xmlPath}: {e.Message}");
+                }
             }
+            FailedXml_record.Add(xmlPath);
+            return null;
         }
         #endregion
 
@@ -487,6 +491,7 @@ namespace Celeste.Mod.SkinModHelper {
                 if (!first_build) { Logger.SetLogLevel("Atlas", LogLevel.Error); }
 
                 first_build = false;
+                Xml_records.Clear();
                 FailedXml_record.Clear();
 
                 #region

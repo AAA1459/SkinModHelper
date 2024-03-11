@@ -286,7 +286,7 @@ namespace Celeste.Mod.SkinModHelper {
         //-----------------------------ColorGrade-----------------------------
         #region
         private static void PlayerHairRenderHook_ColorGrade(On.Celeste.PlayerHair.orig_Render orig, PlayerHair self) {
-            DynData<Image> selfData = new DynData<Image>(self.Sprite);
+            DynData<Sprite> selfData = new DynData<Sprite>(self.Sprite);
 
             // Save colorgrade in typeof(Image).
             // For make typeof(PlayerDeadBody) inherited typeof(Player)'s colorgrade, or similar situations.
@@ -353,25 +353,31 @@ namespace Celeste.Mod.SkinModHelper {
             orig(self);
         }
         private static void OnImageRender_ColorGrade(On.Monocle.Image.orig_Render orig, Image self) {
-            DynData<Image> selfData = new DynData<Image>(self);
+            if (self is Sprite sprite) {
+                // filter non-Sprite type, if we don't want this line to cause a lot of lag.
+                DynData<Sprite> selfData = new DynData<Sprite>(sprite);
 
-            Atlas atlas = selfData.Get<Atlas>("ColorGrade_Atlas") ?? GFX.Game;
-            string colorGrade_Path = selfData.Get<string>("ColorGrade_Path");
+                string colorGrade_Path = selfData.Get<string>("ColorGrade_Path");
 
-            if (colorGrade_Path != null && atlas.Has(colorGrade_Path)) {
-                Effect colorGradeEffect = FxColorGrading_SMH;
-                colorGradeEffect.CurrentTechnique = colorGradeEffect.Techniques["ColorGradeSingle"];
-                Engine.Graphics.GraphicsDevice.Textures[1] = atlas[colorGrade_Path].Texture.Texture_Safe;
+                if (colorGrade_Path != null) {
+                    Atlas atlas = selfData.Get<Atlas>("ColorGrade_Atlas") ?? GFX.Game;
 
-                DynData<SpriteBatch> spriteData = new DynData<SpriteBatch>(Draw.SpriteBatch);
-                Matrix matrix = (Matrix)spriteData["transformMatrix"];
+                    if (atlas.Has(colorGrade_Path)) {
+                        Effect colorGradeEffect = FxColorGrading_SMH;
+                        colorGradeEffect.CurrentTechnique = colorGradeEffect.Techniques["ColorGradeSingle"];
+                        Engine.Graphics.GraphicsDevice.Textures[1] = atlas[colorGrade_Path].Texture.Texture_Safe;
 
-                GameplayRenderer.End();
-                Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, colorGradeEffect, matrix);
-                orig(self);
-                GameplayRenderer.End();
-                Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, null, matrix);
-                return;
+                        DynData<SpriteBatch> spriteData = new DynData<SpriteBatch>(Draw.SpriteBatch);
+                        Matrix matrix = (Matrix)spriteData["transformMatrix"];
+
+                        GameplayRenderer.End();
+                        Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, colorGradeEffect, matrix);
+                        orig(self);
+                        GameplayRenderer.End();
+                        Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, null, matrix);
+                        return;
+                    }
+                }
             }
             orig(self);
         }
@@ -383,7 +389,6 @@ namespace Celeste.Mod.SkinModHelper {
             orig(self);
         }
         private static void PayphoneUpdateHook_ColorGrade(On.Celeste.Payphone.orig_Update orig, Payphone self) {
-
             // player's dashes is usually fixed at 1 for payphone cutscenes... so probably this no real works.
             Player player = Engine.Scene?.Tracker.GetEntity<Player>();
             SkinModHelperInterop.CopyColorGrades(player?.Sprite, self.Sprite);
