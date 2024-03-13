@@ -175,7 +175,7 @@ namespace Celeste.Mod.SkinModHelper {
                 #region Animations modify and extended
 
                 if (!restart && self.LastAnimationID != null) {
-                    DynData<Player> playerData = new DynData<Player>(player);
+                    DynamicData playerData = DynamicData.For(player);
                     bool SwimCheck = player.Collidable ? (bool)Player_SwimCheck.Invoke(player, null) : false;
 
                     if (id == "walk" && player.Holding != null) {
@@ -206,7 +206,7 @@ namespace Celeste.Mod.SkinModHelper {
                             origID = id;
                         }
                         if (self.LastAnimationID.Contains(id)) {
-                            new DynData<Sprite>(self)["LastAnimationID"] = origID;
+                            DynamicData.For(self).Set("LastAnimationID", origID);
                             return;
                         }
                     } else if ((origID != id || id == "duck" || id == "lookUp") && self.LastAnimationID.Contains(id)) {
@@ -239,22 +239,25 @@ namespace Celeste.Mod.SkinModHelper {
             }
 
             if (self.Entity is Player || self.Entity is PlayerDeadBody) {
-                DynData<PlayerSprite> selfData = new DynData<PlayerSprite>(self as PlayerSprite);
-                if (selfData["spriteName_orig"] != null) {
-                    GFX.SpriteBank.CreateOn(self, (string)selfData["spriteName_orig"]);
-                    selfData["spriteName_orig"] = null;
+                DynamicData selfData = DynamicData.For(self);
+
+                string spriteName_orig = selfData.Get<string>("spriteName_orig");
+                if (spriteName_orig != null) {
+                    GFX.SpriteBank.CreateOn(self, spriteName_orig);
+                    selfData.Set("spriteName_orig", null);
                 }
 
                 if (self.Has(id)) {
                     orig(self, id, restart, randomizeFrame);
                     if (origID == "startStarFly") {
-                        new DynData<Sprite>(self)["CurrentAnimationID"] = origID;
+                        selfData.Set("CurrentAnimationID", origID);
                     }
                     return;
                 } else {
-                    if (selfData["spriteName_orig"] == null && selfData.Get<string>("spriteName") != "") {
-                        Logger.Log(LogLevel.Error, "SkinModHelper", $"'{selfData["spriteName"]}' missing animation: {id}");
-                        selfData["spriteName_orig"] = selfData["spriteName"];
+                    string spriteName = selfData.Get<string>("spriteName");
+                    if (spriteName_orig == null && spriteName != "") {
+                        Logger.Log(LogLevel.Error, "SkinModHelper", $"'{spriteName}' missing animation: {id}");
+                        selfData.Set("spriteName_orig", spriteName);
                     }
 
                     if (GFX.SpriteBank.SpriteData["player"].Sprite.Animations.ContainsKey(id)) {
@@ -298,9 +301,10 @@ namespace Celeste.Mod.SkinModHelper {
                     if (GFX.Game.HasAtlasSubtexturesAt(spritePath, 0)) {
                         return spritePath;
                     }
-                    if (new DynData<Player>(self)["SMH_DisposableLog_bsaofsdlk"] == null) {
+                    DynamicData selfData = DynamicData.For(self);
+                    if (!selfData.TryGet("SMH_DisposableLog_bsaofsdlk", out string ddd)) {
+                        selfData.Set("SMH_DisposableLog_bsaofsdlk", "");
                         Logger.Log(LogLevel.Warn, "SkinModHelper", $"Requested texture that does not exist: {spritePath}");
-                        new DynData<Player>(self)["SMH_DisposableLog_bsaofsdlk"] = "bsaofsdlk";
                     }
                     return orig;
                 });
@@ -323,7 +327,7 @@ namespace Celeste.Mod.SkinModHelper {
         #region
         private static void DeathEffectRenderHook(On.Celeste.DeathEffect.orig_Render orig, DeathEffect self) {
 
-            DynData<DeathEffect> selfData = new DynData<DeathEffect>(self);
+            DynamicData selfData = DynamicData.For(self);
 
             var spritePath = selfData.Get<string>("spritePath");
             bool? deathAnimating = selfData.Get<bool?>("deathAnimating");
@@ -331,10 +335,10 @@ namespace Celeste.Mod.SkinModHelper {
             if (self.Entity != null && spritePath == null) {
                 spritePath = "";
 
-                var sprite = new DynData<DeathEffect>(self).Get<Sprite>("sprite") ?? self.Entity.Get<Sprite>();
+                var sprite = selfData.Get<Sprite>("sprite") ?? self.Entity.Get<Sprite>();
                 if (sprite != null) {
                     float alpha = GetAlpha(sprite.Color);
-                    if (alpha < 1f && self.Color.A == 1f) { self.Color = self.Color * alpha; }
+                    if (alpha < 1f && self.Color.A == 1f) self.Color = self.Color * alpha;
 
                     if (sprite.Has("deathExAnim")) {
                         InsertDeathAnimation(self, sprite, "deathExAnim");
@@ -354,7 +358,7 @@ namespace Celeste.Mod.SkinModHelper {
                         spritePath = overridePath == "death_particle" ? spritePath : overridePath;
                     }
                 }
-                selfData["spritePath"] = spritePath;
+                selfData.Set("spritePath", spritePath);
             }
 
             if (deathAnimating == true) {
@@ -365,7 +369,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         public static void DeathEffectNewDraw(Vector2 position, Color color, float ease, string spritePath = "") {
             float alpha = GetAlpha(color);
-            if (alpha <= 0f) { return; }
+            if (alpha <= 0f) return;
             spritePath = (spritePath == null || !GFX.Game.Has(spritePath)) ? "characters/player/hair00" : spritePath;
 
             Color outline = Color.Black * alpha;
@@ -420,12 +424,12 @@ namespace Celeste.Mod.SkinModHelper {
             }
 
             deathAnim.Play(id);
-            new DynData<DeathEffect>(self)["deathAnimating"] = true;
+            DynamicData.For(self).Set("deathAnimating", true);
 
             deathAnim.OnFinish = anim => {
                 deathAnim.Visible = false;
                 entity.RemoveSelf();
-                new DynData<DeathEffect>(self)["deathAnimating"] = false;
+                if (self != null) DynamicData.For(self).Set("deathAnimating", false);
             };
         }
         #endregion
@@ -434,7 +438,7 @@ namespace Celeste.Mod.SkinModHelper {
         private static void DeathEffectDrawHook(On.Celeste.DeathEffect.orig_Draw orig, Vector2 position, Color color, float ease) {
             Entity entity = null;
             foreach (Player player in (Engine.Scene as Level)?.Tracker?.GetEntities<Player>()) {
-                if (player.Center + new DynData<Player>(player).Get<Vector2>("deadOffset") == position) {
+                if (player.Center + DynamicData.For(player).Get<Vector2>("deadOffset") == position) {
                     entity = player;
                     break;
                 }
@@ -442,7 +446,7 @@ namespace Celeste.Mod.SkinModHelper {
             Sprite sprite = entity?.Get<PlayerSprite>() ?? entity?.Get<Sprite>();
             if (sprite != null) {
                 float alpha = GetAlpha(sprite.Color);
-                if (alpha < 1f && color.A == 255) { color = color * alpha; }
+                if (alpha < 1f && color.A == 255) color = color * alpha;
 
                 string spritePath = getAnimationRootPath(sprite);
                 string scolor = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{spritePath}skinConfig/" + "CharacterConfig")?.DeathParticleColor;

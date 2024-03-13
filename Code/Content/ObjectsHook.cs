@@ -57,9 +57,9 @@ namespace Celeste.Mod.SkinModHelper {
         public static void on_Lookout_Interact(On.Celeste.Lookout.orig_Interact orig, Lookout self, Player player) {
             orig(self, player);
             if (Player_Skinid_verify != 0) {
-                DynData<Lookout> selfData = new DynData<Lookout>(self);
+                DynamicData selfData = DynamicData.For(self);
                 if (selfData.Get<string>("animPrefix") == "badeline_" || selfData.Get<string>("animPrefix") == "nobackpack_") {
-                    selfData["animPrefix"] = "";
+                    selfData.Set("animPrefix", "");
                 }
             }
             return;
@@ -70,11 +70,11 @@ namespace Celeste.Mod.SkinModHelper {
         #region
         public static void Celeste_flyFeather_Hook(On.Celeste.FlyFeather.orig_Added orig, FlyFeather self, Scene scene) {
             orig(self, scene);
-            DynData<FlyFeather> selfData = new DynData<FlyFeather>(self);
+            DynamicData selfData = DynamicData.For(self);
 
-            string SpritePath = getAnimationRootPath(selfData["sprite"] as Sprite) + "outline";
+            string SpritePath = getAnimationRootPath(selfData.Get<Sprite>("sprite")) + "outline";
             if (GFX.Game.Has(SpritePath)) {
-                Image outline = selfData["outline"] as Image;
+                Image outline = selfData.Get<Image>("outline");
                 outline.Texture = GFX.Game[SpritePath];
             }
         }
@@ -84,16 +84,17 @@ namespace Celeste.Mod.SkinModHelper {
         #region
         public static void Celeste_Cloud_Hook(On.Celeste.Cloud.orig_Added orig, Cloud self, Scene scene) {
             orig(self, scene);
-            Sprite sprite = new DynData<Cloud>(self)["sprite"] as Sprite;
+            DynamicData selfData = DynamicData.For(self);
+            Sprite sprite = selfData.Get<Sprite>("sprite");
 
             string SpritePath = getAnimationRootPath(sprite);
 
             if (GFX.Game.Has(SpritePath + "clouds")) {
-                ParticleType particleType = new(new DynData<Cloud>(self)["particleType"] as ParticleType);
+                ParticleType particleType = new(selfData.Get<ParticleType>("particleType"));
 
                 particleType.Source = GFX.Game[SpritePath + "clouds"];
                 particleType.Color = Color.White;
-                new DynData<Cloud>(self)["particleType"] = particleType;
+                selfData.Set("particleType", particleType);
             }
         }
         #endregion
@@ -128,7 +129,7 @@ namespace Celeste.Mod.SkinModHelper {
                                 particleType.Color = Color.White;
                             }
                         }
-                        if (GFX.Game.Has(SpritePath + "outline")) { return SpritePath + "outline"; }
+                        if (GFX.Game.Has(SpritePath + "outline")) return SpritePath + "outline";
                     }
                     return orig;
                 });
@@ -158,7 +159,7 @@ namespace Celeste.Mod.SkinModHelper {
         #region
         private static void Celeste_Refill_Hook(On.Celeste.Refill.orig_Added orig, Refill self, Scene scene) {
             orig(self, scene);
-            DynData<Refill> selfData = new DynData<Refill>(self);
+            DynamicData selfData = DynamicData.For(self);
 
             string SpriteID = null;
 
@@ -199,8 +200,7 @@ namespace Celeste.Mod.SkinModHelper {
             }
 
             SpritePath = getAnimationRootPath(sprite) + "outline";
-            if (GFX.Game.Has(SpritePath)) {
-                Image outline = selfData["outline"] as Image;
+            if (GFX.Game.Has(SpritePath) && selfData.TryGet("outline", out Image outline)) {
                 outline.Texture = GFX.Game[SpritePath];
             }
         }
@@ -216,7 +216,8 @@ namespace Celeste.Mod.SkinModHelper {
 
                     // 'Celeste.Seeker' Created new 'Monocle.Entity' to made an 'Celeste.DeathEffect'
                     // But that let we cannot get Seeker's data by {orig.Entity} in DeathEffect, so we self to add that data
-                    new DynData<DeathEffect>(orig)["sprite"] = new DynData<Seeker>(self)["sprite"];
+                    Sprite sprite = DynamicData.For(self).Get<Sprite>("sprite");
+                    DynamicData.For(orig).Set("sprite", sprite);
                     return orig;
                 });
             }
@@ -235,12 +236,7 @@ namespace Celeste.Mod.SkinModHelper {
             orig(self, scene);
         }
         private static void BadelineBoost_stretchReskin(Entity self) {
-            Image stretch;
-            if (self is not BadelineBoost badelineBoost) {
-                stretch = GetFieldPlus<Image>(self, "stretch");
-            } else {
-                stretch = new DynData<BadelineBoost>(badelineBoost).Get<Image>("stretch");
-            }
+            Image stretch = GetFieldPlus<Image>(self, "stretch");
 
             if (stretch != null) {
                 Sprite sprite = GetFieldPlus<Sprite>(self, "sprite") ?? GetFieldPlus<Sprite>(self, "Sprite");

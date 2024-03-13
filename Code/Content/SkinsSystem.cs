@@ -251,8 +251,8 @@ namespace Celeste.Mod.SkinModHelper {
 
             if (self.Has(newId)) {
                 id = newId;
-                if (sprite is PlayerSprite) {
-                    new DynData<PlayerSprite>((PlayerSprite)sprite)["spriteName"] = id;
+                if (sprite is PlayerSprite playerSprite) {
+                    DynamicData.For(playerSprite).Set("spriteName", id);
                 }
             }
             return orig(self, sprite, id);
@@ -284,7 +284,8 @@ namespace Celeste.Mod.SkinModHelper {
                         SpriteSkin_record[spriteId] = null;
 
                         // Automatically check if origID has Metadata.
-                        if (new DynData<PlayerSprite>(null).Get<Dictionary<string, PlayerAnimMetadata>>("FrameMetadata").ContainsKey($"{(origSpriteData.Sprite.Has("idle") ? origSpriteData.Sprite.GetFrame("idle", 0) : origSpriteData.Sprite.Texture)}")) {
+                        MTexture mTexture = origSpriteData.Sprite.Has("idle") ? origSpriteData.Sprite.GetFrame("idle", 0) : origSpriteData.Sprite.Texture;
+                        if (new DynamicData(typeof(PlayerSprite)).Get<Dictionary<string, PlayerAnimMetadata>>("FrameMetadata").ContainsKey($"{mTexture}")) {
                             PlayerSprite.CreateFramesMetadata(newSpriteId);
                         }
                     } else if (origBank == GFX.PortraitsSpriteBank && !string.IsNullOrEmpty(skinId)) {
@@ -395,9 +396,10 @@ namespace Celeste.Mod.SkinModHelper {
 
             } else if (AssetExists<AssetTypeXml>(xmlPath)) {
                 try {
-                    return Xml_records[xmlPath] = new SpriteBank(origBank.Atlas, xmlPath);
+                    SpriteBank newBank_2 = new SpriteBank(origBank.Atlas, xmlPath);
+                    return Xml_records[xmlPath] = newBank_2;
                 } catch (Exception e) {
-                    Logger.Log(LogLevel.Error, "SkinModHelper", $"The {xmlPath.Replace(dir + "/", "")} of '{skinId}' build failed! \n {xmlPath}: {e.Message}");
+                    Logger.Log(LogLevel.Error, "SkinModHelper", $"The {xmlPath.Replace(dir + "/", "")} of '{skinId.Replace("_+", "")}' build failed! \n {xmlPath}: {e.Message}");
                 }
             }
             FailedXml_record.Add(xmlPath);
@@ -670,7 +672,7 @@ namespace Celeste.Mod.SkinModHelper {
         #region
         public static string getAnimationRootPath(object type) {
             if (type is PlayerSprite playerSprite) {
-                string spriteName = new DynData<PlayerSprite>(playerSprite).Get<string>("spriteName");
+                string spriteName = DynamicData.For(playerSprite).Get<string>("spriteName");
                 if (spriteName != null && GFX.SpriteBank.SpriteData.ContainsKey(spriteName)) {
                     SpriteData spriteData = GFX.SpriteBank.SpriteData[spriteName];
 
