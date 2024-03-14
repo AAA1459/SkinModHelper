@@ -137,12 +137,25 @@ namespace Celeste.Mod.SkinModHelper {
             orig(self, mode);
             int requestMode = (int)(isGhost ? (1 << 31) + mode : mode);
 
-
             foreach (SkinModHelperConfig config in skinConfigs.Values) {
                 if (requestMode == config.hashValues) {
                     string id = config.Character_ID;
                     selfData.Set("spriteName", id);
                     GFX.SpriteBank.CreateOn(self, id);
+
+                    if (config.JungleLanternMode == true) {
+                        // replay the "idle" sprite to make it apply immediately.
+                        self.Play("idle", restart: true);
+
+                        // when the look up animation finishes, rewind it to frame 7: this way we are getting 7-11 playing in a loop.
+                        self.OnFinish += anim => {
+                            if (anim == "lookUp") {
+                                self.Play("lookUp", restart: true);
+                                self.SetAnimationFrame(5);
+                            }
+                        };
+                    }
+                    break;
                 }
             }
 
@@ -162,22 +175,6 @@ namespace Celeste.Mod.SkinModHelper {
                 Logger.Log(LogLevel.Verbose, "SkinModHelper", $"GhostModeValue: {requestMode}");
             } else {
                 Logger.Log(LogLevel.Debug, "SkinModHelper", $"PlayerModeValue: {requestMode}");
-            }
-
-            foreach (SkinModHelperConfig config in skinConfigs.Values) {
-                if (config.JungleLanternMode == true && (requestMode == config.hashValues)) {
-
-                    // replay the "idle" sprite to make it apply immediately.
-                    self.Play("idle", restart: true);
-
-                    // when the look up animation finishes, rewind it to frame 7: this way we are getting 7-11 playing in a loop.
-                    self.OnFinish += anim => {
-                        if (anim == "lookUp") {
-                            self.Play("lookUp", restart: true);
-                            self.SetAnimationFrame(5);
-                        }
-                    };
-                }
             }
         }
 
@@ -385,7 +382,7 @@ namespace Celeste.Mod.SkinModHelper {
         #region
         private static void LookoutUpdateHook_ColorGrade(On.Celeste.Lookout.orig_Update orig, Lookout self) {
             Player player = Engine.Scene?.Tracker.GetEntity<Player>();
-            SkinModHelperInterop.CopyColorGrades(player?.Sprite, new DynamicData(self).Get<Sprite>("sprite"));
+            SkinModHelperInterop.CopyColorGrades(player?.Sprite, DynamicData.For(self).Get<Sprite>("sprite"));
             orig(self);
         }
         private static void PayphoneUpdateHook_ColorGrade(On.Celeste.Payphone.orig_Update orig, Payphone self) {
@@ -403,7 +400,7 @@ namespace Celeste.Mod.SkinModHelper {
 
             // rendering run multiple times in one frame, but we don't need to do much. so...
             if (selfData.Get("SMH_OncePerFrame") == null) {
-                if (self.Entity is not Player && selfData.Get("isGhost") == null) {
+                if (self.Entity is not Player && self.Entity is not PlayerDeadBody && selfData.Get("isGhost") == null) {
                     string rootPath = getAnimationRootPath(self);
                     CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "CharacterConfig") ?? new();
                     ModeConfig.ModeInitialize(self.Mode);
@@ -435,7 +432,7 @@ namespace Celeste.Mod.SkinModHelper {
                 self.Sprite.HairCount = (int)length;
             }
 
-            if (self.Entity is Player player && player.StateMachine.State == 14 && selfData.Get("HairColors") == null) {
+            if (self.Entity is Player player && player.StateMachine.State == 14 && !selfData.TryGet("HairColors", out object obj)) {
                 #region
                 //Check if config from v0.7 Before---
                 string isOld = OldConfigCheck(self.Sprite);
@@ -457,7 +454,9 @@ namespace Celeste.Mod.SkinModHelper {
                 selfData.Set("HairFlash", hairConfig.HairFlash != false);
 
                 if (Build_switch) {
-                    selfData.Set("HairColors", HairConfig.BuildHairColors(hairConfig, ModeConfig));
+                    var HairColors = HairConfig.BuildHairColors(hairConfig, ModeConfig);
+                    selfData.Set("HairColors", HairColors);
+                    self.Color = HairColors[100][(int)GetDashCount(player)];
                 } else {
                     selfData.Set("HairColors", null);
                 }
@@ -733,8 +732,8 @@ namespace Celeste.Mod.SkinModHelper {
                 return SetStartedDashingCount(player);
             return (int)dashCount;
         }
-        public static int SetStartedDashingCount(Player player) {
-            int dashCount = Math.Max(Math.Min(player.Dashes - 1, MAX_DASHES), 0);
+        public static int SetStartedDashingCount(Player player, int? count = null) {
+            int dashCount = Math.Max(Math.Min(count ?? player.Dashes - 1, MAX_DASHES), 0);
             DynamicData.For(player).Set("TrailDashCount", dashCount);
             return dashCount;
         }

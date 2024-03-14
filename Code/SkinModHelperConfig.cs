@@ -39,7 +39,7 @@ namespace Celeste.Mod.SkinModHelper {
         public string SkinDialogKey { get; set; }
         public string hashSeed { get; set; }
 
-        public int hashValues;
+        public int hashValues = -1;
     }
 
 
@@ -117,7 +117,7 @@ namespace Celeste.Mod.SkinModHelper {
 
             if (build_object.HairColors != null) {
                 foreach (HairColor hairColor in build_object.HairColors) {
-                    if (hairColor.Dashes >= 0 && hairColor.Dashes <= MAX_DASHES && hairColor.SegmentsColors != null) {
+                    if (changed[hairColor.Dashes] && hairColor.SegmentsColors != null) {
 
                         foreach (HairColor.SegmentsColor SegmentColor in hairColor.SegmentsColors) {
                             if (SegmentColor.Segment <= MAX_HAIRLENGTH && hairColorRegex.IsMatch(SegmentColor.Color)) {
@@ -152,12 +152,14 @@ namespace Celeste.Mod.SkinModHelper {
             DashCount = Math.Max(Math.Min((int)DashCount, MAX_DASHES), -1);
             // -1 for when player into flyFeathers state.
 
+            int getCount = 1;
             foreach (HairLength hairLength in build_object.HairLengths) {
                 if (DashCount == hairLength.Dashes) {
                     HairLength = hairLength.Length;
                     break;
-                } else if (DashCount > 2 && hairLength.Dashes > 1 && DashCount > hairLength.Dashes) {
+                } else if (DashCount > 2 && DashCount > hairLength.Dashes && hairLength.Dashes > getCount) {
                     // Autofill HairLength if DashCount over config setted
+                    getCount = hairLength.Dashes;
                     HairLength = hairLength.Length;
                 }
             }
