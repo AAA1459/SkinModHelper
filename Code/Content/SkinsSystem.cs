@@ -606,6 +606,28 @@ namespace Celeste.Mod.SkinModHelper {
             }
             return c1;
         }
+        /// <returns> 
+        /// return false if target's RGB over sample
+        /// </returns>
+        public static bool ColorSplitter(Color target, Color sample, out Color? value) {
+            value = null;
+            if (target.A == 0 || sample.A == 0) {
+                return false;
+            }
+            target = target * (255f / target.A);
+            sample = sample * (255f / sample.A);
+            if (target.R > sample.R || target.G > sample.G || target.B > sample.B) {
+                return false;
+            } else if (target == sample) {
+                value = Color.White;
+                return true;
+            }
+            int R = sample.R == 0 ? 0 : target.R * 255 / sample.R;
+            int G = sample.G == 0 ? 0 : target.G * 255 / sample.G;
+            int B = sample.B == 0 ? 0 : target.B * 255 / sample.B;
+            value = new Color(R, G, B);
+            return true;
+        }
         #endregion
         #region
         public static string getSkinDefaultValues(SpriteBank selfBank, string SpriteID) {

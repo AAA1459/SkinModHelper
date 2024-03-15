@@ -400,18 +400,21 @@ namespace Celeste.Mod.SkinModHelper {
 
             // rendering run multiple times in one frame, but we don't need to do much. so...
             if (selfData.Get("SMH_OncePerFrame") == null) {
-                if (self.Entity is not Player && self.Entity is not PlayerDeadBody && selfData.Get("isGhost") == null) {
-                    string rootPath = getAnimationRootPath(self);
-                    CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "CharacterConfig") ?? new();
-                    ModeConfig.ModeInitialize(self.Mode);
+                if (self.Entity is not Player && selfData.Get("isGhost") == null && self.Entity is not PlayerDeadBody) {
 
-                    if (ModeConfig.SilhouetteMode == true) {
-                        PlayerHair hair = self.Entity.Get<PlayerHair>();
-                        if (hair?.Sprite == self) {
+                    PlayerHair hair = self.Entity.Get<PlayerHair>();
+                    if (hair?.Sprite == self) {
+
+                        string rootPath = getAnimationRootPath(self);
+                        CharacterConfig ModeConfig = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "CharacterConfig") ?? new();
+                        ModeConfig.ModeInitialize(self.Mode);
+
+                        if (ModeConfig.SilhouetteMode == true) {
                             self.Color = hair.Color * hair.Alpha;
+
+                        } else if (self.Color == hair.Color * hair.Alpha) {
+                            self.Color = Color.White * hair.Alpha;
                         }
-                    } else if (ModeConfig.SilhouetteMode == false) {
-                        self.Color = Color.White * GetAlpha(self.Color);
                     }
                 }
                 selfData.Set("SMH_OncePerFrame", true);
