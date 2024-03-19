@@ -75,17 +75,18 @@ namespace Celeste.Mod.SkinModHelper {
                     Send("Outputs the ID or its current skin's the root path.  ID is ID from Sprites.xml");
                     Send($" skinmodhelper {subCommand} [id] [optional anim-id]");
                 } else if (GFX.SpriteBank.Has(name)) {
-                    string skin = GetSpriteBankIDSkin(name).Replace("_+", "");
+                    string skin = GetSpriteBankIDSkin(name);
                     Sprite sprite = GFX.SpriteBank.SpriteData[skin].Sprite;
+                    skin = skin.Substring(name.Length).Replace("_+", "(player)");
 
                     if (subname == null) {
                         string path = getAnimationRootPath(sprite);
-                        Send($"'{name}'--'{skin.Substring(name.Length)}' rootpath: {path}");
+                        Send($"'{name}'--'{skin}' rootpath: {path}");
                     } else if (sprite.Has(subname)) {
                         string path = getAnimationRootPath(sprite, subname);
-                        Send($"'{name}'--'{skin.Substring(name.Length)}'--'{subname}' rootpath: {path}");
+                        Send($"'{name}'--'{skin}'--'{subname}' rootpath: {path}");
                     } else {
-                        Send($"Does not exist anim '{subname}' in '{name}'--'{skin.Substring(name.Length)}'");
+                        Send($"Does not exist anim '{subname}' in '{name}'--'{skin}'");
                     }
                 } else {
                     Send($"Does not exist '{name}' in Sprites.xml");
