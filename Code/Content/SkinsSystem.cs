@@ -316,6 +316,8 @@ namespace Celeste.Mod.SkinModHelper {
                     RecordOtherSprite(GFX.Game, $"{config.OtherSprite_Path}/objects/dreamblock/particles", "dreamblock_particles", Name);
                     RecordOtherSprite(GFX.Game, $"{config.OtherSprite_Path}/particles/feather", "feather_particles", Name);
                     RecordOtherSprite(MTN.Mountain, $"{config.OtherSprite_Path}/marker/runBackpack", "Mountain_marker", Name, true);
+                    RecordOtherSprite(GFX.Game, $"{config.OtherSprite_Path}/Gui/hover/highlight", "highlight", Name);
+                    RecordOtherSprite(GFX.Game, $"{config.OtherSprite_Path}/Gui/hover/idle", "idle", Name);
                 }
             }
 
@@ -332,6 +334,8 @@ namespace Celeste.Mod.SkinModHelper {
                     RecordOtherSprite(GFX.Game, $"{config.OtherSprite_ExPath}/objects/dreamblock/particles", "dreamblock_particles", config.SkinName);
                     RecordOtherSprite(GFX.Game, $"{config.OtherSprite_ExPath}/particles/feather", "feather_particles", config.SkinName);
                     RecordOtherSprite(MTN.Mountain, $"{config.OtherSprite_ExPath}/marker/runBackpack", "Mountain_marker", config.SkinName, true);
+                    RecordOtherSprite(GFX.Game, $"{config.OtherSprite_Path}/Gui/hover/highlight", "highlight", Name);
+                    RecordOtherSprite(GFX.Game, $"{config.OtherSprite_Path}/Gui/hover/idle", "idle", Name);
                 }
             }
         }
