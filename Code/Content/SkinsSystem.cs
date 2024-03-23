@@ -24,18 +24,18 @@ namespace Celeste.Mod.SkinModHelper {
         public static SkinModHelperSettings Settings => (SkinModHelperSettings)Instance._Settings;
         public static SkinModHelperSession Session => (SkinModHelperSession)Instance._Session;
 
-        public static Dictionary<string, string> SpriteSkin_record = new();
-        public static Dictionary<string, List<string>> SpriteSkins_records = new();
+        public static Dictionary<string, string> SpriteSkin_record = new(StringComparer.OrdinalIgnoreCase);
+        public static Dictionary<string, List<string>> SpriteSkins_records = new(StringComparer.OrdinalIgnoreCase);
 
-        public static Dictionary<string, string> PortraitsSkin_record = new();
-        public static Dictionary<string, List<string>> PortraitsSkins_records = new();
+        public static Dictionary<string, string> PortraitsSkin_record = new(StringComparer.OrdinalIgnoreCase);
+        public static Dictionary<string, List<string>> PortraitsSkins_records = new(StringComparer.OrdinalIgnoreCase);
 
-        public static Dictionary<string, string> OtherSkin_record = new();
-        public static Dictionary<string, List<string>> OtherSkins_records = new();
+        public static Dictionary<string, string> OtherSkin_record = new(StringComparer.OrdinalIgnoreCase);
+        public static Dictionary<string, List<string>> OtherSkins_records = new(StringComparer.OrdinalIgnoreCase);
 
-        public static Dictionary<string, SkinModHelperConfig> skinConfigs = new();
-        public static Dictionary<string, SkinModHelperConfig> OtherskinConfigs = new();
-        public static Dictionary<string, SkinModHelperOldConfig> OtherskinOldConfig = new();
+        public static Dictionary<string, SkinModHelperConfig> skinConfigs = new(StringComparer.OrdinalIgnoreCase);
+        public static Dictionary<string, SkinModHelperConfig> OtherskinConfigs = new(StringComparer.OrdinalIgnoreCase);
+        public static Dictionary<string, SkinModHelperOldConfig> OtherskinOldConfig = new(StringComparer.OrdinalIgnoreCase);
 
         public static void Load() {
             Everest.Content.OnUpdate += EverestContentUpdateHook;

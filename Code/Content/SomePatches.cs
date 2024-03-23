@@ -12,6 +12,7 @@ using Mono.Cecil.Cil;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Xml;
 
 using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
@@ -116,7 +117,7 @@ namespace Celeste.Mod.SkinModHelper {
             }
         }
 
-        // ReplacePortraitPath makes textbox path funky, so correct to our real path or revert to vanilla if it does not exist
+        // ReplacePortraitPath makes textbox_ask path funky, so correct to our real path or revert to vanilla for prevent crashes
         private static string ReplaceTextboxPath(string textboxPath) {
 
             string PortraitId = $"portrait_{textboxPath.Remove(textboxPath.LastIndexOf("_")).Replace("textbox/", "")}"; // "textbox/[skin id]_ask"
@@ -133,19 +134,27 @@ namespace Celeste.Mod.SkinModHelper {
             }
             return textboxPath;
         }
+
+        // Relinking portrait skin's textbox and sfx.
         private static FancyText.Portrait ReplacePortraitPath(FancyText.Portrait portrait) {
 
-            string skinId = portrait.SpriteId;
-
-            foreach (string SpriteId in PortraitsSkins_records.Keys) {
-                //Ignore case of string
-                if (string.Compare(SpriteId, skinId, true) == 0) {
-                    skinId = GetPortraitsBankIDSkin(SpriteId);
-                }
-            }
+            string skinId = GetPortraitsBankIDSkin(portrait.SpriteId);
 
             if (GFX.PortraitsSpriteBank.Has(skinId)) {
                 portrait.Sprite = skinId.Replace("portrait_", "");
+
+                XmlElement xml = GFX.PortraitsSpriteBank.SpriteData[skinId].Sources[0].XML;
+
+                portrait.SfxEvent = "event:/char/dialogue/" + xml.Attr("sfx");
+                if (xml.HasChild("sfxs")) {
+                    foreach (object obj in xml["sfxs"]) {
+                        XmlElement xmlElement = obj as XmlElement;
+                        if (xmlElement != null && xmlElement.Name.Equals(portrait.Animation, StringComparison.InvariantCultureIgnoreCase)) {
+                            portrait.SfxExpression = xmlElement.AttrInt("index");
+                            break;
+                        }
+                    }
+                }
             }
             return portrait;
         }
