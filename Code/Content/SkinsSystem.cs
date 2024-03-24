@@ -260,6 +260,8 @@ namespace Celeste.Mod.SkinModHelper {
         #endregion
 
         #region
+        private static Dictionary<string, PlayerAnimMetadata> FrameMetadata = typeof(PlayerSprite).GetField("FrameMetadata", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null) as Dictionary<string, PlayerAnimMetadata>;
+
         // Combine skin mod XML with a vanilla sprite bank
         private static void CombineSpriteBanks(SpriteBank origBank, string skinId, string xmlPath, bool Enabled) {
             SpriteBank newBank = BuildBank(origBank, skinId, xmlPath);
@@ -285,7 +287,7 @@ namespace Celeste.Mod.SkinModHelper {
 
                         // Automatically check if origID has Metadata.
                         MTexture mTexture = origSpriteData.Sprite.Has("idle") ? origSpriteData.Sprite.GetFrame("idle", 0) : origSpriteData.Sprite.Texture;
-                        if (new DynamicData(typeof(PlayerSprite)).Get<Dictionary<string, PlayerAnimMetadata>>("FrameMetadata").ContainsKey($"{mTexture}")) {
+                        if (FrameMetadata.ContainsKey($"{mTexture}")) {
                             PlayerSprite.CreateFramesMetadata(newSpriteId);
                         }
                     } else if (origBank == GFX.PortraitsSpriteBank && !string.IsNullOrEmpty(skinId)) {
