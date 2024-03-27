@@ -145,13 +145,15 @@ namespace Celeste.Mod.SkinModHelper {
 
                 XmlElement xml = GFX.PortraitsSpriteBank.SpriteData[skinId].Sources[0].XML;
 
-                portrait.SfxEvent = "event:/char/dialogue/" + xml.Attr("sfx");
-                if (xml.HasChild("sfxs")) {
-                    foreach (object obj in xml["sfxs"]) {
-                        XmlElement xmlElement = obj as XmlElement;
-                        if (xmlElement != null && xmlElement.Name.Equals(portrait.Animation, StringComparison.InvariantCultureIgnoreCase)) {
-                            portrait.SfxExpression = xmlElement.AttrInt("index");
-                            break;
+                if (xml.HasAttr("sfx")) {
+                    portrait.SfxEvent = "event:/char/dialogue/" + xml.Attr("sfx");
+                    if (xml.HasChild("sfxs")) {
+                        foreach (object obj in xml["sfxs"]) {
+                            XmlElement xmlElement = obj as XmlElement;
+                            if (xmlElement != null && xmlElement.Name.Equals(portrait.Animation, StringComparison.InvariantCultureIgnoreCase)) {
+                                portrait.SfxExpression = xmlElement.AttrInt("index", 1);
+                                break;
+                            }
                         }
                     }
                 }
