@@ -402,7 +402,7 @@ namespace Celeste.Mod.SkinModHelper {
             if (selfData.Get("SMH_OncePerFrame") == null) {
                 if (self.Entity is not Player && selfData.Get("isGhost") == null && self.Entity is not PlayerDeadBody) {
 
-                    PlayerHair hair = self.Entity.Get<PlayerHair>();
+                    PlayerHair hair = self.Entity?.Get<PlayerHair>();
                     if (hair?.Sprite == self) {
 
                         string rootPath = getAnimationRootPath(self);
@@ -476,14 +476,16 @@ namespace Celeste.Mod.SkinModHelper {
             if (selfData.Get("SMH_OncePerFrame") == null) {
                 #region
                 //Check if config from v0.7 Before---
-                string isOld = OldConfigCheck(self.Sprite);
-                if (isOld != null) {
-                    selfData.Set("HairFlash", false);
-                    selfData.Set("HairColors", SkinModHelperOldConfig.BuildHairColors(OtherskinOldConfig[isOld]));
-                    self.Border = Color.Black;
-                    orig(self);
-                    selfData.Set("SMH_OncePerFrame", true);
-                    return;
+                if (self.Entity is Player) {
+                    string isOld = OldConfigCheck(self.Sprite);
+                    if (isOld != null) {
+                        selfData.Set("HairFlash", false);
+                        selfData.Set("HairColors", SkinModHelperOldConfig.BuildHairColors(OtherskinOldConfig[isOld]));
+                        self.Border = Color.Black;
+                        orig(self);
+                        selfData.Set("SMH_OncePerFrame", true);
+                        return;
+                    }
                 }
                 //---
 

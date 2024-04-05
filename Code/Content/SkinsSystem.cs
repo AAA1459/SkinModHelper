@@ -88,6 +88,19 @@ namespace Celeste.Mod.SkinModHelper {
         /// <summary> Similar to GFX.FxColorGrading, But indexing new color on colorGrade only based the rgb color of the texture source. </summary>
         public static Effect FxColorGrading_SMH;
         #endregion
+        #region
+
+        /// <summary> 
+        /// Invoke when after SkinRefresh.  both values respectively as Xmls_refresh and inGame 
+        /// </summary>
+        public static Action<bool, bool> afterSkinRefresh;
+
+        /// <summary> 
+        /// Invoke when before SkinRefresh.  both values respectively as Xmls_refresh and inGame 
+        /// </summary>
+        public static Action<bool, bool> beforeSkinRefresh;
+
+        #endregion
 
         //-----------------------------Build Skins-----------------------------
         #region
@@ -481,6 +494,7 @@ namespace Celeste.Mod.SkinModHelper {
         //-----------------------------Skins Refresh-----------------------------
         #region
         public static void RefreshSkins(bool Xmls_refresh, bool inGame = true) {
+            beforeSkinRefresh?.Invoke(Xmls_refresh, inGame);
             if (!inGame) {
                 Player_Skinid_verify = 0;
 
@@ -537,6 +551,7 @@ namespace Celeste.Mod.SkinModHelper {
                 Logger.SetLogLevel("Atlas", logLevel);
             }
             RefreshSkinValues(null, inGame);
+            afterSkinRefresh?.Invoke(Xmls_refresh, inGame);
         }
 
         private static void PlayerUpdateHook(On.Celeste.Player.orig_Update orig, Player self) {

@@ -226,7 +226,7 @@ namespace Celeste.Mod.SkinModHelper {
                     } else if (origID == "runStumble") {
                         return;
                     } else if (self.LastAnimationID.Contains("jumpCrazy")) {
-                        if ((origID == "jumpFast" || origID == "fallSlow" || origID == "runFast" || origID == "runWind") && 
+                        if ((origID == "jumpFast" || origID == "fallSlow" || origID == "runFast" || origID == "runWind") &&
                             (!playerData.Get<bool>("onGround") || !player.OnGround())) {
                             return;
                         }
@@ -234,7 +234,7 @@ namespace Celeste.Mod.SkinModHelper {
 
                         if ((origID == "jumpFast" || origID == "fallFast" || origID == "runFast" || origID == "runWind" || (origID == "duck" && player.StartedDashing == false) || origID == "idle" || origID == "jumpSlow")
                             && (!player.OnGround() || !playerData.Get<bool>("wasOnGround"))
-                            && (Math.Abs(player.Speed.X) > 110f 
+                            && (Math.Abs(player.Speed.X) > 110f
                                || (playerData.Get<float>("wallSpeedRetentionTimer") > 0f && Math.Abs(playerData.Get<float>("wallSpeedRetained")) > 110f))) {
                             return;
                         }
@@ -266,16 +266,18 @@ namespace Celeste.Mod.SkinModHelper {
                     return;
                 } else {
                     string spriteName = selfData.Get<string>("spriteName");
-                    if (spriteName_orig == null && spriteName != "") {
+                    if (spriteName != "") {
                         Logger.Log(LogLevel.Error, "SkinModHelper", $"'{spriteName}' missing animation: {id}");
-                        selfData.Set("spriteName_orig", spriteName);
                     }
 
-                    if (GFX.SpriteBank.SpriteData["player"].Sprite.Animations.ContainsKey(id)) {
-                        GFX.SpriteBank.CreateOn(self, "player");
-                    } else if (GFX.SpriteBank.SpriteData["player_no_backpack"].Sprite.Animations.ContainsKey(id)) {
-                        GFX.SpriteBank.CreateOn(self, "player_no_backpack");
+                    if (GFX.SpriteBank.SpriteData["player"].Sprite.Animations.TryGetValue(id, out Sprite.Animation anim) ||
+                        GFX.SpriteBank.SpriteData["player_no_backpack"].Sprite.Animations.TryGetValue(id, out anim)) {
+
+                        self.Animations[id] = anim;
+                        if (GFX.SpriteBank.Has(spriteName))
+                            GFX.SpriteBank.SpriteData[spriteName].Sprite.Animations[id] = anim;
                     }
+                    return;
                 }
             }
             orig(self, id, restart, randomizeFrame);

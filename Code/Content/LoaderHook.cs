@@ -23,7 +23,7 @@ namespace Celeste.Mod.SkinModHelper {
 
 
         public static void Load() {
-            On.Celeste.LevelLoader.ctor += on_LevelLoader_ctor;
+            IL.Celeste.LevelLoader.ctor += il_LevelLoader_ctor;
             On.Celeste.OverworldLoader.LoadThread += OverworldLoaderLoadThreadHook;
 
             On.Celeste.GameLoader.LoadThread += GameLoaderLoadThreadHook;
@@ -33,7 +33,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
 
         public static void Unload() {
-            On.Celeste.LevelLoader.ctor -= on_LevelLoader_ctor;
+            IL.Celeste.LevelLoader.ctor -= il_LevelLoader_ctor;
             On.Celeste.OverworldLoader.LoadThread -= OverworldLoaderLoadThreadHook;
 
             On.Celeste.GameLoader.LoadThread -= GameLoaderLoadThreadHook;
@@ -48,24 +48,39 @@ namespace Celeste.Mod.SkinModHelper {
         private static void GameLoaderLoadThreadHook(On.Celeste.GameLoader.orig_LoadThread orig, GameLoader self) {
             ReloadSettings();
             orig(self);
-            // Don't put the methods under orig(self), maybe FNA...not like it.
+            // Don't put the methods under orig(self), it crashes the game randomly in FNA...
         }
 
         // loading if enter the maps.
+        /*
         private static void on_LevelLoader_ctor(On.Celeste.LevelLoader.orig_ctor orig, LevelLoader self, Session session, Vector2? startPosition) {
             orig(self, session, startPosition);
+            // Methods moved to il_LevelLoader_ctor, some extreme testing told me the hook is not safe if its here.
+        } 
+        */
+        private static void il_LevelLoader_ctor(ILContext il) {
+            ILCursor cursor = new ILCursor(il);
 
-            if (session != null) {
-                backpackOn = backpackSetting == 3 || (backpackSetting == 0 && session.Inventory.Backpack) || (backpackSetting == 1 && !session.Inventory.Backpack);
-            }
-            Player_Skinid_verify = 0;
+            // do ILHook instead of usually hooking to orig under,
+            // for prevent this process interfering with other processes, then makes the atlas-warning or anything become enough to make level loading fails.
+            // and... this only happens to a very small number of people, semi-randomly, so it's not obvious.
+            cursor.GotoNext(MoveType.After, instr => instr.MatchStsfld(typeof(GFX), "PortraitsSpriteBank"));
+            cursor.Emit(OpCodes.Ldarg_1);
+            cursor.EmitDelegate<Action<Session>>((session) => {
 
-            string hash_object = GetPlayerSkin();
-            if (hash_object != null) {
-                Player_Skinid_verify = skinConfigs[!backpackOn ? GetPlayerSkin("_NB", hash_object) : hash_object].hashValues;
-            }
-            RefreshSkins(true);
+                if (session != null) {
+                    backpackOn = backpackSetting == 3 || (backpackSetting == 0 && session.Inventory.Backpack) || (backpackSetting == 1 && !session.Inventory.Backpack);
+                }
+                Player_Skinid_verify = 0;
+
+                string hash_object = GetPlayerSkin();
+                if (hash_object != null) {
+                    Player_Skinid_verify = skinConfigs[!backpackOn ? GetPlayerSkin("_NB", hash_object) : hash_object].hashValues;
+                }
+                RefreshSkins(true);
+            });
         }
+
 
         // loading if overworld loads or exit maps.
         private static void OverworldLoaderLoadThreadHook(On.Celeste.OverworldLoader.orig_LoadThread orig, OverworldLoader self) {
