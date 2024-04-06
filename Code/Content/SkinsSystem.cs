@@ -512,6 +512,11 @@ namespace Celeste.Mod.SkinModHelper {
                 Xml_records.Clear();
                 FailedXml_record.Clear();
 
+                if (JungleHelperInstalled) {
+                    PlayerSprite.CreateFramesMetadata("junglehelper_madeline_lantern");
+                    PlayerSprite.CreateFramesMetadata("junglehelper_badeline_lantern");
+                }
+                
                 #region
                 foreach (string sprite in spritesWithHair) {
                     if (GFX.SpriteBank.SpriteData.ContainsKey(sprite)) {

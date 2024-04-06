@@ -55,15 +55,15 @@ namespace Celeste.Mod.SkinModHelper {
         /*
         private static void on_LevelLoader_ctor(On.Celeste.LevelLoader.orig_ctor orig, LevelLoader self, Session session, Vector2? startPosition) {
             orig(self, session, startPosition);
-            // Methods moved to il_LevelLoader_ctor, some extreme testing told me the hook is not safe if its here.
+            // Methods moved to il_LevelLoader_ctor.
         } 
         */
         private static void il_LevelLoader_ctor(ILContext il) {
             ILCursor cursor = new ILCursor(il);
 
             // do ILHook instead of usually hooking to orig under,
-            // for prevent this process interfering with other processes, then makes the atlas-warning or anything become enough to make level loading fails.
-            // and... this only happens to a very small number of people, semi-randomly, so it's not obvious.
+            // because I doubt this process maybe interfering with other processes, then makes the atlas-warning or anything become enough to make level loading fails.
+            // and... that only happens to a very small number of people, semi-randomly, so it's not obvious.
             cursor.GotoNext(MoveType.After, instr => instr.MatchStsfld(typeof(GFX), "PortraitsSpriteBank"));
             cursor.Emit(OpCodes.Ldarg_1);
             cursor.EmitDelegate<Action<Session>>((session) => {

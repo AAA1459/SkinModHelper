@@ -714,7 +714,6 @@ namespace Celeste.Mod.SkinModHelper {
                 }
             } else if (type is PlayerPlayback) {
                 get_dashCount = null;
-            } else if (get_dashCount == null) {
             }
             return get_dashCount;
         }
