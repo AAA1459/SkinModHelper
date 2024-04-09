@@ -27,15 +27,16 @@ namespace Celeste.Mod.SkinModHelper {
             On.Celeste.DeathEffect.Render += DeathEffectRenderHook;
             On.Celeste.DeathEffect.Draw += DeathEffectDrawHook;
 
-            On.Monocle.Sprite.Play += PlayerSpritePlayHook;
+            using (new DetourContext() { Before = { "*" } }) { // Give those hook lowest priority.
+                On.Monocle.Sprite.Play += PlayerSpritePlayHook;
+                On.Monocle.Sprite.SetAnimationFrame += SpriteSetAnimationFrameHook;
+            }
             On.Celeste.Player.SuperJump += PlayerSuperJumpHook;
             On.Celeste.Player.SuperWallJump += PlayerSuperWallJumpHook;
             IL.Celeste.Player.Render += PlayerRenderIlHook_Sprite;
 
             IL.Celeste.CS06_Campfire.Question.ctor += CampfireQuestionHook;
             IL.Celeste.MiniTextbox.ctor += SwapTextboxHook;
-
-            On.Monocle.Sprite.SetAnimationFrame += SpriteSetAnimationFrameHook;
 
             doneILHooks.Add(new ILHook(typeof(Player).GetMethod("TempleFallCoroutine", BindingFlags.NonPublic | BindingFlags.Instance).GetStateMachineTarget(), TempleFallCoroutineILHook));
             doneILHooks.Add(new ILHook(typeof(Textbox).GetMethod("RunRoutine", BindingFlags.NonPublic | BindingFlags.Instance).GetStateMachineTarget(), SwapTextboxHook));
