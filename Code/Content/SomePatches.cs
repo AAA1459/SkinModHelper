@@ -35,11 +35,10 @@ namespace Celeste.Mod.SkinModHelper {
             On.Celeste.Player.SuperWallJump += PlayerSuperWallJumpHook;
             IL.Celeste.Player.Render += PlayerRenderIlHook_Sprite;
 
+            IL.Celeste.FancyText.Parse += ilFancyTextParse;
             IL.Celeste.CS06_Campfire.Question.ctor += CampfireQuestionHook;
-            IL.Celeste.MiniTextbox.ctor += SwapTextboxHook;
 
             doneILHooks.Add(new ILHook(typeof(Player).GetMethod("TempleFallCoroutine", BindingFlags.NonPublic | BindingFlags.Instance).GetStateMachineTarget(), TempleFallCoroutineILHook));
-            doneILHooks.Add(new ILHook(typeof(Textbox).GetMethod("RunRoutine", BindingFlags.NonPublic | BindingFlags.Instance).GetStateMachineTarget(), SwapTextboxHook));
 
             if (OrigSkinModHelper_loaded) {
                 int tracking_numbers = 0;
@@ -74,8 +73,8 @@ namespace Celeste.Mod.SkinModHelper {
             On.Celeste.Player.SuperWallJump -= PlayerSuperWallJumpHook;
             IL.Celeste.Player.Render -= PlayerRenderIlHook_Sprite;
 
+            IL.Celeste.FancyText.Parse -= ilFancyTextParse;
             IL.Celeste.CS06_Campfire.Question.ctor -= CampfireQuestionHook;
-            IL.Celeste.MiniTextbox.ctor -= SwapTextboxHook;
 
             On.Monocle.Sprite.SetAnimationFrame -= SpriteSetAnimationFrameHook;
         }
@@ -84,30 +83,29 @@ namespace Celeste.Mod.SkinModHelper {
 
         //-----------------------------Portraits-----------------------------
         #region
-        private static void SwapTextboxHook(ILContext il) {
+
+        // Relinking portrait skin's textbox and sfx, instead of just changing the portrait self.
+        private static void ilFancyTextParse(ILContext il) {
             ILCursor cursor = new(il);
-            // Move to the last occurence of this
-            while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchIsinst<FancyText.Portrait>())) {
-            }
-            // Make sure nothing went wrong
-            if (cursor.Prev?.MatchIsinst<FancyText.Portrait>() == true) {
-                cursor.EmitDelegate<Func<FancyText.Portrait, FancyText.Portrait>>((orig) => {
-                    return ReplacePortraitPath(orig);
+
+            // This is more universal than the old hook, can works to the choice prompts of lua cutscenes.
+            // But cannot refresh timely when in a dialogue.
+            if (cursor.TryGotoNext(MoveType.Before, instr => instr.MatchStfld<FancyText.Portrait>("Sprite"))) {
+                cursor.EmitDelegate<Func<string, string>>((orig) => {
+                    string skinId = GetPortraitsBankIDSkin("portrait_" + orig);
+                    if (GFX.PortraitsSpriteBank.Has(skinId))
+                        orig = skinId.Substring(9);
+                    return orig;
                 });
             }
+
         }
 
-        // This one requires double hook - for some reason they implemented a tiny version of the Textbox class that behaves differently
+        // This one requires hook - for some reason they implemented a tiny version of the Textbox class that behaves differently
         private static void CampfireQuestionHook(ILContext il) {
             ILCursor cursor = new(il);
             // Move to the last occurrence of this
             while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchIsinst<FancyText.Portrait>())) {
-            }
-            // Make sure nothing went wrong
-            if (cursor.Prev?.MatchIsinst<FancyText.Portrait>() == true) {
-                cursor.EmitDelegate<Func<FancyText.Portrait, FancyText.Portrait>>((orig) => {
-                    return ReplacePortraitPath(orig);
-                });
             }
 
             if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdstr("_ask"),
@@ -118,10 +116,10 @@ namespace Celeste.Mod.SkinModHelper {
             }
         }
 
-        // ReplacePortraitPath makes textbox_ask path funky, so correct to our real path or revert to vanilla for prevent crashes
+        // ilFancyTextParse makes textbox_ask path funky, so correct to our real path or revert to vanilla for prevent crashes
         private static string ReplaceTextboxPath(string textboxPath) {
 
-            string PortraitId = $"portrait_{textboxPath.Remove(textboxPath.LastIndexOf("_")).Replace("textbox/", "")}"; // "textbox/[skin id]_ask"
+            string PortraitId = $"portrait_{textboxPath.Remove(textboxPath.LastIndexOf("_ask")).Replace("textbox/", "")}"; // "textbox/[skin id]_ask"
 
             if (GFX.PortraitsSpriteBank.Has(PortraitId)) {
                 string SourcesPath = GFX.PortraitsSpriteBank.SpriteData[PortraitId].Sources[0].XML.Attr("textbox");
@@ -134,32 +132,6 @@ namespace Celeste.Mod.SkinModHelper {
                 textboxPath = "textbox/madeline_ask";
             }
             return textboxPath;
-        }
-
-        // Relinking portrait skin's textbox and sfx.
-        private static FancyText.Portrait ReplacePortraitPath(FancyText.Portrait portrait) {
-
-            string skinId = GetPortraitsBankIDSkin(portrait.SpriteId);
-
-            if (GFX.PortraitsSpriteBank.Has(skinId)) {
-                portrait.Sprite = skinId.Replace("portrait_", "");
-
-                XmlElement xml = GFX.PortraitsSpriteBank.SpriteData[skinId].Sources[0].XML;
-
-                if (xml.HasAttr("sfx")) {
-                    portrait.SfxEvent = "event:/char/dialogue/" + xml.Attr("sfx");
-                    if (xml.HasChild("sfxs")) {
-                        foreach (object obj in xml["sfxs"]) {
-                            XmlElement xmlElement = obj as XmlElement;
-                            if (xmlElement != null && xmlElement.Name.Equals(portrait.Animation, StringComparison.InvariantCultureIgnoreCase)) {
-                                portrait.SfxExpression = xmlElement.AttrInt("index", 1);
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            return portrait;
         }
 
         #endregion
