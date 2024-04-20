@@ -50,7 +50,7 @@ Skin will need you to have an Xml file,
 Now let we first set root directory for those Xml, or called them is skin's xml.
 ```
 # The starting point of below path: "Graphics/"
-  OtherSprite_Path: [Root directory path]     # for paleyr skin
+  OtherSprite_Path: [Root directory path]     # for player skin
   OtherSprite_ExPath: [Root directory path]     # for general skin
 ```
 For information about those Xml files, we quote some [everest's wiki](https://github.com/EverestAPI/Resources/wiki/Reskinning-Entities#reskinning-entities-through-spritesxml).
@@ -130,7 +130,7 @@ You can download them as examples for making skins:
 
 More Miscellaneous
 ---------------------
-1. SkinModHelper have some introduce of special textures, and collected various sources of IDs animation.
+1. SkinModHelper have some introduce of special textures, and collected various the sources of IDs animation.
    [clike here for check wiki](https://github.com/AAA1459/SkinModHelper/wiki/Textures-list-of-Various-Type#special-texture-settingreskin)
 
 2. more complicated things
