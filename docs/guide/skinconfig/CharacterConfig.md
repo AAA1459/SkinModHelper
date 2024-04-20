@@ -19,8 +19,8 @@ If here contains what you need then you can try those to uses them:
 2. Then create a new folder called `skinConfig` here.
 3. And put a "`CharacterConfig.yaml`" file to that "`skinConfig`" folder.
    * `../Gameplay/[target sprites's directory]/skinConfig/CharacterConfig.yaml`
-4. Then copy the fields you need and write the value for it
-   * For details, you can scroll down
+4. Then copy the fields you need and write the value to `CharacterConfig.yaml`
+   * For fields details, you can scroll down
 
 
 SilhouetteMode
