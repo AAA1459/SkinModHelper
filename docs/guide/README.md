@@ -1,16 +1,15 @@
 
-Skin Mod Helper Guide
-======================
-This guide will walk you through making your skin mod compatible with Skin Mod Helper.
+# _Skin Mod Helper Plus Guide_
+This guide will walk you through making your skin mod compatible with Skin Mod Helper Plus.
 
-A brief introduction to config files
-------------------------------------
-Config files can help the Skin Mod Helper find information about your skin mod.
-If your mod provides a skin, then you need to create a file named "SkinModHelperConfig.yaml" in your mod root (next to your everest.yaml).
+
+## _A brief introduction to config files_
+Config files give SMH+ information about your skinmod. 
+>
+You need to create a file named "SkinModHelperConfig.yaml" in your mod root (next to your everest.yaml).
 
 Here is a skeleton of a SkinModHelperConfig.yaml file.
 Each of the fields will be explained below.
-
 ```yaml
 - SkinName: [an SkinName that is required]
 
@@ -29,77 +28,64 @@ Each of the fields will be explained below.
 ```
 
 
-SkinName
------------------------------------
+## _SkinName_
 In the config file, we first need to write this information:
 ```
 - SkinName: [Set a base option for your skin]     # required
 ```
 
-`Character_ID`
----------------------------
-If your skin type is "Player Skin",
-Then, you need to set a PlayerSkin ID for the SkinName information you wrote, use this to do it:
-```
-  Character_ID: [your new PlayerID]
-```
 
-OtherSprite / Some thing about skin's Xml
------------------------------------
-Skin will need you to have an Xml file, 
-Now let we first set root directory for those Xml, or called them is skin's xml.
+## _Creating a player skin_
+### Character_ID
+If you want your skin to be a unique player skin, so set this:
 ```
-# The starting point of below path: "Graphics/"
-  OtherSprite_Path: [Root directory path]     # for player skin
-  OtherSprite_ExPath: [Root directory path]     # for general skin
+  Character_ID: [your new player id]
 ```
-For information about those Xml files, we quote some [everest's wiki](https://github.com/EverestAPI/Resources/wiki/Reskinning-Entities#reskinning-entities-through-spritesxml).
-After viewing, we need to do those:
-* Remove the some content, or called ID in the skin's Xml that you not have or not want reskin.
-  * ! SkinModHelper has a menu to listing all of them, so this very important.
-* Then if your skin type is "Player Skin":
-  * Create another file calls "Sprites.xml" in "Graphics/" directory
-  * Move some PlayerID in the skin's xml to that another xml.
-  * Renaming that PlayerID to [Character_ID] that comes from you setted in this config
-    * ! If you do this wrong, the game will crash when you enter the map
-  * If you have some questions about playerID is what, so [check here](https://github.com/AAA1459/SkinModHelper/wiki/Textures-list-of-Various-Type#maddy-or-baddy-related)
-*  Skin's xml not only include "Sprites.xml", it also can include "Portraits.xml"
-   * The specific operation is as above.
-   
-now you have finished them, Let's check out the other parts.
+This becomes the ID that you modify in the sprites.xml instead of the normal `<player>`, 
+so need to do more for it:
+1. Open or create a file named "Sprites.xml" within your mod's "Graphics" folder.
+2. write these in that `Sprites.xml`:
+```xml
+<?xml version="1.0" encoding="utf-8" ?>
+
+<Sprites>
+  <!-- assume id "MySkin" is Character_ID you setted -->
+  <MySkin copy="player" path="characters/MySkin/">
+    <!-- shortened -->
+  </MySkin>
+</Sprites>
+```
+3. Make sure Sprites.xml there have your `Character_ID` or it is matched, otherwise the game will crash.
 
 
-let your skin appear in Mod-Options
------------------------------------
-If your skin type is "Player Skin", Then We need to use some more content to let it get there:
+### OtherSprite_Path
+SMH+ uses xml files to edit other sprites if you noticed. Visit [everest's wiki](https://github.com/EverestAPI/Resources/wiki/Reskinning-Entities#reskinning-entities-through-spritesxml) for a more comprehensive guide on xml files.
+
+here is used to set the directory of Sprites.xml, or Portraits.xml. it take works when the skin is activated.
+```
+  OtherSprite_Path: [the directory of xmls]     # The starting point of below path: "...Graphics/"
+```
+This is recommended to reskin IDs related to Madeline. Sprites.xml also have certain IDs is from other helper instead of vanilla, [see wiki](https://github.com/AAA1459/SkinModHelper/wiki/Textures-list-of-Various-Type#maddy-or-baddy-related). ****
+Also, please don't set `<player>` IDs there.
+
+
+### Make player skin appear in Mod-Options
+To make player skins to appear in the options of smh+, use:
 ```
   Player_List: true    # Affects the "Player Skin" option
   Silhouette_List: true    # Affects the "Silhouette Skin" option
 ```
-If your skin type is "General Skin", Then when you set "[OtherSprite_ExPath]" after, them will appear in "General Skin" list.
-Or use this to prevent it get there:
-```
-  General_List: false
-```
 
-hashSeed
------------------------------------
-We should have mentioned that the SkinModHelper will make your player skin compatible with CelesteNet.
-SkinModHelper use a "hashSeed" to do it, that "hashSeed" defaults is "[SkinName]"
-
-If your skin happens to conflict with other skins when compatible with CelesteNet, 
-Then you can use this to change and fix it.
+### hashSeed
+The player skins are celestenet compatible. The hashSeed is a unique value that is used to identify your skin. 
+>
+If not included, it defaults to SkinName you setted, but can be overwritten if it conflicts with another skinmod.
 ```
-  hashSeed: [any]
+  hashSeed: [unique keys]
 ```
 
-You can write multiple skin info to your config file, 
-this just need repeats everything above steps.
 
-
-
-Automatically Jump of Player skin
------------------------------------
+### Automatically Jump of Player skin
 After you select a Player Skin, If has some config's name close to this player skin, and you meet some conditions.
 Then SkinModHelper will try to automatically switch to that new player skin.
 
@@ -108,19 +94,27 @@ for let player(maddy) looks different in the same entity. such as "payphone" ID 
 
 We will introduce those automatically jumps and their jump conditions:
 * "[SkinName] + _NB" 
-   * conditions: When the player is no_backpack state
+   * conditions: When the player is in no_backpack state
 * "[SkinName] + _lantern"
-   * If you want reskin some Player ID from JungleHelper, then you can use this special jump
-   * conditions: When the player get lantern from JungleHelper
+   * If you want reskin `<player>` ID of Jungle Helper, please use this and set its [Character_ID] based on that `<player>` ID.
+   * conditions: the player holds lantern from JungleHelper
 * "[SkinName] + _lantern_NB"
-   * conditions: When the player get lantern from JungleHelper and is no_backpack state
+   * conditions: the player holds lantern from JungleHelper and is in no_backpack state.
 
 Note: automatically-jump to new player skin after, you used skin's info will all is from that new player skin's config info
 
 
+## _Creating a general skin_
+Use a general skin if your skinmod is not going to change the player skin. They only need 2 parameters except `SkinName`.
+```
+  General_List: false          # Makes this skins not shows up in the options menu, Can be ignored if you don't want.
+  OtherSprite_ExPath: [a path]        # Works the same way as OtherSprite_Path
+```
+General skins work just like [OtherSprite_Path](#othersprite_path), except they use OtherSprite_ExPath.
 
-Standard example of config file
------------------------------------
+
+
+## _Standard example of config file_
 You can download them as examples for making skins: 
 * [Touhou-cirno](https://gamebanana.com/mods/316584)
 * [OshiroBoss But Badeline](https://gamebanana.com/mods/444994)
@@ -128,9 +122,8 @@ You can download them as examples for making skins:
 * [Ralsei - Deltarune](https://gamebanana.com/mods/385893)
 
 
-More Miscellaneous
----------------------
-1. SkinModHelper have some introduce of special textures, and collected various the sources of IDs animation.
+## _More Miscellaneous_
+1. SkinModHelper have some introduce of special textures, and collected various sources of IDs animation.
    [clike here for check wiki](https://github.com/AAA1459/SkinModHelper/wiki/Textures-list-of-Various-Type#special-texture-settingreskin)
 
 2. more complicated things
@@ -140,13 +133,10 @@ More Miscellaneous
 
 
 
-Troubleshooting
------------------------
+## _Troubleshooting_
 If your skin is not be registered (or does not appear in the menu):
 * Make sure your configuration file is named correctly and in the right place
 * Check your log to see your skin report anything when trying to register
-* If the log says nothing, see this section: 
-  [let your skin appear in Mod-Options](#let-your-skin-appear-in-mod-options)
 
 If your sprites/portraits are not appearing in-game:
 * Make sure your XML is valid. You can compare to the vanilla files or use an [online syntax checker](https://www.xmlvalidation.com/)
@@ -156,6 +146,10 @@ If your sprites/portraits are not appearing in-game:
 If you get missing textures or unexpected vanilla textures:
 * Check your log to see what textures are missing -- these messages can point you in the right direction
 * Make sure the number of images matches the number of animation "frames"
+
+If skins is always works or not, not affected by options:
+* Check if the sprite path is consistent with vanilla or maps, please avoid it.
+* Check smh's "Precisely skin choose" menu, check if there is the IDs setted always or never enabled when it related to your skin.
 
 If some textures are misaligned, even xml-undefined:
 1. In the same folder as that texture, create a .meta.yaml file with the name of that texture

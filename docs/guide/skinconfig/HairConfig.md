@@ -1,9 +1,8 @@
 
-HairConfig.yaml
------------------------------------
-If you want to set hair color or more for your target, then you can check here.
+## _HairConfig.yaml_
+If you want to customize hair color or more to your target, you can check here.
 
-The content here involves a new config, its skeleton and function is like this
+The content here involves a new config, its structure and function is like this
 ```yaml
   HairLengths:
   - < HairLength >
@@ -13,54 +12,51 @@ The content here involves a new config, its skeleton and function is like this
   OutlineColor: [use six digit RGB hex code]
 ```
 
-If here contains what you need then you can try those to uses them:
-1. Into the directory of target sprite.
-2. Then create a new folder called `skinConfig` here.
-3. And put a "`HairConfig.yaml`" file to that "`skinConfig`" folder.
-   * `../Gameplay/[target sprites's directory]/skinConfig/HairConfig.yaml`
-4. Then copy the fields you need and write the value to `HairConfig.yaml`
-   * For fields details, you can scroll down
+If this contains what you need, follow these steps to use them:
+1. Navigate the directory of target sprite.
+2. Create a new folder named `skinConfig` here.
+3. Place a file named "`HairConfig.yaml`" within "`skinConfig`" folder.
+   * Example path: `../Gameplay/[target sprites's directory]/skinConfig/HairConfig.yaml`
+4. Copy the fields you need and specify their values in `HairConfig.yaml`
+   * For fields details, refer below.
 
-
-HairLengths
------------------------------------
-If you want your target's hair to be longer or shorter,
-Then you can use this:
+---
+### HairLengths
+If you wish to adjust the length of the hair for target, use:
 ```
   HairLengths:
   - Dashes: [use -1 to 32]     
-      # using -1 mean apply this length to player in feather status
+      # using "-1" applies this length to the player in feather status
     Length: [use 1 to 99]
 ```
 
-HairColors
------------------------------------
-If you want your target to get new hair color, other than the default maddy's color, 
-Then you can use this:
+---
+### HairColors
+If you want to assign a new hair color to target, 
+different from maddy's default color, follow this setup:
 ```
   HairColors:
   - Dashes: [use 0 to 32]
-    Color: [use six digit RGB hex code]     # such as: "9B3FB5", that is baddy's 1-dash color
+    Color: [use six digit RGB hex code]     # example: "9B3FB5", which represents Baddy's 1-dash color
 	SegmentsColors:
-	- Segment: [Which segments of hair]     # use [negative numbers] to get reverse order
+	- Segment: [Which segments of hair]     # use negative numbers for reverse order
           Color: [use six digit RGB hex code]
 ```
 
-HairFlash
------------------------------------
-player's hair will flashing when player's dashes be used or refill.
-but if you not want that, Then you can use this:
+---
+### HairFlash
+By default, the player's hair flashes when dashes are used or refilled. 
+If you wish to disable this feature, use:
 ```
   HairFlash: false
 ```
 
-OutlineColor
------------------------------------
-If you want to recolor target's hair border to non-black, so you can use this:
+---
+### OutlineColor
+If you need to recolor the hair border for target, use:
 ```
-  OutlineColor: [use six digit RGB hex code]
+  OutlineColor: [use six digit RGB hex code]     # default color is "000000"
 ```
 
-
-
+---
 [previous page](/docs/guide/README.md#more-miscellaneous)

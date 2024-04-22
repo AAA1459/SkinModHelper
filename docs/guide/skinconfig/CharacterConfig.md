@@ -1,9 +1,8 @@
 
-CharacterConfig.yaml
------------------------------------
-If you want to set some effects for your target, then you can check here.
+## _CharacterConfig.yaml_
+If you wish to apply certain effects to your target, you can check here.
 
-The content here involves a new config, its skeleton and function is like this
+The content here involves a new config, its structure and function is like this
 ```yaml
 SilhouetteMode: [true/false]
 
@@ -14,54 +13,51 @@ TrailsColor: [use six digit RGB hex code]
 DeathParticleColor: [use six digit RGB hex code]
 ```
 
-If here contains what you need then you can try those to uses them:
-1. Into the directory of target sprite.
-2. Then create a new folder called `skinConfig` here.
-3. And put a "`CharacterConfig.yaml`" file to that "`skinConfig`" folder.
-   * `../Gameplay/[target sprites's directory]/skinConfig/CharacterConfig.yaml`
-4. Then copy the fields you need and write the value to `CharacterConfig.yaml`
-   * For fields details, you can scroll down
+If this contains what you need, follow these steps to use them:
+1. Navigate the directory of target sprite.
+2. Create a new folder named `skinConfig` here.
+3. Place a file named "`CharacterConfig.yaml`" within "`skinConfig`" folder.
+   * Example path: `../Gameplay/[target sprites's directory]/skinConfig/CharacterConfig.yaml`
+4. Copy the fields you need and specify their values in `CharacterConfig.yaml`
+   * For field details, refer below.
 
-
-SilhouetteMode
------------------------------------
-If you want to Color the entire target's sprites with its hair color, be like as silhouette.
-Then you can use this:
+---
+### SilhouetteMode
+If you want to Color the entire target's sprites with its hair color, be like a silhouette.
+So use this:
 ```
 SilhouetteMode: true
 ```
-Note: This also affects target's hair border color, although it defaults is black.
+Note: This also affects target's hair border color, just by default it is unaffected black.
 
-
-LowStaminaFlash
------------------------------------
-When the player's stamina is almost exhausted, the player will start to flash red.
-If you want to change that flash color (when it very harsh on your skin), so you can use this:
+---
+### LowStaminaFlash
+When the player's stamina is almost deplete, the player will start flashing red.
+If you want to customize this flash color (especially when red is too intense for your skin), use this:
 ```
 LowStaminaFlashColor: [use six digit RGB hex code]     # default color is "ff0000"
 ```
-and if you want that flash to work on skin's hair, then use this:
+If you want this flash effect to apply to the skin's hair as well, use:
 ```
 LowStaminaFlashHair: true
 ```
 
-TrailsColor
------------------------------------
-Some entities will generate their trails at sometimes... be like bird, oshiro_boss, seeker...
-if you want to recolor those trails, so you can use this:
+---
+### TrailsColor
+Certain entities will generate trails at times... such as bird, oshiro boss, seeker...
+if you want to recolor these trails, use this:
 ```
 TrailsColor: [use six digit RGB hex code]
-  # if target is badeline chaser, so you can setting this to special "HairColor"
+  # If the target is Badeline Chaser, you can set this to a special "HairColor"
 ```
-NOTE: this is unusable for player or silhouette.
+NOTE: this is not applicable for players or silhouettes.
 
-
-DeathParticleColor
------------------------------------
-Some entities will generate their own death particle with it's color, you can use this to recolor that particle.
+---
+### DeathParticleColor
+Certain entities generate death particles with their color, 
+if you want to recolor these particlet, use this:
 ```
 DeathParticleColor: [use six digit RGB hex code]
 ```
-
-
+---
 [previous page](/docs/guide/README.md#more-miscellaneous)
