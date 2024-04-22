@@ -2,7 +2,7 @@
 # _Skin Mod Helper Plus Guide_
 This guide will walk you through making your skin mod compatible with Skin Mod Helper Plus.
 
-
+---
 ## _A brief introduction to config files_
 Config files give SMH+ information about your skinmod. 
 >
@@ -27,14 +27,14 @@ Each of the fields will be explained below.
   OtherSprite_ExPath: [a path]
 ```
 
-
+---
 ## _SkinName_
 In the config file, we first need to write this information:
 ```
 - SkinName: [Set a base option for your skin]     # required
 ```
 
-
+---
 ## _Creating a player skin_
 ### Character_ID
 If you want your skin to be a unique player skin, so set this:
@@ -57,7 +57,7 @@ so need to do more for it:
 ```
 3. Make sure Sprites.xml there have your `Character_ID` or it is matched, otherwise the game will crash.
 
-
+---
 ### OtherSprite_Path
 SMH+ uses xml files to edit other sprites if you noticed. Visit [everest's wiki](https://github.com/EverestAPI/Resources/wiki/Reskinning-Entities#reskinning-entities-through-spritesxml) for a more comprehensive guide on xml files.
 
@@ -68,7 +68,7 @@ here is used to set the directory of Sprites.xml, or Portraits.xml. it take work
 This is recommended to reskin IDs related to Madeline. Sprites.xml also have certain IDs is from other helper instead of vanilla, [see wiki](https://github.com/AAA1459/SkinModHelper/wiki/Textures-list-of-Various-Type#maddy-or-baddy-related). ****
 Also, please don't set `<player>` IDs there.
 
-
+---
 ### Make player skin appear in Mod-Options
 To make player skins to appear in the options of smh+, use:
 ```
@@ -76,6 +76,7 @@ To make player skins to appear in the options of smh+, use:
   Silhouette_List: true    # Affects the "Silhouette Skin" option
 ```
 
+---
 ### hashSeed
 The player skins are celestenet compatible. The hashSeed is a unique value that is used to identify your skin. 
 >
@@ -84,7 +85,7 @@ If not included, it defaults to SkinName you setted, but can be overwritten if i
   hashSeed: [unique keys]
 ```
 
-
+---
 ### Automatically Jump of Player skin
 After you select a Player Skin, If has some config's name close to this player skin, and you meet some conditions.
 Then SkinModHelper will try to automatically switch to that new player skin.
@@ -103,7 +104,7 @@ We will introduce those automatically jumps and their jump conditions:
 
 Note: automatically-jump to new player skin after, you used skin's info will all is from that new player skin's config info
 
-
+---
 ## _Creating a general skin_
 Use a general skin if your skinmod is not going to change the player skin. They only need 2 parameters except `SkinName`.
 ```
@@ -112,8 +113,7 @@ Use a general skin if your skinmod is not going to change the player skin. They 
 ```
 General skins work just like [OtherSprite_Path](#othersprite_path), except they use OtherSprite_ExPath.
 
-
-
+---
 ## _Standard example of config file_
 You can download them as examples for making skins: 
 * [Touhou-cirno](https://gamebanana.com/mods/316584)
@@ -121,7 +121,7 @@ You can download them as examples for making skins:
 * [Niko - Oneshot](https://gamebanana.com/mods/251814)
 * [Ralsei - Deltarune](https://gamebanana.com/mods/385893)
 
-
+---
 ## _More Miscellaneous_
 1. SkinModHelper have some introduce of special textures, and collected various sources of IDs animation.
    [clike here for check wiki](https://github.com/AAA1459/SkinModHelper/wiki/Textures-list-of-Various-Type#special-texture-settingreskin)
@@ -131,8 +131,7 @@ You can download them as examples for making skins:
    * [Setting HairConfig for skin](/docs/guide//skinconfig/HairConfig.md)
    * [Setting some effects for skin](/docs/guide/skinconfig/CharacterConfig.md)
 
-
-
+---
 ## _Troubleshooting_
 If your skin is not be registered (or does not appear in the menu):
 * Make sure your configuration file is named correctly and in the right place
