@@ -44,8 +44,7 @@ namespace Celeste.Mod.SkinModHelper {
                 return color; // Exclude players and silhouette.
             }
 
-            string rootPath = getAnimationRootPath(sprite);
-            string TrailsColor = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "CharacterConfig")?.TrailsColor;
+            string TrailsColor = CharacterConfig.For(sprite).TrailsColor;
 
             if (TrailsColor != null && new Regex(@"^[a-fA-F0-9]{6}$").IsMatch(TrailsColor)) {
                 return Calc.HexToColor(TrailsColor);

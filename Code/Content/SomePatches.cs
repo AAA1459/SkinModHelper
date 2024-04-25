@@ -330,7 +330,8 @@ namespace Celeste.Mod.SkinModHelper {
                         InsertDeathAnimation(self, sprite, "deathExAnim");
                     }
                     spritePath = getAnimationRootPath(sprite);
-                    string scolor = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{spritePath}skinConfig/" + "CharacterConfig")?.DeathParticleColor;
+                    string scolor = CharacterConfig.For(sprite).DeathParticleColor;
+
                     if (scolor != null && new Regex(@"^[a-fA-F0-9]{6}$").IsMatch(scolor)) {
                         self.Color = Calc.HexToColor(scolor) * GetAlpha(self.Color);
                     }
@@ -435,7 +436,7 @@ namespace Celeste.Mod.SkinModHelper {
                 if (alpha < 1f && color.A == 255) color = color * alpha;
 
                 string spritePath = getAnimationRootPath(sprite);
-                string scolor = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{spritePath}skinConfig/" + "CharacterConfig")?.DeathParticleColor;
+                string scolor = CharacterConfig.For(sprite).DeathParticleColor;
 
                 if (scolor != null && new Regex(@"^[a-fA-F0-9]{6}$").IsMatch(scolor)) {
                     color = Calc.HexToColor(scolor) * GetAlpha(color);
