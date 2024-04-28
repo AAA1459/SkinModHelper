@@ -33,7 +33,7 @@ namespace Celeste.Mod.SkinModHelper {
             IL.Celeste.Player.DashUpdate += PlayerDashUpdateIlHook;
 
             IL.Celeste.Player.Render += PlayerRenderIlHook_Color;
-
+            
             On.Monocle.Image.Render += OnImageRender_ColorGrade;
             On.Celeste.PlayerHair.Render += PlayerHairRenderHook_ColorGrade;
             On.Celeste.Lookout.Update += LookoutUpdateHook_ColorGrade;
@@ -49,6 +49,8 @@ namespace Celeste.Mod.SkinModHelper {
             IL.Celeste.Player.UpdateHair += patch_SpriteMode_Badeline;
             IL.Celeste.Player.DashUpdate += patch_SpriteMode_Badeline;
             IL.Celeste.Player.GetTrailColor += patch_SpriteMode_Badeline;
+
+            doneILHooks.Add(new ILHook(typeof(Player).GetMethod("orig_Update", BindingFlags.Public | BindingFlags.Instance), ilPlayerOrig_Update));
 
             doneILHooks.Add(new ILHook(typeof(Player).GetMethod("<.ctor>b__280_2", BindingFlags.NonPublic | BindingFlags.Instance), patch_SpriteMode_BackPack));
             doneILHooks.Add(new ILHook(typeof(Player).GetMethod("<.ctor>b__280_1", BindingFlags.NonPublic | BindingFlags.Instance), patch_SpriteMode_BackPack));
@@ -227,6 +229,20 @@ namespace Celeste.Mod.SkinModHelper {
         #endregion
 
         #region
+        private static void ilPlayerOrig_Update(ILContext il) {
+            ILCursor cursor = new ILCursor(il);
+
+            if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdfld<Player>("Dashes"))) {
+                cursor.Emit(OpCodes.Ldarg_0);
+                cursor.EmitDelegate<Func<bool, Player, bool>>((orig, player) => {
+                    if (HairConfig.For(player.Hair).Disable2DashesFloating) {
+                        return false;
+                    }
+                    return orig;
+                });
+            }
+        }
+
         private static void PlayerRenderIlHook_Color(ILContext il) {
             ILCursor cursor = new ILCursor(il);
 
@@ -238,7 +254,7 @@ namespace Celeste.Mod.SkinModHelper {
 
                     DynamicData selfData = DynamicData.For(player.Hair);
                     CharacterConfig ModeConfig = CharacterConfig.For(player.Sprite);
-
+                    
                     object backup = null;
                     if (ModeConfig.LowStaminaFlashColor != null && new Regex(@"^[a-fA-F0-9]{6}$").IsMatch(ModeConfig.LowStaminaFlashColor)) {
                         backup = color = Calc.HexToColor(ModeConfig.LowStaminaFlashColor);
@@ -261,9 +277,7 @@ namespace Celeste.Mod.SkinModHelper {
                 Logger.Log("SkinModHelper", $"Patching silhouette color at {cursor.Index} in IL code for Player.Render()");
                 cursor.Emit(OpCodes.Ldarg_0);
                 cursor.EmitDelegate<Func<Color, Player, Color>>((orig, self) => {
-                    CharacterConfig ModeConfig = CharacterConfig.For(self.Sprite);
-
-                    if (ModeConfig.SilhouetteMode == true) {
+                    if (CharacterConfig.For(self.Sprite).SilhouetteMode == true) {
                         return self.Hair.Color;
                     }
                     return orig;
@@ -300,7 +314,7 @@ namespace Celeste.Mod.SkinModHelper {
                 if (player.MaxDashes <= 0 && lastDashes < 2) {
                     get_dashCount = 1;
                 } else {
-                    get_dashCount = Math.Max(Math.Min(lastDashes, MAX_DASHES), 0);
+                    get_dashCount = Math.Max(lastDashes, 0);
                 }
             } else {
                 get_dashCount = GetDashCount(self);
@@ -520,9 +534,10 @@ namespace Celeste.Mod.SkinModHelper {
 
             int? get_dashCount = GetDashCount(self);
 
-            if (get_dashCount != null && (self.Color != Color.White || hairConfig.HairFlash == false)) {
-                if (hairConfig.Safe_GetHairColor(index - self.Sprite.HairCount, (int)get_dashCount, out Color color) ||
-                    hairConfig.Safe_GetHairColor(index, (int)get_dashCount, out color)) {
+            if (hairConfig.ActualHairColors != null && get_dashCount != null && (self.Color != Color.White || hairConfig.HairFlash == false)) {
+                int Index = hairConfig.ActualHairColors.ContainsKey(index - self.Sprite.HairCount) ? index - self.Sprite.HairCount : index;
+
+                if (hairConfig.Safe_GetHairColor(Index, (int)get_dashCount, out Color color)) {
 
                     if (index == 0)
                         self.Color = color;
@@ -634,7 +649,7 @@ namespace Celeste.Mod.SkinModHelper {
                     if (lastDashes == 0 && player.MaxDashes <= 0) {
                         get_dashCount = 1;
                     } else {
-                        get_dashCount = Math.Max(Math.Min(lastDashes, MAX_DASHES), 0);
+                        get_dashCount = Math.Max(lastDashes, 0);
                     }
                 }
             } else if (type is PlayerPlayback) {
@@ -664,7 +679,7 @@ namespace Celeste.Mod.SkinModHelper {
             return (int)dashCount;
         }
         public static int SetStartedDashingCount(Player player, int? count = null) {
-            int dashCount = Math.Max(Math.Min(count ?? player.Dashes - 1, MAX_DASHES), 0);
+            int dashCount = Math.Max(count ?? player.Dashes - 1, 0);
             DynamicData.For(player).Set("TrailDashCount", dashCount);
             return dashCount;
         }

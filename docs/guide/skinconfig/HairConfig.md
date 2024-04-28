@@ -8,7 +8,10 @@ The content here involves a new config, its structure and function is like this
   - < HairLength >
   HairColors:
   - < HairColor >
+  
   HairFlash: [true/false]
+  Disable2DashesFloating: [true/false]
+  
   OutlineColor: [use six digit RGB hex code]
 ```
 
@@ -49,6 +52,14 @@ By default, the player's hair flashes when dashes are used or refilled.
 If you wish to disable this feature, use:
 ```
   HairFlash: false
+```
+
+---
+### Disable2DashesFloating
+By default, the player's hair floating when dashes over 1, 
+To disable just use: 
+```
+  Disable2DashesFloating: true
 ```
 
 ---

@@ -117,6 +117,7 @@ namespace Celeste.Mod.SkinModHelper {
         #region
         public string OutlineColor { get; set; }
         public bool HairFlash { get; set; } = true;
+        public bool Disable2DashesFloating { get; set; }
 
         public List<HairColor> HairColors { get; set; }
         public class HairColor {
@@ -228,28 +229,37 @@ namespace Celeste.Mod.SkinModHelper {
         #endregion
         #region
         public void Old_BuildHairColors() {
-            List<bool> changed = new(new bool[MAX_DASHES + 1]);
+            Dictionary<int, Color> changed = new();
+            Regex hairColorRegex = new(@"^[a-fA-F0-9]{6}$");
+
+            int maxCount = 2;
+            if (oldHairColors != null) {
+                foreach (SkinModHelperOldConfig.HairColor hairColor in oldHairColors) {
+                    if (hairColor.Dashes >= 0 && hairColorRegex.IsMatch(hairColor.Color)) {
+                        changed[hairColor.Dashes] = Calc.HexToColor(hairColor.Color);
+                        if (maxCount < hairColor.Dashes)
+                            maxCount = hairColor.Dashes;
+                    }
+                }
+            }
+
             // Default colors taken from vanilla
-            List<Color> GeneratedHairColors = new List<Color>(new Color[MAX_DASHES + 1]) {
+            List<Color> GeneratedHairColors = new List<Color>(new Color[maxCount + 1]) {
                 [0] = Calc.HexToColor("44B7FF"),
                 [1] = Calc.HexToColor("AC3232"),
                 [2] = Calc.HexToColor("FF6DEF")
             };
-            if (oldHairColors != null) {
-                foreach (SkinModHelperOldConfig.HairColor hairColor in oldHairColors) {
-                    Regex hairColorRegex = new(@"^[a-fA-F0-9]{6}$");
-                    if (hairColor.Dashes >= 0 && hairColor.Dashes <= MAX_DASHES && hairColorRegex.IsMatch(hairColor.Color)) {
-                        GeneratedHairColors[hairColor.Dashes] = Calc.HexToColor(hairColor.Color);
-                        changed[hairColor.Dashes] = true;
-                    }
-                }
+            foreach (var keyValue in changed) {
+                GeneratedHairColors[keyValue.Key] = keyValue.Value;
             }
+
             // Fill upper dash range with the last customized dash color
-            for (int i = 3; i <= MAX_DASHES; i++) {
-                if (!changed[i]) {
+            for (int i = 3; i < GeneratedHairColors.Count; i++) {
+                if (!changed.ContainsKey(i)) {
                     GeneratedHairColors[i] = GeneratedHairColors[i - 1];
                 }
             }
+
             Dictionary<int, List<Color>> HairColors = new() {
                 [100] = GeneratedHairColors
             };
@@ -278,7 +288,7 @@ namespace Celeste.Mod.SkinModHelper {
             }
             int? HairLength = null;
 
-            DashCount = Math.Max(Math.Min((int)DashCount, MAX_DASHES), -1);
+            DashCount = Math.Max((int)DashCount, 0);
             // -1 for when player into flyFeathers state.
 
             int getCount = 1;
@@ -292,9 +302,31 @@ namespace Celeste.Mod.SkinModHelper {
                     HairLength = hairLength.Length;
                 }
             }
-            if (HairLength != null) {
+
+            if (HairLength != null)
                 HairLength = Math.Max(Math.Min((int)HairLength, MAX_HAIRLENGTH), 1);
+            return HairLength;
+        }
+        public int? GetHairLength(string special) {
+            int count;
+            if (special == null || HairLengths == null) {
+                return null;
+            } else if (special == "flyFeathers") {
+                count = -1;
+            } else {
+                return null;
             }
+
+            int? HairLength = null;
+            foreach (HairLength hairLength in HairLengths) {
+                if (count == hairLength.Dashes) {
+                    HairLength = hairLength.Length;
+                    break;
+                }
+            }
+
+            if (HairLength != null)
+                HairLength = Math.Max(Math.Min((int)HairLength, MAX_HAIRLENGTH), 1);
             return HairLength;
         }
         #endregion
