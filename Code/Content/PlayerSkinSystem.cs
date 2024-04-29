@@ -231,12 +231,9 @@ namespace Celeste.Mod.SkinModHelper {
         #region
         private static void ilPlayerOrig_Update(ILContext il) {
             ILCursor cursor = new ILCursor(il);
-            Logger.Log(LogLevel.Info, "SkinModHelper", $"{cursor.Context}");
 
             if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdfld<Player>("Dashes"))) {
                 cursor.Emit(OpCodes.Ldarg_0);
-                Logger.Log(LogLevel.Info, "SkinModHelper", $"hooked");
-
                 cursor.EmitDelegate<Func<int, Player, int>>((orig, player) => {
 
                     HairConfig config = HairConfig.For(player.Hair);

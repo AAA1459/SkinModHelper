@@ -56,9 +56,7 @@ If you wish to disable this feature, use:
 
 ---
 ### HairFloatingDashCount
-By default, the player's hair floating when have at least 2 dashes.
-
-If you want that floating to require more or less dashes, use:
+By default, the player's hair floating when have at least 2 dashes. If you want that floating to require more or less dashes, use:
 ```
   HairFloatingDashCount: [any number]
     # using "0" to make it always floating.
