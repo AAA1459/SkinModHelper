@@ -117,7 +117,7 @@ namespace Celeste.Mod.SkinModHelper {
         #region
         public string OutlineColor { get; set; }
         public bool HairFlash { get; set; } = true;
-        public bool Disable2DashesFloating { get; set; }
+        public int? HairFloatingDashCount { get; set; }
 
         public List<HairColor> HairColors { get; set; }
         public class HairColor {
