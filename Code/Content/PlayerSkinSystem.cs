@@ -324,17 +324,17 @@ namespace Celeste.Mod.SkinModHelper {
 
             if (self.Color == Color.White && atlas.Has(getAnimationRootPath(colorGrade_Path, out string value) + "flash")) {
                 selfData.Set("ColorGrade_Atlas", atlas);
-                selfData.Set("ColorGrade_Path", colorGrade_Path = $"{value}flash");
+                selfData.Set("ColorGrade_Path", colorGrade_Path = value + "flash");
 
             } else if (get_dashCount != null) {
                 colorGrade_Path = getAnimationRootPath(colorGrade_Path) + "dash";
                 
                 int dashCount = Math.Max((int)get_dashCount, 0);
-                while (dashCount > 2 && !atlas.Has($"{colorGrade_Path}{dashCount}")) {
+                while (dashCount > 2 && !atlas.Has(colorGrade_Path + dashCount)) {
                     dashCount--;
                 }
                 selfData.Set("ColorGrade_Atlas", atlas);
-                selfData.Set("ColorGrade_Path", colorGrade_Path = $"{colorGrade_Path}{dashCount}");
+                selfData.Set("ColorGrade_Path", colorGrade_Path = colorGrade_Path + dashCount);
             }
 
             if (colorGrade_Path != null && atlas.Has(colorGrade_Path)) {
@@ -468,6 +468,7 @@ namespace Celeste.Mod.SkinModHelper {
                     self.Border = ColorBlend(self.Border, self.Color);
                 orig(self);
 
+
                 int? HairLength = hairConfig.GetHairLength(get_dashCount);
                 if (self.Entity is Player player) {
                     if (player.StateMachine.State == Player.StStarFly) {
@@ -487,7 +488,8 @@ namespace Celeste.Mod.SkinModHelper {
 
         private static MTexture PlayerHairGetHairTextureHook(On.Celeste.PlayerHair.orig_GetHairTexture orig, PlayerHair self, int index) {
 
-            string spritePath = getAnimationRootPath(self.Sprite);
+            HairConfig config = HairConfig.For(self);
+            string spritePath = config.SourcePath;
             string detectPath = getAnimationRootPath(self.Sprite.Texture);
 
             if (detectPath.StartsWith("characters/player_no_backpack/") || detectPath.StartsWith("characters/player/")
@@ -501,32 +503,21 @@ namespace Celeste.Mod.SkinModHelper {
                 return orig(self, index);
             }
 
-            //Check if config from v0.7 Before---
-            if (OldConfigCheck(self.Sprite, out string isOld))
-                spritePath = $"{OtherskinConfigs[isOld].OtherSprite_ExPath}/characters/player/";
-            //---
-
             if (index == 0) {
-                spritePath = spritePath + "bangs";
-            } else {
-                spritePath = spritePath + "hair";
-            }
-
-            if (GFX.Game.HasAtlasSubtexturesAt(spritePath, 0)) {
-                List<MTexture> newhair = GFX.Game.GetAtlasSubtextures(spritePath);
-                string spriteName = $"{(newhair.Count > self.Sprite.HairFrame ? newhair[self.Sprite.HairFrame] : newhair[0])}";
-
-                if (index != 0) {
-                    if (GFX.Game.Has($"{spriteName}_{index - self.Sprite.HairCount}")) {
-                        //Set the texture for hair of each section from back to front.
-                        spriteName = $"{spriteName}_{index - self.Sprite.HairCount}";
-
-                    } else if (GFX.Game.Has($"{spriteName}_{index}")) {
-                        //Set the texture for hair of each section.
-                        spriteName = $"{spriteName}_{index}";
-                    }
+                if (config.new_bangs != null) {
+                    return config.new_bangs.Count > self.Sprite.HairFrame ? config.new_bangs[self.Sprite.HairFrame] : config.new_bangs[0];
                 }
-                return GFX.Game[spriteName];
+            } else if (config.new_hairs != null) {
+                MTexture hair = config.new_hairs.Count > self.Sprite.HairFrame ? config.new_hairs[self.Sprite.HairFrame] : config.new_hairs[0];
+
+                int ri = index - self.Sprite.HairCount;
+                if (GFX.Game.Has($"{hair}_{ri}"))
+                    return GFX.Game[$"{hair}_{ri}"]; //Set the texture for hair of each section from back to front.
+                else if (GFX.Game.Has($"{hair}_{index}"))
+                    return GFX.Game[$"{hair}_{index}"]; //Set the texture for hair of each section.
+                else
+                    return hair;
+
             }
             return orig(self, index);
         }

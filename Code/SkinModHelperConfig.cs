@@ -140,7 +140,11 @@ namespace Celeste.Mod.SkinModHelper {
         public string SourcePath;
         public List<SkinModHelperOldConfig.HairColor> oldHairColors;
 
+        public List<MTexture> new_bangs;
+        public List<MTexture> new_hairs;
+
         public Dictionary<int, List<Color>> ActualHairColors;
+        public Dictionary<int, int> ActualHairLengths;
         #endregion
 
         //-----------------------------Initialization-----------------------------
@@ -152,17 +156,27 @@ namespace Celeste.Mod.SkinModHelper {
             string rootPath = getAnimationRootPath(target.Sprite);
 
             if (config == null || config.SourcePath != rootPath) {
+                string hairPath = rootPath;
                 if (target.Entity is Player && OldConfigCheck(target.Sprite, out string isOld)) {
                     config = new();
                     config.oldHairColors = OtherskinOldConfig[isOld].HairColors ?? new();
                     config.HairFlash = false;
                     config.Old_BuildHairColors();
+
+                    hairPath = $"{OtherskinConfigs[isOld].OtherSprite_ExPath}/characters/player/";
                 } else {
                     config = searchSkinConfig<HairConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "HairConfig") ?? new();
 
                     if (config.HairColors != null || config.HairFlash == false || AssetExists<AssetTypeDirectory>($"{rootPath}ColorGrading", GFX.Game))
                         config.BuildHairColors();
+                    config.BuildHairLengths();
                 }
+
+                if (GFX.Game.HasAtlasSubtextures(hairPath + "bangs"))
+                    config.new_bangs = GFX.Game.GetAtlasSubtextures(hairPath + "bangs");
+                if (GFX.Game.HasAtlasSubtextures(hairPath + "hair"))
+                    config.new_hairs = GFX.Game.GetAtlasSubtextures(hairPath + "hair");
+
                 config.SourcePath = rootPath;
                 selfData.Set("smh_hairConfig", config);
             }
@@ -226,6 +240,19 @@ namespace Celeste.Mod.SkinModHelper {
             }
             ActualHairColors = HairColors;
         }
+
+        public void BuildHairLengths() {
+            if (this.HairLengths == null) {
+                return;
+            }
+            Dictionary<int, int> HairLengths = new();
+
+            foreach (HairLength hairLength in this.HairLengths) {
+                HairLengths[hairLength.Dashes] = Math.Max(Math.Min(hairLength.Length, MAX_HAIRLENGTH), 1);
+            }
+
+            ActualHairLengths = HairLengths;
+        }
         #endregion
         #region
         public void Old_BuildHairColors() {
@@ -282,52 +309,19 @@ namespace Celeste.Mod.SkinModHelper {
             return true;
         }
 
-        public int? GetHairLength(int? DashCount) {
-            if (DashCount == null || HairLengths == null) {
+        public int? GetHairLength(int? get_dashes) {
+            if (get_dashes == null || ActualHairLengths == null) {
                 return null;
             }
-            int? HairLength = null;
-
-            DashCount = Math.Max((int)DashCount, 0);
-            // -1 for when player into flyFeathers state.
-
-            int getCount = 1;
-            foreach (HairLength hairLength in HairLengths) {
-                if (DashCount == hairLength.Dashes) {
-                    HairLength = hairLength.Length;
-                    break;
-                } else if (DashCount > 2 && DashCount > hairLength.Dashes && hairLength.Dashes > getCount) {
-                    // Autofill HairLength if DashCount over config setted
-                    getCount = hairLength.Dashes;
-                    HairLength = hairLength.Length;
-                }
+            // dashes is -1 for when player into flyFeathers state.
+            int dashes = (int)get_dashes;
+            while (dashes > 2 && !ActualHairLengths.ContainsKey(dashes)) {
+                dashes--;
             }
-
-            if (HairLength != null)
-                HairLength = Math.Max(Math.Min((int)HairLength, MAX_HAIRLENGTH), 1);
-            return HairLength;
-        }
-        public int? GetHairLength(string special) {
-            int count;
-            if (special == null || HairLengths == null) {
-                return null;
-            } else if (special == "flyFeathers") {
-                count = -1;
-            } else {
-                return null;
+            if (ActualHairLengths.TryGetValue(dashes, out var length)) {
+                return length;
             }
-
-            int? HairLength = null;
-            foreach (HairLength hairLength in HairLengths) {
-                if (count == hairLength.Dashes) {
-                    HairLength = hairLength.Length;
-                    break;
-                }
-            }
-
-            if (HairLength != null)
-                HairLength = Math.Max(Math.Min((int)HairLength, MAX_HAIRLENGTH), 1);
-            return HairLength;
+            return null;
         }
         #endregion
     }
