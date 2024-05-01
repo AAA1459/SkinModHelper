@@ -28,7 +28,7 @@ If this contains what you need, follow these steps to use them:
 If you wish to adjust the length of the hair for target, use:
 ```
   HairLengths:
-  - Dashes: [use -1 to 32]     
+  - Dashes: [any number]     
       # using "-1" applies this length to the player in feather status
     Length: [use 1 to 99]
 ```
@@ -39,7 +39,7 @@ If you want to assign a new hair color to target,
 different from maddy's default color, follow this setup:
 ```
   HairColors:
-  - Dashes: [use 0 to 32]
+  - Dashes: [any number]
     Color: [use six digit RGB hex code]     # example: "9B3FB5", which represents Baddy's 1-dash color
 	SegmentsColors:
 	- Segment: [Which segments of hair]     # use negative numbers for reverse order

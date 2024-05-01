@@ -157,13 +157,15 @@ namespace Celeste.Mod.SkinModHelper {
 
             if (config == null || config.SourcePath != rootPath) {
                 string hairPath = rootPath;
-                if (target.Entity is Player && OldConfigCheck(target.Sprite, out string isOld)) {
+                if (OldConfigCheck(target.Sprite, out string isOld)) {
                     config = new();
-                    config.oldHairColors = OtherskinOldConfig[isOld].HairColors ?? new();
-                    config.HairFlash = false;
-                    config.Old_BuildHairColors();
-
                     hairPath = $"{OtherskinConfigs[isOld].OtherSprite_ExPath}/characters/player/";
+
+                    if (target.Entity is Player) {
+                        config.oldHairColors = OtherskinOldConfig[isOld].HairColors ?? new();
+                        config.HairFlash = false;
+                        config.Old_BuildHairColors();
+                    }
                 } else {
                     config = searchSkinConfig<HairConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "HairConfig") ?? new();
 
