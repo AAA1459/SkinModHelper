@@ -10,7 +10,7 @@ The content here involves a new config, its structure and function is like this
   - < HairColor >
   
   HairFlash: [true/false]
-  HairFloatingDashCount: [true/false]
+  HairFloatingDashCount: [number]
   
   OutlineColor: [use six digit RGB hex code]
 ```
