@@ -273,8 +273,6 @@ namespace Celeste.Mod.SkinModHelper {
         #endregion
 
         #region
-        private static Dictionary<string, PlayerAnimMetadata> FrameMetadata = typeof(PlayerSprite).GetField("FrameMetadata", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null) as Dictionary<string, PlayerAnimMetadata>;
-
         // Combine skin mod XML with a vanilla sprite bank
         private static void CombineSpriteBanks(SpriteBank origBank, string skinId, string xmlPath, bool Enabled) {
             SpriteBank newBank = BuildBank(origBank, skinId, xmlPath);
@@ -294,19 +292,13 @@ namespace Celeste.Mod.SkinModHelper {
                     origBank.SpriteData[newSpriteId] = newSpriteData;
 
                     if (origBank == GFX.SpriteBank && !string.IsNullOrEmpty(skinId)) {
+                        SpriteSkin_record[spriteId] = null;  // "SpriteSkin_record" initialization.
 
-                        // "SpriteSkin_record" initialization
-                        SpriteSkin_record[spriteId] = null;
+                        if (newSpriteData.Sources[0].XML["Metadata"] != null)
+                            PlayerSprite.CreateFramesMetadata(newSpriteId);  // Check if skin have metadata... no matter what skin it is.
 
-                        // Automatically check if origID has Metadata.
-                        MTexture mTexture = origSpriteData.Sprite.Has("idle") ? origSpriteData.Sprite.GetFrame("idle", 0) : origSpriteData.Sprite.Texture;
-                        if (FrameMetadata.ContainsKey($"{mTexture}")) {
-                            PlayerSprite.CreateFramesMetadata(newSpriteId);
-                        }
                     } else if (origBank == GFX.PortraitsSpriteBank && !string.IsNullOrEmpty(skinId)) {
-
-                        // "PortraitsSkin_record" initialization
-                        PortraitsSkin_record[spriteId] = null;
+                        PortraitsSkin_record[spriteId] = null;  // "PortraitsSkin_record" initialization.
                     }
                 }
             }
@@ -511,11 +503,6 @@ namespace Celeste.Mod.SkinModHelper {
                 first_build = false;
                 Xml_records.Clear();
                 FailedXml_record.Clear();
-
-                if (JungleHelperInstalled) {
-                    PlayerSprite.CreateFramesMetadata("junglehelper_madeline_lantern");
-                    PlayerSprite.CreateFramesMetadata("junglehelper_badeline_lantern");
-                }
                 
                 #region
                 foreach (string sprite in spritesWithHair) {
