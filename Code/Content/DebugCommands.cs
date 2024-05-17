@@ -77,7 +77,7 @@ namespace Celeste.Mod.SkinModHelper {
                 } else if (GFX.SpriteBank.Has(name)) {
                     string skin = GetSpriteBankIDSkin(name);
                     Sprite sprite = GFX.SpriteBank.SpriteData[skin].Sprite;
-                    skin = skin.Substring(name.Length).Replace("_+", "(player)");
+                    skin = skin.Substring(name.Length).Replace(playercipher, "(player)");
 
                     if (subname == null) {
                         string path = getAnimationRootPath(sprite);

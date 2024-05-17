@@ -39,10 +39,31 @@ namespace Celeste.Mod.SkinModHelper {
         public string Character_ID { get; set; }
 
 
+        public string OtherSprite_Path {
+            set {
+                if (value != null) {
+                    value = value.Replace("\\", "/");
+                    if (value.EndsWith("/"))
+                        value = value.Remove(value.Length - 1);
+                }
+                _OtherSprite_Path = value;
+            }
+            get { return _OtherSprite_Path; }
+        }
+        private string _OtherSprite_Path;
 
-
-        public string OtherSprite_Path { get; set; }
-        public string OtherSprite_ExPath { get; set; }
+        public string OtherSprite_ExPath {
+            set {
+                if (value != null) {
+                    value = value.Replace("\\", "/");
+                    if (value.EndsWith("/"))
+                        value = value.Remove(value.Length - 1);
+                }
+                _OtherSprite_ExPath = value;
+            }
+            get { return _OtherSprite_ExPath; }
+        }
+        private string _OtherSprite_ExPath;
 
 
         public string SkinDialogKey { get; set; }

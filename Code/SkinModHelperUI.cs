@@ -227,7 +227,7 @@ namespace Celeste.Mod.SkinModHelper
 
                     if (actually == null) {
                         ChangeUnselectedColor(skinSelectMenu, 1);
-                    } else if (actually == (GetPlayerSkinName() + "_+") && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2)) {
+                    } else if (actually == (GetPlayerSkinName() + playercipher) && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2)) {
                         ChangeUnselectedColor(skinSelectMenu, 2);
                     } else {
                         ChangeUnselectedColor(skinSelectMenu, 0);
@@ -257,7 +257,7 @@ namespace Celeste.Mod.SkinModHelper
 
                 if (actually == null || (skinSelectMenu.Index == 0 && selected != ORIGINAL)) {
                     ChangeUnselectedColor(skinSelectMenu, 1);
-                } else if (actually == (GetPlayerSkinName() + "_+") && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2)) {
+                } else if (actually == (GetPlayerSkinName() + playercipher) && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2)) {
                     ChangeUnselectedColor(skinSelectMenu, 2);
                 } else {
                     ChangeUnselectedColor(skinSelectMenu, 0);
@@ -305,7 +305,7 @@ namespace Celeste.Mod.SkinModHelper
 
                     if (actually == null) {
                         ChangeUnselectedColor(skinSelectMenu, 1);
-                    } else if (actually == (GetPlayerSkinName() + "_+") && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2)) {
+                    } else if (actually == (GetPlayerSkinName() + playercipher) && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2)) {
                         ChangeUnselectedColor(skinSelectMenu, 2);
                     } else {
                         ChangeUnselectedColor(skinSelectMenu, 0);
@@ -335,7 +335,7 @@ namespace Celeste.Mod.SkinModHelper
 
                 if (actually == null || (skinSelectMenu.Index == 0 && selected != ORIGINAL)) {
                     ChangeUnselectedColor(skinSelectMenu, 1);
-                } else if (actually == (GetPlayerSkinName() + "_+") && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2)) {
+                } else if (actually == (GetPlayerSkinName() + playercipher) && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2)) {
                     ChangeUnselectedColor(skinSelectMenu, 2);
                 } else {
                     ChangeUnselectedColor(skinSelectMenu, 0);
@@ -379,7 +379,7 @@ namespace Celeste.Mod.SkinModHelper
                 skinSelectMenu.Change(skinId => {
                     actually = RefreshSkinValues_OtherExtra(SpriteID, skinId, inGame);
 
-                    if (recordID.Value.Contains(GetPlayerSkinName() + "_+") && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2)) {
+                    if (recordID.Value.Contains(GetPlayerSkinName() + playercipher) && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2)) {
                         ChangeUnselectedColor(skinSelectMenu, 2);
                     } else if (skinSelectMenu.Index == 2) {
                         ChangeUnselectedColor(skinSelectMenu, 1);
@@ -403,7 +403,7 @@ namespace Celeste.Mod.SkinModHelper
 
 
                 foreach (string SkinName in recordID.Value) {
-                    if (SkinName.EndsWith("_+")) { continue; }
+                    if (SkinName.EndsWith(playercipher)) { continue; }
 
                     string SkinText;
                     if (Dialog.Has($"SkinModHelper_Other__{SpriteID}__{SkinName}")) {
@@ -420,7 +420,7 @@ namespace Celeste.Mod.SkinModHelper
                     skinSelectMenu.Add(SkinText, SkinName, (SkinName == selected));
                 }
 
-                if (recordID.Value.Contains(GetPlayerSkinName() + "_+") && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2)) {
+                if (recordID.Value.Contains(GetPlayerSkinName() + playercipher) && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2)) {
                     ChangeUnselectedColor(skinSelectMenu, 2);
                 } else if (skinSelectMenu.Index == 2 || (skinSelectMenu.Index == 0 && selected != ORIGINAL)) {
                     ChangeUnselectedColor(skinSelectMenu, 1);

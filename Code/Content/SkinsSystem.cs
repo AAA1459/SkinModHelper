@@ -61,13 +61,8 @@ namespace Celeste.Mod.SkinModHelper {
 
         #endregion
         #region
-
-        //When Character_ID appears in the config file, that ID will be automatically added here.
-        //In other words, don't add hook for this.
-        public static readonly List<string> spritesWithHair = new();
-
-        public static readonly int MAX_DASHES = 32;
         public static readonly int MAX_HAIRLENGTH = 99;
+        public static readonly string playercipher = "_+";
 
         public static readonly string DEFAULT = "Default";
         public static readonly string ORIGINAL = "Original";
@@ -81,7 +76,7 @@ namespace Celeste.Mod.SkinModHelper {
         /// <summary> 0-Default, 1-Invert, 2-Off, 3-On </summary>
         public static int backpackSetting = 0;
 
-        public static bool first_build = true;
+        public static bool build_warning = true;
         public static List<string> FailedXml_record = new();
         public static Dictionary<string, SpriteBank> Xml_records = new();
 
@@ -105,108 +100,27 @@ namespace Celeste.Mod.SkinModHelper {
         //-----------------------------Build Skins-----------------------------
         #region
         private static void EverestContentUpdateHook(ModAsset oldAsset, ModAsset newAsset) {
-            if (newAsset != null && newAsset.PathVirtual.StartsWith("SkinModHelperConfig")) {
-                ReloadSettings();
-                Logger.Log(LogLevel.Warn, "SkinModHelper", $"If you encounter a loading failure, please just restart the game!");
-                Logger.Log(LogLevel.Warn, "SkinModHelper", $"Or add 'SkinModHelperPlus.zip' to mods whitelist (if you have)");
-                RefreshSkins(true, false);
+            if (newAsset != null) {
+                if (newAsset.PathVirtual.StartsWith("SkinModHelperConfig")) {
+                    ConfigInsert(newAsset);
+                    Logger.Log(LogLevel.Warn, "SkinModHelper", $"If the new skins's content does not load, please enter the save slot menu to refresh it");
+                }
             }
         }
         public static void ReloadSettings() {
-            spritesWithHair.Clear();
+            Logger.Log(LogLevel.Info, "SkinModHelper", $"Skins loading... Settings Initializing...");
+
             skinConfigs.Clear();
             OtherskinConfigs.Clear();
             OtherskinOldConfig.Clear();
-
             Instance.LoadSettings();
-            List<int> hashValues = new() { 0, 1, 2, 3, 4, 444482, 444483 };
+            build_warning = true;
 
             foreach (ModContent mod in Everest.Content.Mods) {
-                if (mod.Map.TryGetValue("SkinModHelperConfig", out ModAsset configAsset) && configAsset.Type == typeof(AssetTypeYaml)) {
-
-                    #region // Check if config from v0.7 Before
-                    if (LoadConfigFile<SkinModHelperOldConfig>(configAsset, out var old_config)) {
-                        if (string.IsNullOrEmpty(old_config.SkinId) || old_config.SkinId.EndsWith("_")) {
-                            Logger.Log(LogLevel.Warn, "SkinModHelper", $"Invalid skin name '{old_config.SkinId}', will not register.");
-                            continue;
-                        }
-                        SkinModHelperConfig config = new(old_config);
-
-                        if (config.SkinName == DEFAULT || config.SkinName == ORIGINAL || config.SkinName == LockedToPlayer ||
-                            OtherskinConfigs.ContainsKey(config.SkinName) || skinConfigs.ContainsKey(config.SkinName)) {
-                            Logger.Log(LogLevel.Warn, "SkinModHelper", $"skin name '{config.SkinName}' has been taken.");
-                            continue;
-                        }
-
-                        Logger.Log(LogLevel.Info, "SkinModHelper", $"Registered old-ver General skin: {config.SkinName}");
-                        OtherskinConfigs.Add(config.SkinName, config);
-                        OtherskinOldConfig.Add(config.SkinName, old_config);
-                        continue;
-                    }
-                    #endregion
-
-                    if (!LoadConfigFile<List<SkinModHelperConfig>>(configAsset, out var configs) || configs.Count < 1) {
-                        continue;
-                    }
-                    #region // New config
-                    foreach (SkinModHelperConfig config in configs) {
-                        Regex skinIdRegex = new(@"^[a-zA-Z0-9]+_[a-zA-Z0-9]+$");
-
-                        if (string.IsNullOrEmpty(config.SkinName) || config.SkinName.EndsWith("_")) {
-                            Logger.Log(LogLevel.Warn, "SkinModHelper", $"Invalid skin name '{config.SkinName}', will not register.");
-                            continue;
-
-                        } else if (config.SkinName == DEFAULT || config.SkinName == ORIGINAL || config.SkinName == LockedToPlayer ||
-                            OtherskinConfigs.ContainsKey(config.SkinName) || skinConfigs.ContainsKey(config.SkinName)) {
-                            Logger.Log(LogLevel.Warn, "SkinModHelper", $"skin name '{config.SkinName}' has been taken.");
-                            continue;
-                        }
-                        //---------------------GeneralSkin------------------------#
-                        if (!string.IsNullOrEmpty(config.OtherSprite_ExPath)) {
-                            if (config.OtherSprite_ExPath.EndsWith("/")) { config.OtherSprite_ExPath = config.OtherSprite_ExPath.Remove(config.OtherSprite_ExPath.LastIndexOf("/")); }
-
-                            Logger.Log(config.General_List == false ? LogLevel.Debug : LogLevel.Info, "SkinModHelper", $"Registered new General skin: {config.SkinName}");
-                            OtherskinConfigs.Add(config.SkinName, config);
-                        }
-                        //--------------------------------------------------------#
-                        //---------------------PlayerSkin-------------------------
-                        if (!string.IsNullOrEmpty(config.Character_ID)) {
-                            if (string.IsNullOrEmpty(config.hashSeed)) { config.hashSeed = config.SkinName; }
-                            config.hashValues = getHash(config.hashSeed) + 1;
-
-                            //----------------JungleLantern---------------
-                            if (config.SkinName.EndsWith("_lantern_NB") || config.SkinName.EndsWith("_lantern")) {
-                                config.JungleLanternMode = true;
-                                if (config.Silhouette_List || config.Player_List) {
-                                    Logger.Log(LogLevel.Warn, "SkinModHelper", $"'{config.SkinName}' this name will affect the gameplay of JungleHelper, it should't appear in the options.");
-                                }
-                                config.Silhouette_List = false;
-                                config.Player_List = false;
-                            }
-                            //--------------------------------------------#
-                            if (!spritesWithHair.Contains(config.Character_ID)) { spritesWithHair.Add(config.Character_ID); }
-
-                            if (!string.IsNullOrEmpty(config.OtherSprite_Path)) {
-                                if (config.OtherSprite_Path.EndsWith("/")) { config.OtherSprite_Path = config.OtherSprite_Path.Remove(config.OtherSprite_Path.LastIndexOf("/")); }
-                            }
-                            if (!hashValues.Contains(config.hashValues)) {
-                                hashValues.Add(config.hashValues);
-
-                                string s = "   ";
-                                for (int i = config.SkinName.Length; i < 32; s += " ", i++) { }
-                                Logger.Log(LogLevel.Info, "SkinModHelper", $"Registered new player skin: {config.SkinName}{s}{config.hashValues}");
-
-                                skinConfigs.Add(config.SkinName, config);
-                            } else {
-                                Logger.Log(LogLevel.Error, "SkinModHelper", $"Player skin '{config.SkinName}' happened hash value conflict! cannot registered.");
-                            }
-                        }
-                        //--------------------------------------------------------#
-                    }
-                    #endregion
+                if (mod.Map.TryGetValue("SkinModHelperConfig", out ModAsset configAsset)) {
+                    ConfigInsert(configAsset);
                 }
             }
-            first_build = true;
             if (Settings.SelectedPlayerSkin == null) {
                 Settings.SelectedPlayerSkin = DEFAULT;
             }
@@ -214,6 +128,92 @@ namespace Celeste.Mod.SkinModHelper {
                 Settings.SelectedSilhouetteSkin = DEFAULT;
             }
         }
+        public static void ConfigInsert(ModAsset asset) {
+            if (asset.Type != typeof(AssetTypeYaml))
+                return;
+
+            #region // nonPlus skin config
+            if (LoadConfigFile<SkinModHelperOldConfig>(asset, out var old_config)) {
+                if (string.IsNullOrEmpty(old_config.SkinId) || old_config.SkinId.EndsWith("_")) {
+                    Logger.Log(LogLevel.Error, "SkinModHelper", $"Invalid skin name '{old_config.SkinId}', will not register.");
+                    return;
+                }
+                SkinModHelperConfig config = new(old_config);
+
+                if (config.SkinName == DEFAULT || config.SkinName == ORIGINAL || config.SkinName == LockedToPlayer) {
+                    Logger.Log(LogLevel.Error, "SkinModHelper", $"skin name '{config.SkinName}' has been taken.");
+                    return;
+                }
+
+                if (OtherskinConfigs.ContainsKey(config.SkinName) || skinConfigs.ContainsKey(config.SkinName)) {
+                    Logger.Log(LogLevel.Info, "SkinModHelper", $"Re-registered old-ver general skin: {config.SkinName}");
+                } else {
+                    Logger.Log(LogLevel.Info, "SkinModHelper", $"Registered old-ver general skin: {config.SkinName}");
+                }
+                OtherskinConfigs[config.SkinName] = config;
+                OtherskinOldConfig[config.SkinName] = old_config;
+                return;
+            }
+            #endregion
+
+            if (!LoadConfigFile<List<SkinModHelperConfig>>(asset, out var configs) || configs.Count < 1)
+                return;
+
+            #region // skin config
+            foreach (SkinModHelperConfig config in configs) {
+                if (string.IsNullOrEmpty(config.SkinName) || config.SkinName.EndsWith("_")) {
+                    Logger.Log(LogLevel.Error, "SkinModHelper", $"Invalid skin name '{config.SkinName}', will not register.");
+                    continue;
+
+                } else if (config.SkinName == DEFAULT || config.SkinName == ORIGINAL || config.SkinName == LockedToPlayer) {
+                    Logger.Log(LogLevel.Warn, "SkinModHelper", $"skin name '{config.SkinName}' has been taken.");
+                    continue;
+                }
+                //---------------------GeneralSkin------------------------#
+                if (!string.IsNullOrEmpty(config.OtherSprite_ExPath)) {
+                    if (!OtherskinConfigs.ContainsKey(config.SkinName)) {
+                        var logLevel = config.General_List == false ? LogLevel.Debug : LogLevel.Info;
+                        Logger.Log(logLevel, "SkinModHelper", $"Registered new general skin: {config.SkinName}");
+                    } else
+                        Logger.Log(LogLevel.Debug, "SkinModHelper", $"Re-registered general skin: {config.SkinName}");
+
+                    OtherskinConfigs.Add(config.SkinName, config);
+                }
+                //--------------------------------------------------------#
+                //---------------------PlayerSkin-------------------------
+                if (!string.IsNullOrEmpty(config.Character_ID)) {
+                    if (string.IsNullOrEmpty(config.hashSeed)) { config.hashSeed = config.SkinName; }
+                    config.hashValues = getHash(config.hashSeed) + 1;
+
+                    //----------------JungleLantern---------------
+                    if ((config.SkinName.EndsWith("_lantern_NB") || config.SkinName.EndsWith("_lantern"))) {
+                        config.JungleLanternMode = true;
+                        if (config.Silhouette_List || config.Player_List) {
+                            Logger.Log(LogLevel.Warn, "SkinModHelper", $"'{config.SkinName}' this name will affect the gameplay of junglehelper, it should't appear in the options.");
+                        }
+                        config.Player_List = config.Silhouette_List = false;
+                    }
+                    //--------------------------------------------#
+
+                    string name = GetPlayerSkinName(config.hashValues);
+                    if (name == null || name == config.SkinName) {
+                        string s = "   ";
+                        for (int i = config.SkinName.Length; i < 32; s += " ", i++) { }
+                        if (name != config.SkinName)
+                            Logger.Log(LogLevel.Info, "SkinModHelper", $"Registered new player skin: {config.SkinName}{s}{config.hashValues}");
+                        else
+                            Logger.Log(LogLevel.Debug, "SkinModHelper", $"Re-registered player skin: {config.SkinName}{s}{config.hashValues}");
+
+                        skinConfigs[config.SkinName] = config;
+                    } else {
+                        Logger.Log(LogLevel.Error, "SkinModHelper", $"player skin '{config.SkinName}' and '{name}' happened hash value conflict! cannot registered.");
+                    }
+                }
+                //--------------------------------------------------------#
+            }
+            #endregion
+        }
+
         private static int getHash(string hash_send) {
             if (hash_send == null) {
                 throw new Exception("null hash send");
@@ -318,7 +318,7 @@ namespace Celeste.Mod.SkinModHelper {
                     RecordSpriteBanks(GFX.PortraitsSpriteBank, DEFAULT, portraitsXmlPath);
 
                     // This name is not actually used... just for ease of search (why?)
-                    string Name = config.SkinName + "_+";
+                    string Name = config.SkinName + playercipher;
                     RecordOtherSprite(GFX.Game, $"{config.OtherSprite_Path}/death_particle", "death_particle", Name);
                     RecordOtherSprite(GFX.Game, $"{config.OtherSprite_Path}/objects/dreamblock/particles", "dreamblock_particles", Name);
                     RecordOtherSprite(GFX.Game, $"{config.OtherSprite_Path}/particles/feather", "feather_particles", Name);
@@ -389,6 +389,8 @@ namespace Celeste.Mod.SkinModHelper {
         }
         private static SpriteBank BuildBank(SpriteBank origBank, string skinId, string xmlPath) {
             string dir = xmlPath.Remove(xmlPath.LastIndexOf("/"));
+            if (skinId.EndsWith(playercipher))
+                skinId = skinId.Replace(playercipher, "");
 
             if (Xml_records.TryGetValue(xmlPath, out SpriteBank newBank)) {
                 return newBank;
@@ -406,7 +408,7 @@ namespace Celeste.Mod.SkinModHelper {
                     SpriteBank newBank_2 = new SpriteBank(origBank.Atlas, xmlPath);
                     return Xml_records[xmlPath] = newBank_2;
                 } catch (Exception e) {
-                    Logger.Log(LogLevel.Error, "SkinModHelper", $"The {xmlPath.Replace(dir + "/", "")} of '{skinId.Replace("_+", "")}' build failed! \n {xmlPath}: {e.Message}");
+                    Logger.Log(LogLevel.Error, "SkinModHelper", $"The {xmlPath.Replace(dir + "/", "")} of '{skinId}' build failed! \n {xmlPath}: {e.Message}");
                 }
             }
             FailedXml_record.Add(xmlPath);
@@ -498,20 +500,13 @@ namespace Celeste.Mod.SkinModHelper {
 
             if (Xmls_refresh == true) {
                 LogLevel logLevel = Logger.GetLogLevel("Atlas");
-                if (!first_build) { Logger.SetLogLevel("Atlas", LogLevel.Error); }
+                if (!build_warning)
+                    Logger.SetLogLevel("Atlas", LogLevel.Error);
 
-                first_build = false;
                 Xml_records.Clear();
                 FailedXml_record.Clear();
-                
+
                 #region
-                foreach (string sprite in spritesWithHair) {
-                    if (GFX.SpriteBank.SpriteData.ContainsKey(sprite)) {
-                        PlayerSprite.CreateFramesMetadata(sprite);
-                    } else {
-                        throw new Exception($"[SkinModHelper] '{sprite}' does not exist in Graphics/Sprites.xml");
-                    }
-                }
                 bool Enabled = false;
                 foreach (SkinModHelperConfig config in OtherskinConfigs.Values) {
                     Enabled = Settings.ExtraXmlList.ContainsKey(config.SkinName) && Settings.ExtraXmlList[config.SkinName];
@@ -527,18 +522,24 @@ namespace Celeste.Mod.SkinModHelper {
                 foreach (SkinModHelperConfig config in skinConfigs.Values) {
                     Enabled = Player_Skinid_verify == config.hashValues;
 
+                    if (GFX.SpriteBank.SpriteData.ContainsKey(config.Character_ID)) {
+                        PlayerSprite.CreateFramesMetadata(config.Character_ID);
+                    } else if (build_warning) {
+                        throw new Exception($"[SkinModHelper] '{config.Character_ID}' does not exist in Graphics/Sprites.xml");
+                    }
+
                     if (!string.IsNullOrEmpty(config.OtherSprite_Path)) {
                         string spritesXmlPath = $"Graphics/{config.OtherSprite_Path}/Sprites.xml";
                         string portraitsXmlPath = $"Graphics/{config.OtherSprite_Path}/Portraits.xml";
 
-                        // SaveFilePortraits doesn't seem to like numbers...
-                        CombineSpriteBanks(GFX.SpriteBank, $"{config.SkinName}_+", spritesXmlPath, Enabled);
-                        CombineSpriteBanks(GFX.PortraitsSpriteBank, $"{config.SkinName}_+", portraitsXmlPath, Enabled);
+                        string skinId = config.SkinName + playercipher;
+                        CombineSpriteBanks(GFX.SpriteBank, skinId, spritesXmlPath, Enabled);
+                        CombineSpriteBanks(GFX.PortraitsSpriteBank, skinId, portraitsXmlPath, Enabled);
                     }
                 }
                 #endregion
 
-                Logger.SetLogLevel("Atlas", LogLevel.Error);
+                build_warning = false;
                 RecordSpriteBanks_Start();
                 Logger.SetLogLevel("Atlas", logLevel);
             }
@@ -642,7 +643,7 @@ namespace Celeste.Mod.SkinModHelper {
         public static string getSkinDefaultValues(SpriteBank selfBank, string SpriteID) {
             string SkinID = null;
 
-            string playerSkinName = GetPlayerSkinName(Player_Skinid_verify) + "_+";
+            string playerSkinName = GetPlayerSkinName(Player_Skinid_verify) + playercipher;
             if (playerSkinName != null) {
                 if (selfBank.Has(SpriteID + playerSkinName)) {
                     SkinID = playerSkinName;
