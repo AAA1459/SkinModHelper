@@ -178,7 +178,6 @@ namespace Celeste.Mod.SkinModHelper {
 
                 // let we know that BetterRefillGems working...
                 bool idlenr = sprite.CurrentAnimationID == "idlenr";
-
                 GFX.SpriteBank.CreateOn(sprite, SpriteID);
                 GFX.SpriteBank.CreateOn(flash, SpriteID);
 

@@ -41,6 +41,7 @@ namespace Celeste.Mod.SkinModHelper {
             Everest.Content.OnUpdate += EverestContentUpdateHook;
 
             On.Celeste.Player.Update += PlayerUpdateHook;
+            On.Monocle.Sprite.Update += SpriteUpdateHook;
 
             On.Monocle.SpriteBank.Create += SpriteBankCreateHook;
             On.Monocle.SpriteBank.CreateOn += SpriteBankCreateOnHook;
@@ -52,6 +53,7 @@ namespace Celeste.Mod.SkinModHelper {
             Everest.Content.OnUpdate -= EverestContentUpdateHook;
 
             On.Celeste.Player.Update -= PlayerUpdateHook;
+            On.Monocle.Sprite.Update -= SpriteUpdateHook;
 
             On.Monocle.SpriteBank.Create -= SpriteBankCreateHook;
             On.Monocle.SpriteBank.CreateOn -= SpriteBankCreateOnHook;
@@ -67,6 +69,8 @@ namespace Celeste.Mod.SkinModHelper {
         public static readonly string DEFAULT = "Default";
         public static readonly string ORIGINAL = "Original";
         public static readonly string LockedToPlayer = "LockedToPlayer";
+
+        public static readonly MethodInfo CloneMethod = typeof(object).GetMethod("MemberwiseClone", BindingFlags.NonPublic | BindingFlags.Instance);
 
         public static int Player_Skinid_verify;
 
@@ -145,8 +149,11 @@ namespace Celeste.Mod.SkinModHelper {
                     return;
                 }
 
-                if (OtherskinConfigs.ContainsKey(config.SkinName) || skinConfigs.ContainsKey(config.SkinName)) {
+                if (OtherskinOldConfig.ContainsKey(config.SkinName)) {
                     Logger.Log(LogLevel.Info, "SkinModHelper", $"Re-registered old-ver general skin: {config.SkinName}");
+                } else if (OtherskinConfigs.ContainsKey(config.SkinName)) {
+                    Logger.Log(LogLevel.Error, "SkinModHelper", $"skin name '{config.SkinName}' has been taken.");
+                    return;
                 } else {
                     Logger.Log(LogLevel.Info, "SkinModHelper", $"Registered old-ver general skin: {config.SkinName}");
                 }
@@ -177,7 +184,8 @@ namespace Celeste.Mod.SkinModHelper {
                     } else
                         Logger.Log(LogLevel.Debug, "SkinModHelper", $"Re-registered general skin: {config.SkinName}");
 
-                    OtherskinConfigs.Add(config.SkinName, config);
+                    OtherskinOldConfig.Remove(config.SkinName);
+                    OtherskinConfigs[config.SkinName] = config;
                 }
                 //--------------------------------------------------------#
                 //---------------------PlayerSkin-------------------------
@@ -570,6 +578,17 @@ namespace Celeste.Mod.SkinModHelper {
 
         #endregion
 
+        //-----------------------------Customize-----------------------------
+        private static void SpriteUpdateHook(On.Monocle.Sprite.orig_Update orig, Sprite self) {
+            if (self.Entity != null) {
+                Sprite sprite = self.Entity.Get<Sprite>();
+                // Invoke CharacterConfig EntityTweaks.
+                if (self == sprite)
+                    CharacterConfig.For(self);
+            }
+            orig(self);
+        }
+
         //-----------------------------Method-----------------------------
         #region
         /// <summary> 
@@ -714,7 +733,7 @@ namespace Celeste.Mod.SkinModHelper {
                         return spriteData.Sources[0].Path;
                     }
                 }
-            } 
+            }
             if (type is Sprite sprite) {
                 type = $"{(sprite.Has("idle") ? sprite.GetFrame("idle", 0) : sprite.Texture)}";
             } else if (type is Image image) {
@@ -739,7 +758,7 @@ namespace Celeste.Mod.SkinModHelper {
         public static FieldInfo GetFieldPlus(Type type, string name) {
             FieldInfo field = null;
             while (field == null && type != null) {
-                field = type.GetField(name, BindingFlags.Public | BindingFlags.Instance) ?? type.GetField(name, BindingFlags.NonPublic | BindingFlags.Instance);
+                field = type.GetField(name, BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
 
                 // some mods entities works based on vanilla entities, but mods entity possible don't have theis own field.
                 type = type.BaseType;

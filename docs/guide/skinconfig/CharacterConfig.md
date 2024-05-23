@@ -11,6 +11,9 @@ LowStaminaFlashColor: [use six digit RGB hex code]
 
 TrailsColor: [use six digit RGB hex code]
 DeathParticleColor: [use six digit RGB hex code]
+
+EntityTweaks:
+- < Tweaks >
 ```
 
 If this contains what you need, follow these steps to use them:
@@ -60,4 +63,43 @@ if you want to recolor these particlet, use this:
 DeathParticleColor: [use six digit RGB hex code]
 ```
 ---
+## _EntityTweaks_
+there maybe required you have some code knowledge... 
+it'll allow customize entity's any initial-value, any sprites:
+```
+EntityTweaks:
+- Name: [field name]  
+  Value: [field's new value]
+  
+  subTweaks:     # If the field type is special, you may need this to tweaks its sub-fields.
+  - < Tweaks >     # A self-nesting, its structure same as "EntityTweaks".
+  
+  subTEST: true     # Output all sub-fields from target field.
+TweaksTEST: true     # Output all fields from sprite's entity.
+```
+and, customize certain type's field require special values:
+* if field type is _`Monocle.Sprite`_, so value should be `[a ID from Sprite.xml]`
+* if field type is _`Monocle.Image`_ or _`Monocle.MTexture`_, so value should be `[sprite path]`
+  * its starting point at the previous folder of "skinConfig", aka sprites folder.
+* if field type is _`Microsoft.Xna.Framework.Color`_, so value should be `[six digit RGB hex code, or eight digit RGBA]`
+
+and and... here is a demo for refill.
+```
+EntityTweaks:
+  - Name: "outline"     # MTexture type : sprite path
+    Value: "flash04"
+  - Name: "p_glow"   # ParticleType Type
+    subTweaks: 
+      - Name: "Size"       # Float type : number
+        Value: 1.6
+      - Name: "SizeRange"  # Float type : number
+        Value: 1.2
+      - Name: "Color"      # Color type : hex code
+        Value: "8351c888"
+      - Name: "Color2"     # Color type : hex code
+        Value: "5e29a8"
+```
+
+---
+
 [previous page](/docs/guide/README.md#more-miscellaneous)
