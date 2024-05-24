@@ -89,7 +89,6 @@ namespace Celeste.Mod.SkinModHelper {
         public bool? SilhouetteMode { get; set; }
         public string LowStaminaFlashColor { get; set; }
         public bool? LowStaminaFlashHair { get; set; }
-
         public string TrailsColor { get; set; }
         public string DeathParticleColor { get; set; }
 
@@ -128,8 +127,11 @@ namespace Celeste.Mod.SkinModHelper {
                 config.Target = target;
                 config.SourcePath = rootPath;
 
-                if (config.EntityTweaks != null) {
-                    config.ValuesTweak(target.Entity, config.EntityTweaks, config.TweaksTEST);
+                if (config.EntityTweaks != null && target is Sprite) {
+                    // Avoid multiple EntityTweaks works, make sure this target is the first of its entity. 
+                    if (target == target.Entity?.Get<Sprite>()) {
+                        config.ValuesTweak(target.Entity, config.EntityTweaks, config.TweaksTEST);
+                    }
                 }
                 selfData.Set("smh_characterConfig", config);
             }
@@ -144,74 +146,78 @@ namespace Celeste.Mod.SkinModHelper {
             }
         }
         #endregion
+
         #region
         private static List<Type> NotCloneList = new List<Type>() {
             typeof(Image)
         };
         public void ValuesTweak(object obj, List<Tweak> tweaks, bool TEST = false) {
-            if (obj != null) {
-                Type type = obj.GetType();
-                if (TEST) {
-                    string log = $"{SourcePath}skinConfig/CharacterConfig TEST on {type}:";
-                    Type type2 = type;
-                    while (type2 != null) {
-                        var fs = type2.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).ToList() ?? new();
-                        foreach (var f in fs)
-                            log = log + "\n" + f;
-                        type2 = type2.BaseType;
-                    }
-                    Logger.Log(LogLevel.Info, "SkinModHelper", log);
+            if (obj == null) {
+                return;
+            }
+            Type type = obj.GetType();
+            if (TEST) {
+                string log = $"{SourcePath}skinConfig/CharacterConfig TEST on {type}:";
+                Type type2 = type;
+                while (type2 != null) {
+                    var fs = type2.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).ToList() ?? new();
+                    foreach (var f in fs)
+                        log = log + "\n" + f;
+                    type2 = type2.BaseType;
+                }
+                Logger.Log(LogLevel.Info, "SkinModHelper", log);
+            }
+
+            foreach (Tweak t in tweaks) {
+                FieldInfo f = GetFieldPlus(type, t.Name);
+                if (f == null) {
+                    Logger.Log(TEST ? LogLevel.Warn : LogLevel.Debug, "SkinModHelper", $"{SourcePath}skinConfig/CharacterConfig Tweaks error: \n Not found the Instance Field: {type}.{t.Name}");
+                    continue;
                 }
 
-                foreach (Tweak t in tweaks) {
-                    FieldInfo f = GetFieldPlus(type, t.Name);
-                    if (f == null) {
-                        Logger.Log(TEST ? LogLevel.Warn : LogLevel.Debug, "SkinModHelper", $"{SourcePath}skinConfig/CharacterConfig Tweaks error: \n Not found the Instance Field: {type}.{t.Name}");
-                    } else {
-                        object v = f.GetValue(obj);
-                        if (t.subTweaks != null) {
-                            // Clone it first before modify e.g ParticleType.
-                            if (!NotCloneList.Contains(f.FieldType)) {
-                                v = CloneMethod.Invoke(v, null);
-                            }
+                object v = f.GetValue(obj);
+                if (t.subTweaks != null) {
+                    // Clone it first before modify e.g ParticleType.
+                    if (!NotCloneList.Contains(f.FieldType)) {
+                        v = CloneMethod.Invoke(v, null);
+                    }
 
-                            ValuesTweak(v, t.subTweaks, t.subTEST);
-                            f.SetValue(obj, v);
+                    ValuesTweak(v, t.subTweaks, t.subTEST);
+                    f.SetValue(obj, v);
+                    continue;
+                }
+
+                if (t.Value != null) {
+                    object v2 = v;
+                    try {
+                        // Check field type instead of value, for works even field's value is null.
+                        if (f.FieldType == typeof(Sprite)) {
+                            GFX.SpriteBank.CreateOn(v as Sprite, t.Value);
+                            continue;
+                        }
+                        if (f.FieldType == typeof(Image)) {
+                            (v as Image).Texture = GFX.Game[SourcePath + t.Value];
                             continue;
                         }
 
-                        if (t.Value != null) {
-                            object v2 = v;
-                            try {
-                                // Check field type instead of value, for works even field's value is null.
-                                if (f.FieldType == typeof(Sprite)) {
-                                    GFX.SpriteBank.CreateOn(v as Sprite, t.Value);
-                                    continue;
-                                }
-                                if (f.FieldType == typeof(Image)) {
-                                    (v as Image).Texture = GFX.Game[SourcePath + t.Value];
-                                    continue;
-                                }
+                        if (f.FieldType == typeof(MTexture))
+                            v = GFX.Game[SourcePath + t.Value];
+                        else if (f.FieldType == typeof(Color))
+                            v = Calc.HexToColorWithAlpha(t.Value);
+                        else if (f.FieldType != typeof(float) && int.TryParse(t.Value, out int v3)) // this is required to handle enum value
+                            v = v3;
+                        else
+                            v = Convert.ChangeType(t.Value, f.FieldType);
 
-                                if (f.FieldType == typeof(MTexture)) {
-                                    v = GFX.Game[SourcePath + t.Value];
-                                } else if (f.FieldType == typeof(Color)) {
-                                    v = Calc.HexToColorWithAlpha(t.Value);
-                                } else {
-                                    v = Convert.ChangeType(t.Value, f.FieldType);
-                                }
-                                f.SetValue(obj, v);
-                            } catch (Exception e) {
-                                Logger.Log(LogLevel.Error, "SkinModHelper", $"{SourcePath}skinConfig/CharacterConfig Tweaks error: \n '{type}.{t.Name}': \n   {e.Message}");
-                                v = v2;
-                                f.SetValue(obj, v);
-                            }
-                        }
+                        f.SetValue(obj, v);
+                    } catch (Exception e) {
+                        Logger.Log(LogLevel.Error, "SkinModHelper", $"{SourcePath}skinConfig/CharacterConfig Tweaks error: \n '{type}.{t.Name}': \n   {e.Message}");
+                        v = v2;
+                        f.SetValue(obj, v);
                     }
                 }
             }
         }
-
         #endregion
     }
     #endregion

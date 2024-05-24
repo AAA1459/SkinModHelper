@@ -581,10 +581,8 @@ namespace Celeste.Mod.SkinModHelper {
         //-----------------------------Customize-----------------------------
         private static void SpriteUpdateHook(On.Monocle.Sprite.orig_Update orig, Sprite self) {
             if (self.Entity != null) {
-                Sprite sprite = self.Entity.Get<Sprite>();
-                // Invoke CharacterConfig EntityTweaks.
-                if (self == sprite)
-                    CharacterConfig.For(self);
+                // Invoke CharacterConfig EntityTweaks if it have.
+                CharacterConfig config = CharacterConfig.For(self);
             }
             orig(self);
         }
