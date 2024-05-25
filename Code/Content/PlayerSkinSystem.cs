@@ -34,8 +34,10 @@ namespace Celeste.Mod.SkinModHelper {
 
             IL.Celeste.Player.Render += PlayerRenderIlHook_Color;
             
-            On.Monocle.Image.Render += OnImageRender_ColorGrade;
             On.Celeste.PlayerHair.Render += PlayerHairRenderHook_ColorGrade;
+            doneHooks.Add(new Hook(typeof(Sprite).GetMethod("Render", BindingFlags.Public | BindingFlags.Instance),
+                       typeof(PlayerSkinSystem).GetMethod("SpriteRenderHook_ColorGrade", BindingFlags.NonPublic | BindingFlags.Static)));
+
             On.Celeste.Lookout.Update += LookoutUpdateHook_ColorGrade;
             On.Celeste.Payphone.Update += PayphoneUpdateHook_ColorGrade;
 
@@ -80,7 +82,6 @@ namespace Celeste.Mod.SkinModHelper {
             On.Celeste.PlayerSprite.Render -= PlayerSpriteRenderHook;
             On.Celeste.PlayerHair.Update -= PlayerHairUpdateHook;
 
-            On.Monocle.Image.Render -= OnImageRender_ColorGrade;
             On.Celeste.PlayerHair.Render -= PlayerHairRenderHook_ColorGrade;
 
             On.Celeste.PlayerHair.GetHairColor -= PlayerHairGetHairColorHook;
@@ -267,7 +268,7 @@ namespace Celeste.Mod.SkinModHelper {
                         color = ColorBlend(player.Hair.Color, (backup = 0.5f));
                     }
 
-                    if (ModeConfig.LowStaminaFlashHair == true || (ModeConfig.SilhouetteMode == true)) {
+                    if (ModeConfig.LowStaminaFlashHair || (ModeConfig.SilhouetteMode == true)) {
                         selfData.Set("HairColorGrading", backup ?? color);
                     }
                     return color;
@@ -297,7 +298,10 @@ namespace Celeste.Mod.SkinModHelper {
             // For make typeof(PlayerDeadBody) inherited typeof(Player)'s colorgrade, or similar situations.
             Atlas atlas = selfData.Get<Atlas>("ColorGrade_Atlas") ?? GFX.Game;
             string colorGrade_Path = selfData.Get<string>("ColorGrade_Path");
+            if (!self.Active)
+                goto goto_one;
 
+            #region
             if (colorGrade_Path == null) {
                 colorGrade_Path = $"{getAnimationRootPath(self.Sprite)}ColorGrading/dash";
 
@@ -328,7 +332,7 @@ namespace Celeste.Mod.SkinModHelper {
 
             } else if (get_dashCount != null) {
                 colorGrade_Path = getAnimationRootPath(colorGrade_Path) + "dash";
-                
+
                 int dashCount = Math.Max((int)get_dashCount, 0);
                 while (dashCount > 2 && !atlas.Has(colorGrade_Path + dashCount)) {
                     dashCount--;
@@ -336,6 +340,8 @@ namespace Celeste.Mod.SkinModHelper {
                 selfData.Set("ColorGrade_Atlas", atlas);
                 selfData.Set("ColorGrade_Path", colorGrade_Path = colorGrade_Path + dashCount);
             }
+        #endregion
+            goto_one:
 
             if (colorGrade_Path != null && atlas.Has(colorGrade_Path)) {
                 Effect colorGradeEffect = FxColorGrading_SMH;
@@ -354,31 +360,27 @@ namespace Celeste.Mod.SkinModHelper {
             }
             orig(self);
         }
-        private static void OnImageRender_ColorGrade(On.Monocle.Image.orig_Render orig, Image self) {
-            if (self is Sprite sprite) {
-                // filter non-Sprite type, and don't use DynData for minimizing lag...
-                DynamicData selfData = DynamicData.For(sprite);
+        private static void SpriteRenderHook_ColorGrade(Action<Sprite> orig, Sprite self) {
+            DynamicData selfData = DynamicData.For(self);
+            string colorGrade_Path = selfData.Get<string>("ColorGrade_Path");
 
-                string colorGrade_Path = selfData.Get<string>("ColorGrade_Path");
+            if (colorGrade_Path != null) {
+                Atlas atlas = selfData.Get<Atlas>("ColorGrade_Atlas") ?? GFX.Game;
 
-                if (colorGrade_Path != null) {
-                    Atlas atlas = selfData.Get<Atlas>("ColorGrade_Atlas") ?? GFX.Game;
+                if (atlas.Has(colorGrade_Path)) {
+                    Effect colorGradeEffect = FxColorGrading_SMH;
+                    colorGradeEffect.CurrentTechnique = colorGradeEffect.Techniques["ColorGradeSingle"];
+                    Engine.Graphics.GraphicsDevice.Textures[1] = atlas[colorGrade_Path].Texture.Texture_Safe;
 
-                    if (atlas.Has(colorGrade_Path)) {
-                        Effect colorGradeEffect = FxColorGrading_SMH;
-                        colorGradeEffect.CurrentTechnique = colorGradeEffect.Techniques["ColorGradeSingle"];
-                        Engine.Graphics.GraphicsDevice.Textures[1] = atlas[colorGrade_Path].Texture.Texture_Safe;
+                    DynamicData spriteData = DynamicData.For(Draw.SpriteBatch);
+                    Matrix matrix = spriteData.Get<Matrix>("transformMatrix");
 
-                        DynamicData spriteData = DynamicData.For(Draw.SpriteBatch);
-                        Matrix matrix = spriteData.Get<Matrix>("transformMatrix");
-
-                        GameplayRenderer.End();
-                        Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, colorGradeEffect, matrix);
-                        orig(self);
-                        GameplayRenderer.End();
-                        Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, null, matrix);
-                        return;
-                    }
+                    GameplayRenderer.End();
+                    Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, colorGradeEffect, matrix);
+                    orig(self);
+                    GameplayRenderer.End();
+                    Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, null, matrix);
+                    return;
                 }
             }
             orig(self);
@@ -401,26 +403,19 @@ namespace Celeste.Mod.SkinModHelper {
         //-----------------------------PlayerSprite-----------------------------
         #region
         private static void PlayerSpriteRenderHook(On.Celeste.PlayerSprite.orig_Render orig, PlayerSprite self) {
-            DynamicData selfData = DynamicData.For(self);
-
-            // rendering run multiple times in one frame, but we don't need to do much. so...
-            if (selfData.Get("SMH_OncePerFrame") == null) {
-                if (self.Entity is not Player && selfData.Get("isGhost") == null && self.Entity is not PlayerDeadBody) {
+            if (self.Active)
+                if (self.Entity is not Player && DynamicData.For(self).Get("isGhost") == null && self.Entity is not PlayerDeadBody) {
 
                     PlayerHair hair = self.Entity?.Get<PlayerHair>();
                     if (hair?.Sprite == self) {
                         CharacterConfig ModeConfig = CharacterConfig.For(self);
 
-                        if (ModeConfig.SilhouetteMode == true) {
+                        if (ModeConfig.SilhouetteMode == true)
                             self.Color = hair.Color * hair.Alpha;
-
-                        } else if (self.Color == hair.Color * hair.Alpha) {
+                        else if (self.Color == hair.Color * hair.Alpha)
                             self.Color = Color.White * hair.Alpha;
-                        }
                     }
                 }
-                selfData.Set("SMH_OncePerFrame", true);
-            }
             orig(self);
         }
         #endregion
@@ -429,8 +424,6 @@ namespace Celeste.Mod.SkinModHelper {
         #region
         private static void PlayerHairUpdateHook(On.Celeste.PlayerHair.orig_Update orig, PlayerHair self) {
             DynamicData selfData = DynamicData.For(self);
-            selfData.Set("SMH_OncePerFrame", null);
-            DynamicData.For(self.Sprite).Set("SMH_OncePerFrame", null);
 
             selfData.Set("HairColorGrading", null);
             if (selfData.TryGet("smh_HairLength", out int? length) && length != null) {
@@ -447,19 +440,16 @@ namespace Celeste.Mod.SkinModHelper {
         }
 
         private static void PlayerHairRenderHook(On.Celeste.PlayerHair.orig_Render orig, PlayerHair self) {
-            DynamicData selfData = DynamicData.For(self);
-
-            // We want hair get config in rendering before. but rendering run multiple times in one frame, so...
-            if (selfData.Get("SMH_OncePerFrame") == null) {
-                #region
+            if (self.Active) {
+                DynamicData selfData = DynamicData.For(self);
                 HairConfig hairConfig = HairConfig.For(self);
                 CharacterConfig ModeConfig = CharacterConfig.For(self.Sprite);
 
-                if (hairConfig.OutlineColor != null && new Regex(@"^[a-fA-F0-9]{6}$").IsMatch(hairConfig.OutlineColor)) {
+                if (hairConfig.OutlineColor != null && new Regex(@"^[a-fA-F0-9]{6}$").IsMatch(hairConfig.OutlineColor))
                     self.Border = Calc.HexToColor(hairConfig.OutlineColor);
-                } else {
+                else
                     self.Border = Color.Black;
-                }
+
                 self.Border = ColorBlend(self.Border, selfData.Get("HairColorGrading"));
 
                 int? get_dashCount = GetDashCount(self);
@@ -470,17 +460,13 @@ namespace Celeste.Mod.SkinModHelper {
 
 
                 int? HairLength = hairConfig.GetHairLength(get_dashCount);
-                if (self.Entity is Player player) {
-                    if (player.StateMachine.State == Player.StStarFly) {
+                if (self.Entity is Player player)
+                    if (player.StateMachine.State == Player.StStarFly)
                         HairLength = hairConfig.GetHairLength(-1);
-                    } else if (player.StateMachine.State == Player.StRedDash) {
+                    else if (player.StateMachine.State == Player.StRedDash)
                         HairLength = null;
-                    }
-                }
-                selfData.Set("smh_HairLength", HairLength);
 
-                #endregion
-                selfData.Set("SMH_OncePerFrame", true);
+                selfData.Set("smh_HairLength", HairLength);
                 return;
             }
             orig(self);
@@ -587,18 +573,17 @@ namespace Celeste.Mod.SkinModHelper {
             }
         }
         // ---JungleHelper---
-        public static bool HasLantern(PlayerSpriteMode mode) {
-            if (mode == (PlayerSpriteMode)444482 || mode == (PlayerSpriteMode)444483) {
+        public static bool HasLantern(Func<PlayerSpriteMode, bool> orig, PlayerSpriteMode mode) {
+            bool boolen = orig(mode);
+            if (boolen) {
+                return boolen;
+            }
+
+            string skinName = GetPlayerSkinName((int)mode);
+            if (skinName != null && skinConfigs[skinName].JungleLanternMode) {
                 return true;
             }
-            foreach (SkinModHelperConfig config in skinConfigs.Values) {
-                if (config.JungleLanternMode == true) {
-                    if (mode == (PlayerSpriteMode)config.hashValues) {
-                        return true;
-                    }
-                }
-            }
-            return false;
+            return boolen;
         }
         #endregion
 

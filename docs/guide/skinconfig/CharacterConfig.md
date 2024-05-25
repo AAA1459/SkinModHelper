@@ -12,6 +12,8 @@ LowStaminaFlashColor: [use six digit RGB hex code]
 TrailsColor: [use six digit RGB hex code]
 DeathParticleColor: [use six digit RGB hex code]
 
+HoldableFacingFlipable: [true/false]
+
 EntityTweaks:
 - < Tweaks >
 ```
@@ -62,8 +64,19 @@ if you want to recolor these particlet, use this:
 ```
 DeathParticleColor: [use six digit RGB hex code]
 ```
+
 ---
-## _EntityTweaks_
+### HoldableFacingFlipable
+Theo Crystal or Glider entities is holdable for player, but their's sprites do not flip with moving...
+if you want change their to do, so: 
+```
+HoldableFacingFlipable: true
+```
+Theory this also should work for the holdable entities of helpers, pls feedback if not.
+
+
+---
+### _EntityTweaks_
 there maybe required you have some code knowledge... 
 it'll allow customize entity's any initial-value, any sprites:
 ```
@@ -82,6 +95,7 @@ and, customize certain type's field require special values:
 * if field type is _`Monocle.Image`_ or _`Monocle.MTexture`_, so value should be `[sprite path]`
   * its starting point at the previous folder of "skinConfig", aka sprites folder.
 * if field type is _`Microsoft.Xna.Framework.Color`_, so value should be `[six digit RGB hex code, or eight digit RGBA]`
+* if field type is an _`enum`_... so value should be `[number]`
 
 and and... here is a demo for refill.
 ```

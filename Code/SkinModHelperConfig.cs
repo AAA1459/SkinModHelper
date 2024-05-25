@@ -79,7 +79,7 @@ namespace Celeste.Mod.SkinModHelper {
 
     //-----------------------------CharacterConfig-----------------------------
     #region
-    public class CharacterConfig : Object {
+    public class CharacterConfig {
         public CharacterConfig() {
         }
 
@@ -87,11 +87,13 @@ namespace Celeste.Mod.SkinModHelper {
         #region
         public bool? BadelineMode { get; set; }
         public bool? SilhouetteMode { get; set; }
+
         public string LowStaminaFlashColor { get; set; }
-        public bool? LowStaminaFlashHair { get; set; }
+        public bool LowStaminaFlashHair { get; set; }
+        public bool HoldableFacingFlipable { get; set; }
+
         public string TrailsColor { get; set; }
         public string DeathParticleColor { get; set; }
-
 
 
         #endregion
@@ -162,7 +164,10 @@ namespace Celeste.Mod.SkinModHelper {
                 while (type2 != null) {
                     var fs = type2.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).ToList() ?? new();
                     foreach (var f in fs)
-                        log = log + "\n" + f;
+                        if (f.FieldType.IsEnum)
+                            log = log + "\n" + "(Enum) " + f;
+                        else
+                            log = log + "\n" + f;
                     type2 = type2.BaseType;
                 }
                 Logger.Log(LogLevel.Info, "SkinModHelper", log);
@@ -204,9 +209,10 @@ namespace Celeste.Mod.SkinModHelper {
                             v = GFX.Game[SourcePath + t.Value];
                         else if (f.FieldType == typeof(Color))
                             v = Calc.HexToColorWithAlpha(t.Value);
-                        else if (f.FieldType != typeof(float) && int.TryParse(t.Value, out int v3)) // this is required to handle enum value
-                            v = v3;
-                        else
+                        else if (f.FieldType.IsEnum) {
+                            if (int.TryParse(t.Value, out int v3)) // string value cannot convert to enum, but int value can.
+                                v = v3;
+                        } else
                             v = Convert.ChangeType(t.Value, f.FieldType);
 
                         f.SetValue(obj, v);

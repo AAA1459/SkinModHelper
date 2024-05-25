@@ -41,7 +41,8 @@ namespace Celeste.Mod.SkinModHelper {
             Everest.Content.OnUpdate += EverestContentUpdateHook;
 
             On.Celeste.Player.Update += PlayerUpdateHook;
-            On.Monocle.Sprite.Update += SpriteUpdateHook;
+            doneHooks.Add(new Hook(typeof(Sprite).GetMethod("Render", BindingFlags.Public | BindingFlags.Instance),
+                                   typeof(SkinsSystem).GetMethod("SpriteRenderHook", BindingFlags.NonPublic | BindingFlags.Static)));
 
             On.Monocle.SpriteBank.Create += SpriteBankCreateHook;
             On.Monocle.SpriteBank.CreateOn += SpriteBankCreateOnHook;
@@ -53,7 +54,6 @@ namespace Celeste.Mod.SkinModHelper {
             Everest.Content.OnUpdate -= EverestContentUpdateHook;
 
             On.Celeste.Player.Update -= PlayerUpdateHook;
-            On.Monocle.Sprite.Update -= SpriteUpdateHook;
 
             On.Monocle.SpriteBank.Create -= SpriteBankCreateHook;
             On.Monocle.SpriteBank.CreateOn -= SpriteBankCreateOnHook;
@@ -579,10 +579,29 @@ namespace Celeste.Mod.SkinModHelper {
         #endregion
 
         //-----------------------------Customize-----------------------------
-        private static void SpriteUpdateHook(On.Monocle.Sprite.orig_Update orig, Sprite self) {
-            if (self.Entity != null) {
-                // Invoke CharacterConfig EntityTweaks if it have.
+        private static void SpriteRenderHook(Action<Sprite> orig, Sprite self) {
+            if (self.Active && self.Entity != null) {
+                // this line also invoke EntityTweaks.
                 CharacterConfig config = CharacterConfig.For(self);
+
+                if (config.HoldableFacingFlipable) {
+                    Holdable holdable = self.Entity.Get<Holdable>();
+                    if (holdable != null) {
+
+                        DynamicData entityData = DynamicData.For(self.Entity);
+                        Vector2 speed = holdable.Holder?.Speed ?? holdable.GetSpeed();
+
+                        if (Math.Abs(speed.X) < 15f) {
+                            if (entityData.TryGet("smh_facingBack", out bool? front))
+                                if (front == false ? self.Scale.X < 0f : self.Scale.X > 0f)
+                                    self.Scale.X = self.Scale.X * -1f;
+
+                        } else if ((speed.X > 0f && self.Scale.X < 0f) || (speed.X < 0f && self.Scale.X > 0f)) {
+                            self.Scale.X = self.Scale.X * -1f;
+                            entityData.Set("smh_facingBack", self.Scale.X < 0f);
+                        }
+                    }
+                }
             }
             orig(self);
         }

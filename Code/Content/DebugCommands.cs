@@ -19,7 +19,7 @@ using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 namespace Celeste.Mod.SkinModHelper {
     public static class DebugCommands {
 
-        public const string HelpInfo = "SubCommands list: player, p, spriteidpath, sip";
+        public const string HelpInfo = "SubCommands list: player(p), spriteidpath, sip";
 
         [Command("skinmodhelper", HelpInfo)]
         #region
@@ -27,11 +27,11 @@ namespace Celeste.Mod.SkinModHelper {
             subCommand = subCommand?.ToLower();
             if (string.IsNullOrWhiteSpace(subCommand) || subCommand == "help") { Send(HelpInfo); return; }
 
-            #region
+            #region // subCommand == "player"
             if (subCommand == "player" || subCommand == "p") {
                 name = name?.ToLower();
                 if (string.IsNullOrWhiteSpace(name) || name == "help") {
-                    Send("SubSubCommands list: id, path, colorgrade, cg, hairpath");
+                    Send("SubSubCommands list: id, path, colorgrade(cg), hairpath");
                     return;
                 }
 
@@ -82,7 +82,7 @@ namespace Celeste.Mod.SkinModHelper {
             }
             #endregion
 
-            #region
+            #region // subCommand == "spriteidpath"
             if (subCommand == "spriteidpath" || subCommand == "sip") {
                 if (string.IsNullOrWhiteSpace(name) || name.ToLower() == "help") {
                     Send("Outputs the ID or its current skin's the root path.  ID is ID from Sprites.xml");
@@ -112,11 +112,29 @@ namespace Celeste.Mod.SkinModHelper {
                 return;
             }
             #endregion
+
+            Send("error commands");
         }
         #endregion
 
-        public static void Send(string text) {
+        public static readonly int pagelength = 360;
+        public static void Send(string text, int? page = null) {
+            if (page == null) {
+                Engine.Commands.Log(text);
+                return;
+            }
+            int pages = Math.Max(text.Length / pagelength, 0);
+            page = Math.Max(Math.Min((int)page, pages), 0);
+
+            if (text.Length < ((int)page * pagelength))
+                text = text.Substring((int)page * pagelength);
+
+            if (text.Length >= ((int)page + 1) * pagelength)
+                text = text.Remove(((int)page + 1) * pagelength);
+
             Engine.Commands.Log(text);
+            if (pages > 0)
+                Engine.Commands.Log($"  current page is {page}/{pages}");
         }
     }
 }
