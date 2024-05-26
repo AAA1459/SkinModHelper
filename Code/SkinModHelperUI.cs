@@ -134,25 +134,33 @@ namespace Celeste.Mod.SkinModHelper
                 }
 
                 foreach (SkinModHelperConfig config in OtherskinConfigs.Values) {
-
-                    if (config.General_List == false) {
+                    if (config.General_List == false)
                         continue;
-                    }
-
-                    string Options_name = ("SkinModHelper_ExSprite__" + config.SkinName);
                     bool Options_OnOff = false;
 
-                    if (!Settings.ExtraXmlList.ContainsKey(config.SkinName)) {
+                    if (!Settings.ExtraXmlList.ContainsKey(config.SkinName))
                         Settings.ExtraXmlList.Add(config.SkinName, false);
-                    } else {
+                    else
                         Options_OnOff = Settings.ExtraXmlList[config.SkinName];
-                    }
 
-                    Options_name = !string.IsNullOrEmpty(config.SkinDialogKey) ? config.SkinDialogKey : Options_name;
-                    TextMenu.OnOff Options = new TextMenu.OnOff(Dialog.Clean(Options_name), Options_OnOff);
+                    string Text = Dialog.Clean(!string.IsNullOrEmpty(config.SkinDialogKey) ? config.SkinDialogKey : ("SkinModHelper_ExSprite__" + config.SkinName));
+                    string TextDescription = "";
+                    if (Text.Length > 39) {
+                        int index;
+                        for (index = 39; index < Text.Length - 3; index++)
+                            if (char.IsUpper(Text, index) || Text[index] == ' ' || index > 47) { break; }
+
+                        if (index < Text.Length - 3) {
+                            TextDescription = "..." + Text.Substring(index) + " ";
+                            TextDescription = TextDescription.Replace("... ", "...");
+                            Text = Text.Remove(index) + "...";
+                        }
+                    }
+                    TextMenu.OnOff Options = new TextMenu.OnOff(Text, Options_OnOff);
                     Options.Change(OnOff => UpdateGeneralSkin(config.SkinName, OnOff, inGame));
 
                     subMenu.Add(Options);
+                    Options.AddDescription(subMenu, menu, TextDescription);
                 }
             });
         }

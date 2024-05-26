@@ -108,9 +108,7 @@ namespace Celeste.Mod.SkinModHelper {
                 cursor.Emit(OpCodes.Ldarg_0);
                 cursor.EmitDelegate<Func<string, Entity, string>>((orig, self) => {
 
-                    // Maybe... I want this as a general ILhook to be directly applicable to other Helpers?
-
-                    Sprite sprite = GetFieldPlus<Sprite>(self, "sprite");
+                    Sprite sprite = self.Get<Sprite>();
 
                     if (sprite != null) {
                         string SpritePath = getAnimationRootPath(sprite);
@@ -236,9 +234,9 @@ namespace Celeste.Mod.SkinModHelper {
         }
         private static void BadelineBoost_stretchReskin(Entity self) {
             Image stretch = GetFieldPlus<Image>(self, "stretch");
+            Sprite sprite = self.Get<Sprite>();
 
-            if (stretch != null) {
-                Sprite sprite = GetFieldPlus<Sprite>(self, "sprite") ?? GetFieldPlus<Sprite>(self, "Sprite");
+            if (stretch != null && sprite != null) {
                 string SpritePath = getAnimationRootPath(sprite);
 
                 if (GFX.Game.Has(SpritePath + "stretch")) {

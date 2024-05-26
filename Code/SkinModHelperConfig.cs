@@ -176,7 +176,7 @@ namespace Celeste.Mod.SkinModHelper {
             foreach (Tweak t in tweaks) {
                 FieldInfo f = GetFieldPlus(type, t.Name);
                 if (f == null) {
-                    Logger.Log(TEST ? LogLevel.Warn : LogLevel.Debug, "SkinModHelper", $"{SourcePath}skinConfig/CharacterConfig Tweaks error: \n Not found the Instance Field: {type}.{t.Name}");
+                    Logger.Log(TEST ? LogLevel.Warn : LogLevel.Info, "SkinModHelper", $"{SourcePath}skinConfig/CharacterConfig Tweaks error: \n Not found the Instance Field: {type}.{t.Name}");
                     continue;
                 }
 
