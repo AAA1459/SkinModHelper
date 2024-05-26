@@ -143,7 +143,8 @@ namespace Celeste.Mod.SkinModHelper
                     else
                         Options_OnOff = Settings.ExtraXmlList[config.SkinName];
 
-                    string Text = Dialog.Clean(!string.IsNullOrEmpty(config.SkinDialogKey) ? config.SkinDialogKey : ("SkinModHelper_ExSprite__" + config.SkinName));
+                    string DialogID = !string.IsNullOrEmpty(config.SkinDialogKey) ? config.SkinDialogKey : ("SkinModHelper_ExSprite__" + config.SkinName);
+                    string Text = Dialog.Clean(DialogID);
                     string TextDescription = "";
                     if (Text.Length > 39) {
                         int index;
@@ -161,6 +162,13 @@ namespace Celeste.Mod.SkinModHelper
 
                     subMenu.Add(Options);
                     Options.AddDescription(subMenu, menu, TextDescription);
+                    int i;
+                    for (i = 0; Dialog.Has(DialogID + "__Description_" + i); i++) { }
+                    while (i > 0) {
+                        i--;
+                        Logger.Log(LogLevel.Info, "SkinModHelper", $"{DialogID} {i}");
+                        Options.AddDescription(subMenu, menu, Dialog.Clean(DialogID + "__Description_" + i));
+                    }
                 }
             });
         }
@@ -191,7 +199,7 @@ namespace Celeste.Mod.SkinModHelper
             }
             menu.Add(SkinFreeConfig_OnOff);
 
-            Action startSearching= AddSearchBox(menu);
+            Action startSearching = AddSearchBox(menu);
             menu.OnUpdate = () => {
                 if (InputSearchUI.Instance?.Key.Pressed == true) {
                     startSearching.Invoke();
@@ -233,13 +241,14 @@ namespace Celeste.Mod.SkinModHelper
                 skinSelectMenu.Change(skinId => {
                     actually = RefreshSkinValues_Sprites(SpriteID, skinId, inGame);
 
-                    if (actually == null) {
+                    if (actually == ORIGINAL)
+                        ChangeUnselectedColor(skinSelectMenu, 3);
+                    else if (actually == null)
                         ChangeUnselectedColor(skinSelectMenu, 1);
-                    } else if (actually == (GetPlayerSkinName() + playercipher) && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2)) {
+                    else if (actually == (GetPlayerSkinName() + playercipher) && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2))
                         ChangeUnselectedColor(skinSelectMenu, 2);
-                    } else {
+                    else
                         ChangeUnselectedColor(skinSelectMenu, 0);
-                    }
                 });
                 string selected = Settings.FreeCollocations_Sprites[SpriteID];
                 skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_Original"), ORIGINAL, true);
@@ -249,27 +258,26 @@ namespace Celeste.Mod.SkinModHelper
 
                 foreach (string SkinName in recordID.Value) {
                     string SkinText;
-                    if (Dialog.Has($"SkinModHelper_Sprite__{SpriteID}__{SkinName}")) {
+                    if (Dialog.Has($"SkinModHelper_Sprite__{SpriteID}__{SkinName}"))
                         SkinText = Dialog.Clean($"SkinModHelper_Sprite__{SpriteID}__{SkinName}");
-                    } else if (!string.IsNullOrEmpty(OtherskinConfigs[SkinName].SkinDialogKey)) {
+                    else if (!string.IsNullOrEmpty(OtherskinConfigs[SkinName].SkinDialogKey))
                         SkinText = Dialog.Clean(OtherskinConfigs[SkinName].SkinDialogKey);
-                    } else {
+                    else
                         SkinText = Dialog.Clean($"SkinModHelper_anySprite__{SkinName}");
-                    }
 
-                    if (!string.IsNullOrEmpty(OtherskinConfigs[SkinName].SkinDialogKey)) {
-                        SkinText = Dialog.Clean(OtherskinConfigs[SkinName].SkinDialogKey);
-                    }
+
                     skinSelectMenu.Add(SkinText, SkinName, (SkinName == selected));
                 }
 
-                if (actually == null || (skinSelectMenu.Index == 0 && selected != ORIGINAL)) {
+                if (selected == ORIGINAL)
+                    ChangeUnselectedColor(skinSelectMenu, 3);
+                else if (actually == null || skinSelectMenu.Index == 0)
                     ChangeUnselectedColor(skinSelectMenu, 1);
-                } else if (actually == (GetPlayerSkinName() + playercipher) && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2)) {
+                else if (actually == (GetPlayerSkinName() + playercipher) && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2))
                     ChangeUnselectedColor(skinSelectMenu, 2);
-                } else {
+                else
                     ChangeUnselectedColor(skinSelectMenu, 0);
-                }
+
 
                 menu.Add(skinSelectMenu);
                 skinSelectMenu.AddDescription(menu, TextDescription);
@@ -311,13 +319,14 @@ namespace Celeste.Mod.SkinModHelper
                 skinSelectMenu.Change(skinId => {
                     actually = RefreshSkinValues_Portraits(SpriteID, skinId, inGame);
 
-                    if (actually == null) {
+                    if (actually == ORIGINAL)
+                        ChangeUnselectedColor(skinSelectMenu, 3);
+                    else if (actually == null)
                         ChangeUnselectedColor(skinSelectMenu, 1);
-                    } else if (actually == (GetPlayerSkinName() + playercipher) && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2)) {
+                    else if (actually == (GetPlayerSkinName() + playercipher) && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2))
                         ChangeUnselectedColor(skinSelectMenu, 2);
-                    } else {
+                    else
                         ChangeUnselectedColor(skinSelectMenu, 0);
-                    }
                 });
                 string selected = Settings.FreeCollocations_Portraits[SpriteID];
                 skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_Original"), ORIGINAL, true);
@@ -327,27 +336,24 @@ namespace Celeste.Mod.SkinModHelper
 
                 foreach (string SkinName in recordID.Value) {
                     string SkinText;
-                    if (Dialog.Has($"SkinModHelper_Portraits__{SpriteID}__{SkinName}")) {
+                    if (Dialog.Has($"SkinModHelper_Portraits__{SpriteID}__{SkinName}"))
                         SkinText = Dialog.Clean($"SkinModHelper_Portraits__{SpriteID}__{SkinName}");
-                    } else if (!string.IsNullOrEmpty(OtherskinConfigs[SkinName].SkinDialogKey)) {
+                    else if (!string.IsNullOrEmpty(OtherskinConfigs[SkinName].SkinDialogKey))
                         SkinText = Dialog.Clean(OtherskinConfigs[SkinName].SkinDialogKey);
-                    } else {
+                    else
                         SkinText = Dialog.Clean($"SkinModHelper_anyPortraits__{SkinName}");
-                    }
 
-                    if (!string.IsNullOrEmpty(OtherskinConfigs[SkinName].SkinDialogKey)) {
-                        SkinText = Dialog.Clean(OtherskinConfigs[SkinName].SkinDialogKey);
-                    }
                     skinSelectMenu.Add(SkinText, SkinName, (SkinName == selected));
                 }
 
-                if (actually == null || (skinSelectMenu.Index == 0 && selected != ORIGINAL)) {
+                if (selected == ORIGINAL)
+                    ChangeUnselectedColor(skinSelectMenu, 3);
+                else if (actually == null || skinSelectMenu.Index == 0)
                     ChangeUnselectedColor(skinSelectMenu, 1);
-                } else if (actually == (GetPlayerSkinName() + playercipher) && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2)) {
+                else if (actually == (GetPlayerSkinName() + playercipher) && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2))
                     ChangeUnselectedColor(skinSelectMenu, 2);
-                } else {
+                else
                     ChangeUnselectedColor(skinSelectMenu, 0);
-                }
 
                 menu.Add(skinSelectMenu);
                 skinSelectMenu.AddDescription(menu, TextDescription);
@@ -387,11 +393,13 @@ namespace Celeste.Mod.SkinModHelper
                 skinSelectMenu.Change(skinId => {
                     actually = RefreshSkinValues_OtherExtra(SpriteID, skinId, inGame);
 
-                    if (recordID.Value.Contains(GetPlayerSkinName() + playercipher) && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2)) {
+                    if (actually == ORIGINAL)
+                        ChangeUnselectedColor(skinSelectMenu, 3);
+                    else if (recordID.Value.Contains(GetPlayerSkinName() + playercipher) && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2))
                         ChangeUnselectedColor(skinSelectMenu, 2);
-                    } else if (skinSelectMenu.Index == 2) {
+                    else if (skinSelectMenu.Index == 2)
                         ChangeUnselectedColor(skinSelectMenu, 1);
-                    } else if (skinSelectMenu.Index == 1) {
+                    else if (skinSelectMenu.Index == 1) {
                         ChangeUnselectedColor(skinSelectMenu, 1);
                         foreach (SkinModHelperConfig config in OtherskinConfigs.Values) {
                             if (recordID.Value.Contains(config.SkinName) && Settings.ExtraXmlList.ContainsKey(config.SkinName) && Settings.ExtraXmlList[config.SkinName]) {
@@ -399,9 +407,9 @@ namespace Celeste.Mod.SkinModHelper
                                 break;
                             }
                         }
-                    } else {
+                    } else
                         ChangeUnselectedColor(skinSelectMenu, 0);
-                    }
+
                     UpdateParticles();
                 });
                 string selected = Settings.FreeCollocations_OtherExtra[SpriteID];
@@ -414,44 +422,40 @@ namespace Celeste.Mod.SkinModHelper
                     if (SkinName.EndsWith(playercipher)) { continue; }
 
                     string SkinText;
-                    if (Dialog.Has($"SkinModHelper_Other__{SpriteID}__{SkinName}")) {
+                    if (Dialog.Has($"SkinModHelper_Other__{SpriteID}__{SkinName}"))
                         SkinText = Dialog.Clean($"SkinModHelper_Other__{SpriteID}__{SkinName}");
-                    } else if (!string.IsNullOrEmpty(OtherskinConfigs[SkinName].SkinDialogKey)) {
+                    else if (!string.IsNullOrEmpty(OtherskinConfigs[SkinName].SkinDialogKey))
                         SkinText = Dialog.Clean(OtherskinConfigs[SkinName].SkinDialogKey);
-                    } else {
+                    else
                         SkinText = Dialog.Clean($"SkinModHelper_anyOther__{SkinName}");
-                    }
 
-                    if (!string.IsNullOrEmpty(OtherskinConfigs[SkinName].SkinDialogKey)) {
-                        SkinText = Dialog.Clean(OtherskinConfigs[SkinName].SkinDialogKey);
-                    }
                     skinSelectMenu.Add(SkinText, SkinName, (SkinName == selected));
                 }
 
-                if (recordID.Value.Contains(GetPlayerSkinName() + playercipher) && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2)) {
+                if (selected == ORIGINAL)
+                    ChangeUnselectedColor(skinSelectMenu, 3);
+                else if (recordID.Value.Contains(GetPlayerSkinName() + playercipher) && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2))
                     ChangeUnselectedColor(skinSelectMenu, 2);
-                } else if (skinSelectMenu.Index == 2 || (skinSelectMenu.Index == 0 && selected != ORIGINAL)) {
+                else if (skinSelectMenu.Index == 2 || skinSelectMenu.Index == 0)
                     ChangeUnselectedColor(skinSelectMenu, 1);
-                } else if (skinSelectMenu.Index == 1) {
+                else if (skinSelectMenu.Index == 1) {
                     ChangeUnselectedColor(skinSelectMenu, 1);
-                    foreach (SkinModHelperConfig config in OtherskinConfigs.Values) {
+                    foreach (SkinModHelperConfig config in OtherskinConfigs.Values)
                         if (recordID.Value.Contains(config.SkinName) && Settings.ExtraXmlList.ContainsKey(config.SkinName) && Settings.ExtraXmlList[config.SkinName]) {
                             ChangeUnselectedColor(skinSelectMenu, 0);
                             break;
                         }
-                    }
-                } else {
+                } else
                     ChangeUnselectedColor(skinSelectMenu, 0);
-                }
+
 
                 menu.Add(skinSelectMenu);
                 skinSelectMenu.AddDescription(menu, TextDescription);
             }
             #endregion
 
-            foreach (var options in allOptions) {
+            foreach (var options in allOptions)
                 options.Disabled = !Settings.FreeCollocations_OffOn;
-            }
         }
         #endregion
 
@@ -466,9 +470,17 @@ namespace Celeste.Mod.SkinModHelper
             }
             return false;
         }
-        /// <summary> 0 - White(default) / 1 - DimGray(false setting) / 2 - Goldenrod(special settings)</summary>
+        /// <summary> 0 - White(default) / 1 - DimGray(false setting) / 2 - Goldenrod(special settings) / 3 - DarkGray(blocking skins)</summary>
         public static void ChangeUnselectedColor<T>(TextMenu.Option<T> options, int index) {
-            options.UnselectedColor = index == 1 ? Color.DimGray : index == 2 ? Color.Goldenrod : Color.White;
+            Color color = Color.White;
+            if (index == 1)
+                color = Color.DimGray;
+            else if (index == 2)
+                color = Color.Goldenrod;
+            else if (index == 3)
+                color = Color.DarkGray;
+
+            options.UnselectedColor = color;
         }
         public static Dictionary<string, T> DictionarySort<T>(Dictionary<string, T> dict) {
             dict = new(dict);
