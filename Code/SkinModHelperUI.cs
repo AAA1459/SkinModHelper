@@ -59,73 +59,118 @@ namespace Celeste.Mod.SkinModHelper
         #endregion
 
         //-----------------------------Options-----------------------------
-        #region
+        #region // player skin
         private void BuildPlayerSkinSelectMenu(TextMenu menu, bool inGame) {
             TextMenu.Option<string> skinSelectMenu = new(Dialog.Clean("SkinModHelper_Settings_PlayerSkin_Selected"));
 
+            List<Tuple<string, TextMenuExt.EaseInSubHeaderExt>> descriptions = new();
             skinSelectMenu.Add(Dialog.Clean("SkinModHelper_Settings_DefaultPlayer"), DEFAULT, true);
+            menu.Add(skinSelectMenu);
 
+            string selected = "";
             foreach (SkinModHelperConfig config in skinConfigs.Values) {
-
-                if (!config.Player_List || Settings.HideSkinsInOptions.Contains(config.SkinName)) {
+                if (!config.Player_List || Settings.HideSkinsInOptions.Contains(config.SkinName))
                     continue;
-                }
-                bool selected = config.SkinName == Settings.SelectedPlayerSkin;
-                string name = "SkinModHelper_Player__" + config.SkinName;
-                name = Dialog.Clean(!string.IsNullOrEmpty(config.SkinDialogKey) ? config.SkinDialogKey : name);
+                if (config.SkinName == Settings.SelectedPlayerSkin)
+                    selected = config.SkinName;
 
-                skinSelectMenu.Add(name, config.SkinName, selected);
+                string name = !string.IsNullOrEmpty(config.SkinDialogKey) ? config.SkinDialogKey : "SkinModHelper_Player__" + config.SkinName;
+
+                int i;
+                for (i = 0; Dialog.Has(name + "__Description_" + i); i++) { }
+                while (i > 0) {
+                    i--;
+                    TextMenuExt.EaseInSubHeaderExt _text = new TextMenuExt.EaseInSubHeaderExt(Dialog.Clean(name + "__Description_" + i), false, menu) {
+                        TextColor = Color.Gray,
+                        HeightExtra = 0f
+                    };
+                    descriptions.Add(new(config.SkinName, _text));
+                    menu.Insert(menu.IndexOf(skinSelectMenu) + 1, _text);
+                }
+                skinSelectMenu.Add(Dialog.Clean(name), config.SkinName, config.SkinName == Settings.SelectedPlayerSkin);
             }
+
+            // if our settings don't exist...
+            if (skinSelectMenu.Index == 0 && Settings.SelectedPlayerSkin != DEFAULT)
+                ChangeUnselectedColor(skinSelectMenu, 1);
+            if (Disabled(inGame))
+                skinSelectMenu.Disabled = true;
 
             // Set our update action on our complete menu
             skinSelectMenu.Change(skinId => {
+                selected = skinId;
                 UpdatePlayerSkin(skinId, inGame);
                 ChangeUnselectedColor(skinSelectMenu, 0);
+                foreach (var d in descriptions)
+                    d.Item2.FadeVisible = selected == d.Item1;
             });
 
-            // if our settings don't exist...
-            if (skinSelectMenu.Index == 0 && Settings.SelectedPlayerSkin != DEFAULT) {
-                ChangeUnselectedColor(skinSelectMenu, 1); // if our settings don't exist...
-            }
-
-            if (Disabled(inGame)) {
-                skinSelectMenu.Disabled = true;
-            }
-            menu.Add(skinSelectMenu);
+            skinSelectMenu.OnEnter += delegate {
+                foreach (var d in descriptions)
+                    d.Item2.FadeVisible = selected == d.Item1;
+            };
+            skinSelectMenu.OnLeave += delegate {
+                foreach (var d in descriptions)
+                    d.Item2.FadeVisible = false;
+            };
         }
+        #endregion
 
+        #region // silhouette skin
         private void BuildSilhouetteSkinSelectMenu(TextMenu menu, bool inGame) {
             TextMenu.Option<string> skinSelectMenu = new(Dialog.Clean("SkinModHelper_Settings_SilhouetteSkin_Selected"));
 
+            List<Tuple<string, TextMenuExt.EaseInSubHeaderExt>> descriptions = new();
             skinSelectMenu.Add(Dialog.Clean("SkinModHelper_Settings_DefaultSilhouette"), DEFAULT, true);
+            menu.Add(skinSelectMenu);
 
+            string selected = "";
             foreach (SkinModHelperConfig config in skinConfigs.Values) {
-
-                if (!config.Silhouette_List || Settings.HideSkinsInOptions.Contains(config.SkinName)) {
+                if (!config.Silhouette_List || Settings.HideSkinsInOptions.Contains(config.SkinName))
                     continue;
+                if (config.SkinName == Settings.SelectedSilhouetteSkin)
+                    selected = config.SkinName;
+
+                string name = !string.IsNullOrEmpty(config.SkinDialogKey) ? config.SkinDialogKey : "SkinModHelper_Player__" + config.SkinName;
+
+                int i;
+                for (i = 0; Dialog.Has(name + "__Description_" + i); i++) { }
+                while (i > 0) {
+                    i--;
+                    TextMenuExt.EaseInSubHeaderExt _text = new TextMenuExt.EaseInSubHeaderExt(Dialog.Clean(name + "__Description_" + i), false, menu) {
+                        TextColor = Color.Gray,
+                        HeightExtra = 0f
+                    };
+                    descriptions.Add(new(config.SkinName, _text));
+                    menu.Insert(menu.IndexOf(skinSelectMenu) + 1, _text);
                 }
-
-                bool selected = config.SkinName == Settings.SelectedSilhouetteSkin;
-                string name = "SkinModHelper_Player__" + config.SkinName;
-                name = Dialog.Clean(!string.IsNullOrEmpty(config.SkinDialogKey) ? config.SkinDialogKey : name);
-
-                skinSelectMenu.Add(name, config.SkinName, selected);
+                skinSelectMenu.Add(Dialog.Clean(name), config.SkinName, config.SkinName == Settings.SelectedSilhouetteSkin);
             }
+
+            // if our settings don't exist...
+            if (skinSelectMenu.Index == 0 && Settings.SelectedSilhouetteSkin != DEFAULT)
+                ChangeUnselectedColor(skinSelectMenu, 1);
 
             // Set our update action on our complete menu
             skinSelectMenu.Change(skinId => {
+                selected = skinId;
                 UpdateSilhouetteSkin(skinId, inGame);
                 ChangeUnselectedColor(skinSelectMenu, 0);
+                foreach (var d in descriptions)
+                    d.Item2.FadeVisible = selected == d.Item1;
             });
-
-            // if our settings don't exist...
-            if (skinSelectMenu.Index == 0 && Settings.SelectedSilhouetteSkin != DEFAULT) {
-                ChangeUnselectedColor(skinSelectMenu, 1);
-            }
-
-            menu.Add(skinSelectMenu);
+            skinSelectMenu.OnEnter += delegate {
+                foreach (var d in descriptions)
+                    d.Item2.FadeVisible = selected == d.Item1;
+            };
+            skinSelectMenu.OnLeave += delegate {
+                foreach (var d in descriptions)
+                    d.Item2.FadeVisible = false;
+            };
         }
+        #endregion
 
+        #region // general skin
         public TextMenuExt.SubMenu BuildExSkinSubMenu(TextMenu menu, bool inGame) {
 
             return new TextMenuExt.SubMenu(Dialog.Clean("SkinModHelper_Settings_Otherskin"), false).Apply(subMenu => {
@@ -174,7 +219,7 @@ namespace Celeste.Mod.SkinModHelper
         }
         #endregion
 
-        #region
+        #region // more options menu
         public TextMenuExt.SubMenu BuildMoreOptionsMenu(TextMenu menu, bool inGame, bool includeCategorySubmenus, Action submenuBackAction) {
             return new TextMenuExt.SubMenu(Dialog.Clean("SkinModHelper_MORE_OPTIONS"), false).Apply(subMenu => {
 
@@ -182,7 +227,9 @@ namespace Celeste.Mod.SkinModHelper
                 subMenu.Add(SpriteSubmenu = AbstractSubmenu.BuildOpenMenuButton<OuiCategorySubmenu>(menu, inGame, submenuBackAction, new object[] { NewMenuCategory.SkinFreeConfig }));
             });
         }
+        #endregion
 
+        #region // precisely skin choose
         public void Build_SkinFreeConfig_NewMenu(TextMenu menu, bool inGame) {
             List<TextMenu.Option<string>> allOptions = new();
             TextMenu.OnOff SkinFreeConfig_OnOff = new TextMenu.OnOff(Dialog.Clean("SkinModHelper_SkinFreeConfig_OnOff"), Settings.FreeCollocations_OffOn);
