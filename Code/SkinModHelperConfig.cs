@@ -121,10 +121,9 @@ namespace Celeste.Mod.SkinModHelper {
             string rootPath = getAnimationRootPath(target);
 
             if (config == null || config.SourcePath != rootPath) {
+                config = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "CharacterConfig") ?? new();
                 config.Target = target;
                 config.SourcePath = rootPath;
-
-                config = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "CharacterConfig") ?? new();
 
                 if (target is PlayerSprite playerSprite)
                     config.ModeInitialize(playerSprite.Mode);
@@ -164,7 +163,7 @@ namespace Celeste.Mod.SkinModHelper {
                     var fs = type2.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).ToList() ?? new();
                     foreach (var f in fs)
                         if (f.FieldType.IsEnum)
-                            log = log + "\n" + "(Enum) " + f;
+                            log = log + "\n" + "IsEnum " + f;
                         else
                             log = log + "\n" + f;
                     type2 = type2.BaseType;
@@ -211,12 +210,14 @@ namespace Celeste.Mod.SkinModHelper {
                         else if (f.FieldType.IsEnum) {
                             if (int.TryParse(t.Value, out int v3)) // string value cannot convert to enum, but int value can.
                                 v = v3;
+                            else
+                                Logger.Log(LogLevel.Error, "SkinModHelper", $"{SourcePath}skinConfig/CharacterConfig Tweaks error: \n '{f.FieldType} {type}.{t.Name}' IsEnum, but its new value is not number");
                         } else
                             v = Convert.ChangeType(t.Value, f.FieldType);
 
                         f.SetValue(obj, v);
                     } catch (Exception e) {
-                        Logger.Log(LogLevel.Error, "SkinModHelper", $"{SourcePath}skinConfig/CharacterConfig Tweaks error: \n '{type}.{t.Name}': \n   {e.Message}");
+                        Logger.Log(LogLevel.Error, "SkinModHelper", $"{SourcePath}skinConfig/CharacterConfig Tweaks error: \n '{f.FieldType} {type}.{t.Name}': \n   {e.Message}");
                         v = v2;
                         f.SetValue(obj, v);
                     }
@@ -279,12 +280,13 @@ namespace Celeste.Mod.SkinModHelper {
             string rootPath = getAnimationRootPath(target.Sprite);
 
             if (config == null || config.SourcePath != rootPath) {
-                config.Target = target;
-                config.SourcePath = rootPath;
 
                 string hairPath = rootPath;
                 if (OldConfigCheck(target.Sprite, out string isOld)) {
                     config = new();
+                    config.Target = target;
+                    config.SourcePath = rootPath;
+
                     hairPath = $"{OtherskinConfigs[isOld].OtherSprite_ExPath}/characters/player/";
 
                     if (target.Entity is Player) {
@@ -295,11 +297,13 @@ namespace Celeste.Mod.SkinModHelper {
                     }
                 } else {
                     config = searchSkinConfig<HairConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "HairConfig") ?? new();
+                    config.Target = target;
+                    config.SourcePath = rootPath;
 
-                    if (!SkinsSystem.Settings.PlayerSkinHairColorsDisabled)
+                    if (!(SkinsSystem.Settings.PlayerSkinHairColorsDisabled && target.Entity is Player))
                         if (config.HairColors != null || config.HairFlash == false || AssetExists<AssetTypeDirectory>($"{rootPath}ColorGrading", GFX.Game))
                             config.BuildHairColors();
-                    if (!SkinsSystem.Settings.PlayerSkinHairLengthsDisabled)
+                    if (!(SkinsSystem.Settings.PlayerSkinHairLengthsDisabled && target.Entity is Player))
                         config.BuildHairLengths();
                 }
 
