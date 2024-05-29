@@ -130,6 +130,9 @@ You can download them as examples for making skins:
    * [Setting ColorGrade for skin](/docs/guide//skinconfig/ColorGrade.md)
    * [Setting HairConfig for skin](/docs/guide//skinconfig/HairConfig.md)
    * [Setting some effects for skin](/docs/guide/skinconfig/CharacterConfig.md)
+  
+3. when adding a dialog key for skin, you can add some dialog key to description it, like _`[key]__Description_[which line, counted from 0]`_.
+   this will works when that skin being selected.
 
 ---
 ## _Troubleshooting_
