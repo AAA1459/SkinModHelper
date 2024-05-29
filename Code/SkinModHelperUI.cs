@@ -76,6 +76,7 @@ namespace Celeste.Mod.SkinModHelper
 
                 string name = !string.IsNullOrEmpty(config.SkinDialogKey) ? config.SkinDialogKey : "SkinModHelper_Player__" + config.SkinName;
 
+                int i2 = menu.IndexOf(skinSelectMenu) + 1;
                 int i;
                 for (i = 0; Dialog.Has(name + "__Description_" + i); i++) { }
                 while (i > 0) {
@@ -85,7 +86,7 @@ namespace Celeste.Mod.SkinModHelper
                         HeightExtra = 0f
                     };
                     descriptions.Add(new(config.SkinName, _text));
-                    menu.Insert(menu.IndexOf(skinSelectMenu) + 1, _text);
+                    menu.Insert(i2, _text);
                 }
                 skinSelectMenu.Add(Dialog.Clean(name), config.SkinName, config.SkinName == Settings.SelectedPlayerSkin);
             }
@@ -133,6 +134,7 @@ namespace Celeste.Mod.SkinModHelper
 
                 string name = !string.IsNullOrEmpty(config.SkinDialogKey) ? config.SkinDialogKey : "SkinModHelper_Player__" + config.SkinName;
 
+                int i2 = menu.IndexOf(skinSelectMenu) + 1;
                 int i;
                 for (i = 0; Dialog.Has(name + "__Description_" + i); i++) { }
                 while (i > 0) {
@@ -142,7 +144,7 @@ namespace Celeste.Mod.SkinModHelper
                         HeightExtra = 0f
                     };
                     descriptions.Add(new(config.SkinName, _text));
-                    menu.Insert(menu.IndexOf(skinSelectMenu) + 1, _text);
+                    menu.Insert(i2, _text);
                 }
                 skinSelectMenu.Add(Dialog.Clean(name), config.SkinName, config.SkinName == Settings.SelectedSilhouetteSkin);
             }
@@ -191,12 +193,13 @@ namespace Celeste.Mod.SkinModHelper
                     string DialogID = !string.IsNullOrEmpty(config.SkinDialogKey) ? config.SkinDialogKey : ("SkinModHelper_ExSprite__" + config.SkinName);
                     string Text = Dialog.Clean(DialogID);
                     string TextDescription = "";
-                    if (Text.Length > 39) {
-                        int index;
-                        for (index = 39; index < Text.Length - 3; index++)
-                            if (char.IsUpper(Text, index) || Text[index] == ' ' || index > 47) { break; }
 
-                        if (index < Text.Length - 3) {
+                    if (Text.Length > 29) {
+                        int index;
+                        for (index = 32; index < Text.Length; index++)
+                            if (char.IsUpper(Text, index) || Text[index] == ' ' || index > 39) { break; }
+
+                        if (index < Text.Length) {
                             TextDescription = "..." + Text.Substring(index) + " ";
                             TextDescription = TextDescription.Replace("... ", "...");
                             Text = Text.Remove(index) + "...";
@@ -206,14 +209,13 @@ namespace Celeste.Mod.SkinModHelper
                     Options.Change(OnOff => UpdateGeneralSkin(config.SkinName, OnOff, inGame));
 
                     subMenu.Add(Options);
-                    Options.AddDescription(subMenu, menu, TextDescription);
                     int i;
                     for (i = 0; Dialog.Has(DialogID + "__Description_" + i); i++) { }
                     while (i > 0) {
                         i--;
-                        Logger.Log(LogLevel.Info, "SkinModHelper", $"{DialogID} {i}");
                         Options.AddDescription(subMenu, menu, Dialog.Clean(DialogID + "__Description_" + i));
                     }
+                    Options.AddDescription(subMenu, menu, TextDescription);
                 }
             });
         }
