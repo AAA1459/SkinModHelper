@@ -21,10 +21,14 @@ Each of the fields will be explained below.
   hashSeed: [SkinName]
   
   OtherSprite_Path: [a path]
+  # ---
   
   # ---General skin---
   General_List: [true/false]
   OtherSprite_ExPath: [a path]
+  # ---
+  
+  Mod: [Skins grouping]
 ```
 
 ---
@@ -114,6 +118,17 @@ Use a general skin if your skinmod is not going to change the player skin. They 
 General skins work just like [OtherSprite_Path](#othersprite_path), except they use OtherSprite_ExPath.
 
 ---
+## _Skins grouping_
+Skins will be grouped according to their mod id, but you can change its grouping, just use:
+```
+  Mod: [grouping name]
+```
+Except setting it's grouping here, 
+you can also go into the language file and redefine it, just like as a dialog key.
+
+
+
+---
 ## _Standard example of config file_
 You can download them as examples for making skins: 
 * [Touhou-cirno](https://gamebanana.com/mods/316584)
@@ -131,7 +146,7 @@ You can download them as examples for making skins:
    * [Setting HairConfig for skin](/docs/guide//skinconfig/HairConfig.md)
    * [Setting some effects for skin](/docs/guide/skinconfig/CharacterConfig.md)
   
-3. when adding a dialog key for skin, you can add some dialog key to description it, like _`[key]__Description_[which line, counted from 0]`_.
+3. when adding a dialog key for skin, you can add some dialog key to description it, like _`[key]__Description`_.
    this will works when that skin being selected.
 
 ---

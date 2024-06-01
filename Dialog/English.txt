@@ -10,15 +10,29 @@ SkinModHelper_options_BackpackMode_Off= Off
 SkinModHelper_options_BackpackMode_On= On
 SkinModHelper_options_BackpackMode_Invert= Invert
 
-SkinModHelper_Settings_PlayerSkin_Selected= Player Skin
+
+SkinModHelper_Settings_PlayerSkin= Player Skins
 SkinModHelper_Settings_DefaultPlayer= Default
 
-SkinModHelper_Settings_SilhouetteSkin_Selected= Silhouette Skin
+SkinModHelper_Settings_SilhouetteSkin= Silhouette Skins
 SkinModHelper_Settings_DefaultSilhouette= Default
 
+SkinModHelper_Settings_PlayerSkinVariants= Variant
+SkinModHelper_Settings_PlayerSkinVariants_P= Silhouette Variant
 
-SkinModHelper_Settings_Otherskin= General Skin
+SkinModHelper_Settings_NeedConfirm= If you want to switch to current skin, press confirm!
+SkinModHelper_Settings_VanillaConfirmed= Switched to vanilla.
+SkinModHelper_Settings_PlayerSkinConfirmed= Switched to current skin.
+
+
+SkinModHelper_Settings_Otherskin= General Skins
+SkinModHelper_Settings_Otherskin_null= No Grouping
+
 SkinModHelper_MORE_OPTIONS= Advanced Options
+SkinModHelper_Settings_SilhouetteVariantsWithOwnMenu= Silhouette variants with own sub-menu
+
+SkinModHelper_Settings_NeedReloadMenu= Request reopen menu to take a refresh
+
 
 
 

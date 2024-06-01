@@ -45,6 +45,8 @@ namespace Celeste.Mod.SkinModHelper {
 
 
         [SettingIgnore]
+        public bool SilhouetteVariantsWithOwnMenu { get; set; } = false;
+        [SettingIgnore]
         public string SelectedSilhouetteSkin { get; set; }
 
 

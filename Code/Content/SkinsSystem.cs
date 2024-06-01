@@ -176,6 +176,9 @@ namespace Celeste.Mod.SkinModHelper {
                     Logger.Log(LogLevel.Warn, "SkinModHelper", $"skin name '{config.SkinName}' has been taken.");
                     continue;
                 }
+                if (string.IsNullOrEmpty(config.Mod))
+                    config.Mod = asset.Source.Name;
+
                 //---------------------GeneralSkin------------------------#
                 if (!string.IsNullOrEmpty(config.OtherSprite_ExPath)) {
                     if (!OtherskinConfigs.ContainsKey(config.SkinName)) {
@@ -397,16 +400,18 @@ namespace Celeste.Mod.SkinModHelper {
         }
         private static SpriteBank BuildBank(SpriteBank origBank, string skinId, string xmlPath) {
             string dir = xmlPath.Remove(xmlPath.LastIndexOf("/"));
+            if (xmlPath == null)
+                return null;
             if (skinId.EndsWith(playercipher))
                 skinId = skinId.Replace(playercipher, "");
 
-            if (Xml_records.TryGetValue(xmlPath, out SpriteBank newBank)) {
+            if (Xml_records.TryGetValue(xmlPath, out SpriteBank newBank))
                 return newBank;
 
-            } else if (FailedXml_record.Contains(dir) || FailedXml_record.Contains(xmlPath)) {
+            else if (FailedXml_record.Contains(dir) || FailedXml_record.Contains(xmlPath))
                 return null;
 
-            } else if (!AssetExists<AssetTypeDirectory>(dir)) {
+            else if (!AssetExists<AssetTypeDirectory>(dir)) {
                 FailedXml_record.Add(dir);
                 Logger.Log(LogLevel.Error, "SkinModHelper", $"The xmls directory of '{skinId}' does not exist: {dir}");
                 return null;

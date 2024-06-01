@@ -70,6 +70,7 @@ namespace Celeste.Mod.SkinModHelper {
 
         public string SkinDialogKey { get; set; }
         public string hashSeed { get; set; }
+        public string Mod { get; set; }
         #endregion
         #region
         public int hashValues = -1;
