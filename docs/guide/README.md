@@ -126,7 +126,9 @@ Skins will be grouped according to their mod id, but you can change its grouping
 Except setting it's grouping here, 
 you can also go into the language file and redefine it, just like as a dialog key.
 
+btw, don't forget to define other dialog key for your skin, you can find them in the game.
 
+and there also have an hidden key _`[skinkey]__Description`_, you can to use this for descriptiony skin info when the skin be chosen.
 
 ---
 ## _Standard example of config file_
@@ -135,6 +137,7 @@ You can download them as examples for making skins:
 * [OshiroBoss But Badeline](https://gamebanana.com/mods/444994)
 * [Niko - Oneshot](https://gamebanana.com/mods/251814)
 * [Ralsei - Deltarune](https://gamebanana.com/mods/385893)
+And, there is also a test skin under the banana-page of skinmodhelperplus, that also is an example.
 
 ---
 ## _More Miscellaneous_
@@ -145,9 +148,6 @@ You can download them as examples for making skins:
    * [Setting ColorGrade for skin](/docs/guide//skinconfig/ColorGrade.md)
    * [Setting HairConfig for skin](/docs/guide//skinconfig/HairConfig.md)
    * [Setting some effects for skin](/docs/guide/skinconfig/CharacterConfig.md)
-  
-3. when adding a dialog key for skin, you can add some dialog key to description it, like _`[key]__Description`_.
-   this will works when that skin being selected.
 
 ---
 ## _Troubleshooting_
