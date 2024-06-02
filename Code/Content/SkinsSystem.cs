@@ -148,6 +148,8 @@ namespace Celeste.Mod.SkinModHelper {
                     Logger.Log(LogLevel.Error, "SkinModHelper", $"skin name '{config.SkinName}' has been taken.");
                     return;
                 }
+                if (string.IsNullOrEmpty(config.Mod))
+                    config.Mod = asset.Source.Name;
 
                 if (OtherskinOldConfig.ContainsKey(config.SkinName)) {
                     Logger.Log(LogLevel.Info, "SkinModHelper", $"Re-registered old-ver general skin: {config.SkinName}");
