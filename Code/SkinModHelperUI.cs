@@ -493,250 +493,79 @@ namespace Celeste.Mod.SkinModHelper
             };
 
             #region
-            if (SpriteSkins_records.Count > 0) {
-                menu.Add(buildHeading(menu, "SpritesXml"));
-            }
-            foreach (KeyValuePair<string, List<string>> recordID in DictionarySort(SpriteSkins_records)) {
-                string SpriteID = recordID.Key;
+            foreach (var respriteBank in RespriteBankModule.ManagedInstance()) {
+                if (respriteBank.Settings == null || respriteBank.SkinsRecords.Count == 0)
+                    continue;
+                menu.Add(buildHeading(menu, respriteBank.O_SubMenuName));
+                string prefix = $"SkinModHelper_{respriteBank.O_DescriptionPrefix}__";
 
-                string SpriteText = SpriteID;
-                string TextDescription = "";
+                foreach (KeyValuePair<string, List<string>> recordID in DictionarySort(respriteBank.SkinsRecords)) {
+                    string SpriteId = recordID.Key;
 
-                if (SpriteText.Length > 18) {
-                    int index;
-                    for (index = 18; index < SpriteText.Length - 3; index++) {
-                        if (char.IsUpper(SpriteText, index) || SpriteText[index] == '_' || index > 25) { break; }
-                    }
-                    if (index < SpriteText.Length - 3) {
-                        TextDescription = "..." + SpriteText.Substring(index) + " ";
-                        SpriteText = SpriteText.Remove(index) + "...";
-                    }
-                }
-                if (Dialog.Has($"SkinModHelper_Sprite__{SpriteID}")) {
-                    TextDescription = TextDescription + $"({Dialog.Clean($"SkinModHelper_Sprite__{SpriteID}")})";
-                }
+                    string SpriteText = respriteBank is nonBankReskin ? Dialog.Clean(prefix + SpriteId) : SpriteId;
+                    string TextDescription = "";
 
+                    if (SpriteText.Length > 18) {
+                        int index;
+                        for (index = 18; index < SpriteText.Length - 3; index++)
+                            if (char.IsUpper(SpriteText, index) || SpriteText[index] == '_' || index > 25) { break; }
 
-                TextMenu.Option<string> skinSelectMenu = new(SpriteText);
-                if (!Settings.FreeCollocations_Sprites.ContainsKey(SpriteID)) {
-                    Settings.FreeCollocations_Sprites[SpriteID] = DEFAULT;
-                }
-                allOptions.Add(skinSelectMenu);
-                string actually = SpriteSkin_record[SpriteID];
-
-                skinSelectMenu.Change(skinId => {
-                    actually = RefreshSkinValues_Sprites(SpriteID, skinId, inGame);
-
-                    if (actually == ORIGINAL)
-                        ChangeUnselectedColor(skinSelectMenu, 3);
-                    else if (actually == null)
-                        ChangeUnselectedColor(skinSelectMenu, 1);
-                    else if (actually == (GetPlayerSkinName() + playercipher) && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2))
-                        ChangeUnselectedColor(skinSelectMenu, 2);
-                    else
-                        ChangeUnselectedColor(skinSelectMenu, 0);
-                });
-                string selected = Settings.FreeCollocations_Sprites[SpriteID];
-                skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_Original"), ORIGINAL, true);
-                skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_Default"), DEFAULT, selected == DEFAULT);
-                skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_LockedToPlayer"), LockedToPlayer, selected == LockedToPlayer);
-
-
-                foreach (string SkinName in recordID.Value) {
-                    string SkinText;
-                    if (Dialog.Has($"SkinModHelper_Sprite__{SpriteID}__{SkinName}"))
-                        SkinText = Dialog.Clean($"SkinModHelper_Sprite__{SpriteID}__{SkinName}");
-                    else if (!string.IsNullOrEmpty(OtherskinConfigs[SkinName].SkinDialogKey))
-                        SkinText = Dialog.Clean(OtherskinConfigs[SkinName].SkinDialogKey);
-                    else
-                        SkinText = Dialog.Clean($"SkinModHelper_anySprite__{SkinName}");
-
-
-                    skinSelectMenu.Add(SkinText, SkinName, (SkinName == selected));
-                }
-
-                if (selected == ORIGINAL)
-                    ChangeUnselectedColor(skinSelectMenu, 3);
-                else if (actually == null || skinSelectMenu.Index == 0)
-                    ChangeUnselectedColor(skinSelectMenu, 1);
-                else if (actually == (GetPlayerSkinName() + playercipher) && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2))
-                    ChangeUnselectedColor(skinSelectMenu, 2);
-                else
-                    ChangeUnselectedColor(skinSelectMenu, 0);
-
-
-                menu.Add(skinSelectMenu);
-                skinSelectMenu.AddDescription(menu, TextDescription);
-            }
-            #endregion
-
-            #region
-            if (PortraitsSkins_records.Count > 0) {
-                menu.Add(buildHeading(menu, "PortraitsXml"));
-            }
-            foreach (KeyValuePair<string, List<string>> recordID in DictionarySort(PortraitsSkins_records)) {
-                string SpriteID = recordID.Key;
-
-                string SpriteText = SpriteID;
-                string TextDescription = "";
-
-                if (SpriteText.Length > 18) {
-                    int index;
-                    for (index = 18; index < SpriteText.Length - 3; index++) {
-                        if (char.IsUpper(SpriteText, index) || SpriteText[index] == '_' || index > 25) { break; }
-                    }
-                    if (index < SpriteText.Length - 3) {
-                        TextDescription = "..." + SpriteText.Substring(index) + " ";
-                        SpriteText = SpriteText.Remove(index) + "...";
-                    }
-                }
-                if (Dialog.Has($"SkinModHelper_Portraits__{SpriteID}")) {
-                    TextDescription = TextDescription + $"({Dialog.Clean($"SkinModHelper_Portraits__{SpriteID}")})";
-                }
-
-
-                TextMenu.Option<string> skinSelectMenu = new(SpriteText);
-                if (!Settings.FreeCollocations_Portraits.ContainsKey(SpriteID)) {
-                    Settings.FreeCollocations_Portraits[SpriteID] = DEFAULT;
-                }
-                allOptions.Add(skinSelectMenu);
-                string actually = PortraitsSkin_record[SpriteID];
-
-                skinSelectMenu.Change(skinId => {
-                    actually = RefreshSkinValues_Portraits(SpriteID, skinId, inGame);
-
-                    if (actually == ORIGINAL)
-                        ChangeUnselectedColor(skinSelectMenu, 3);
-                    else if (actually == null)
-                        ChangeUnselectedColor(skinSelectMenu, 1);
-                    else if (actually == (GetPlayerSkinName() + playercipher) && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2))
-                        ChangeUnselectedColor(skinSelectMenu, 2);
-                    else
-                        ChangeUnselectedColor(skinSelectMenu, 0);
-                });
-                string selected = Settings.FreeCollocations_Portraits[SpriteID];
-                skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_Original"), ORIGINAL, true);
-                skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_Default"), DEFAULT, selected == DEFAULT);
-                skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_LockedToPlayer"), LockedToPlayer, selected == LockedToPlayer);
-
-
-                foreach (string SkinName in recordID.Value) {
-                    string SkinText;
-                    if (Dialog.Has($"SkinModHelper_Portraits__{SpriteID}__{SkinName}"))
-                        SkinText = Dialog.Clean($"SkinModHelper_Portraits__{SpriteID}__{SkinName}");
-                    else if (!string.IsNullOrEmpty(OtherskinConfigs[SkinName].SkinDialogKey))
-                        SkinText = Dialog.Clean(OtherskinConfigs[SkinName].SkinDialogKey);
-                    else
-                        SkinText = Dialog.Clean($"SkinModHelper_anyPortraits__{SkinName}");
-
-                    skinSelectMenu.Add(SkinText, SkinName, (SkinName == selected));
-                }
-
-                if (selected == ORIGINAL)
-                    ChangeUnselectedColor(skinSelectMenu, 3);
-                else if (actually == null || skinSelectMenu.Index == 0)
-                    ChangeUnselectedColor(skinSelectMenu, 1);
-                else if (actually == (GetPlayerSkinName() + playercipher) && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2))
-                    ChangeUnselectedColor(skinSelectMenu, 2);
-                else
-                    ChangeUnselectedColor(skinSelectMenu, 0);
-
-                menu.Add(skinSelectMenu);
-                skinSelectMenu.AddDescription(menu, TextDescription);
-            }
-            #endregion
-
-            #region
-            if (OtherSkins_records.Count > 0) {
-                menu.Add(buildHeading(menu, "OtherExtra"));
-            }
-            foreach (KeyValuePair<string, List<string>> recordID in DictionarySort(OtherSkins_records)) {
-                string SpriteID = recordID.Key;
-
-                string SpriteText = Dialog.Clean($"SkinModHelper_Other__{SpriteID}");
-                string TextDescription = "";
-
-                if (SpriteText.Length > 18) {
-                    int index;
-
-                    for (index = 18; index < SpriteText.Length - 3; index++) {
-                        if (char.IsUpper(SpriteText, index) || SpriteText[index] == ' ' || index > 25) { break; }
-                    }
-                    if (index < SpriteText.Length - 3) {
-                        TextDescription = "..." + (SpriteText[index] == ' ' ? SpriteText.Substring(index + 1) : SpriteText.Substring(index));
-                        SpriteText = SpriteText.Remove(index) + "...";
-                    }
-                }
-
-
-                TextMenu.Option<string> skinSelectMenu = new(SpriteText);
-                if (!Settings.FreeCollocations_OtherExtra.ContainsKey(SpriteID)) {
-                    Settings.FreeCollocations_OtherExtra[SpriteID] = DEFAULT;
-                }
-                allOptions.Add(skinSelectMenu);
-                string actually = OtherSkin_record[SpriteID];
-
-                skinSelectMenu.Change(skinId => {
-                    actually = RefreshSkinValues_OtherExtra(SpriteID, skinId, inGame);
-
-                    if (actually == ORIGINAL)
-                        ChangeUnselectedColor(skinSelectMenu, 3);
-                    else if (recordID.Value.Contains(GetPlayerSkinName() + playercipher) && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2))
-                        ChangeUnselectedColor(skinSelectMenu, 2);
-                    else if (skinSelectMenu.Index == 2)
-                        ChangeUnselectedColor(skinSelectMenu, 1);
-                    else if (skinSelectMenu.Index == 1) {
-                        ChangeUnselectedColor(skinSelectMenu, 1);
-                        foreach (SkinModHelperConfig config in OtherskinConfigs.Values) {
-                            if (recordID.Value.Contains(config.SkinName) && Settings.ExtraXmlList.ContainsKey(config.SkinName) && Settings.ExtraXmlList[config.SkinName]) {
-                                ChangeUnselectedColor(skinSelectMenu, 0);
-                                break;
-                            }
+                        if (index < SpriteText.Length - 3) {
+                            TextDescription = "..." + SpriteText.Substring(index) + " ";
+                            SpriteText = SpriteText.Remove(index) + "...";
                         }
-                    } else
-                        ChangeUnselectedColor(skinSelectMenu, 0);
+                    }
+                    if (Dialog.Has(prefix + SpriteId) && respriteBank is not nonBankReskin)
+                        TextDescription = TextDescription + "(" + Dialog.Clean(prefix + SpriteId) + ")";
 
-                    UpdateParticles();
-                });
-                string selected = Settings.FreeCollocations_OtherExtra[SpriteID];
-                skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_Original"), ORIGINAL, true);
-                skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_Default"), DEFAULT, selected == DEFAULT);
-                skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_LockedToPlayer"), LockedToPlayer, selected == LockedToPlayer);
+                    if (!respriteBank.Settings.ContainsKey(SpriteId))
+                        respriteBank.Settings[SpriteId] = DEFAULT;
+                    TextMenu.Option<string> skinSelectMenu = new(SpriteText);
 
+                    allOptions.Add(skinSelectMenu);
+                    string actually = respriteBank[SpriteId];
 
-                foreach (string SkinName in recordID.Value) {
-                    if (SkinName.EndsWith(playercipher)) { continue; }
+                    skinSelectMenu.Change(skinId => {
+                        actually = respriteBank.SetSettings(SpriteId, skinId);
 
-                    string SkinText;
-                    if (Dialog.Has($"SkinModHelper_Other__{SpriteID}__{SkinName}"))
-                        SkinText = Dialog.Clean($"SkinModHelper_Other__{SpriteID}__{SkinName}");
-                    else if (!string.IsNullOrEmpty(OtherskinConfigs[SkinName].SkinDialogKey))
-                        SkinText = Dialog.Clean(OtherskinConfigs[SkinName].SkinDialogKey);
-                    else
-                        SkinText = Dialog.Clean($"SkinModHelper_anyOther__{SkinName}");
-
-                    skinSelectMenu.Add(SkinText, SkinName, (SkinName == selected));
-                }
-
-                if (selected == ORIGINAL)
-                    ChangeUnselectedColor(skinSelectMenu, 3);
-                else if (recordID.Value.Contains(GetPlayerSkinName() + playercipher) && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2))
-                    ChangeUnselectedColor(skinSelectMenu, 2);
-                else if (skinSelectMenu.Index == 2 || skinSelectMenu.Index == 0)
-                    ChangeUnselectedColor(skinSelectMenu, 1);
-                else if (skinSelectMenu.Index == 1) {
-                    ChangeUnselectedColor(skinSelectMenu, 1);
-                    foreach (SkinModHelperConfig config in OtherskinConfigs.Values)
-                        if (recordID.Value.Contains(config.SkinName) && Settings.ExtraXmlList.ContainsKey(config.SkinName) && Settings.ExtraXmlList[config.SkinName]) {
+                        if (actually == ORIGINAL)
+                            ChangeUnselectedColor(skinSelectMenu, 3);
+                        else if (actually == null)
+                            ChangeUnselectedColor(skinSelectMenu, 1);
+                        else if (actually == (GetPlayerSkinName() + playercipher) && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2))
+                            ChangeUnselectedColor(skinSelectMenu, 2);
+                        else
                             ChangeUnselectedColor(skinSelectMenu, 0);
-                            break;
-                        }
-                } else
-                    ChangeUnselectedColor(skinSelectMenu, 0);
+                    });
+                    string selected = respriteBank.Settings[SpriteId];
+                    skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_Original"), ORIGINAL, true);
+                    skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_Default"), DEFAULT, selected == DEFAULT);
+                    skinSelectMenu.Add(Dialog.Clean("SkinModHelper_anyXmls_LockedToPlayer"), LockedToPlayer, selected == LockedToPlayer);
 
+                    foreach (string SkinName in recordID.Value) {
+                        string SkinText;
+                        if (Dialog.Has($"{prefix}{SpriteId}__{SkinName}"))
+                            SkinText = Dialog.Clean($"{prefix}{SpriteId}__{SkinName}");
+                        else if (!string.IsNullOrEmpty(OtherskinConfigs[SkinName].SkinDialogKey))
+                            SkinText = Dialog.Clean(OtherskinConfigs[SkinName].SkinDialogKey);
+                        else
+                            SkinText = Dialog.Clean($"SkinModHelper_anySprite__{SkinName}");
 
-                menu.Add(skinSelectMenu);
-                skinSelectMenu.AddDescription(menu, TextDescription);
+                        skinSelectMenu.Add(SkinText, SkinName, (SkinName == selected));
+                    }
+                    if (selected == ORIGINAL)
+                        ChangeUnselectedColor(skinSelectMenu, 3);
+                    else if (actually == null && skinSelectMenu.Index < 3)
+                        ChangeUnselectedColor(skinSelectMenu, 1);
+                    else if (actually == (GetPlayerSkinName() + playercipher) && (skinSelectMenu.Index == 1 || skinSelectMenu.Index == 2))
+                        ChangeUnselectedColor(skinSelectMenu, 2);
+                    else {
+                        ChangeUnselectedColor(skinSelectMenu, 0);
+                    }
+
+                    menu.Add(skinSelectMenu);
+                    skinSelectMenu.AddDescription(menu, TextDescription);
+                }
             }
             #endregion
 

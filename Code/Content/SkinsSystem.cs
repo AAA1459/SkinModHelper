@@ -23,15 +23,12 @@ namespace Celeste.Mod.SkinModHelper {
 
         public static SkinModHelperSettings Settings => (SkinModHelperSettings)Instance._Settings;
         public static SkinModHelperSession Session => (SkinModHelperSession)Instance._Session;
+        public static SkinModHelperSettings smh_Settings => Settings;
+        public static SkinModHelperSession smh_Session => Session;
 
-        public static Dictionary<string, string> SpriteSkin_record = new(StringComparer.OrdinalIgnoreCase);
-        public static Dictionary<string, List<string>> SpriteSkins_records = new(StringComparer.OrdinalIgnoreCase);
-
-        public static Dictionary<string, string> PortraitsSkin_record = new(StringComparer.OrdinalIgnoreCase);
-        public static Dictionary<string, List<string>> PortraitsSkins_records = new(StringComparer.OrdinalIgnoreCase);
-
-        public static Dictionary<string, string> OtherSkin_record = new(StringComparer.OrdinalIgnoreCase);
-        public static Dictionary<string, List<string>> OtherSkins_records = new(StringComparer.OrdinalIgnoreCase);
+        public static RespriteBank Reskin_SpriteBank = new("Sprites.xml", "SpritesXml", "Sprite");
+        public static ReportraitsBank Reskin_PortraitsBank = new("Portraits.xml", "PortraitsXml", "Portraits");
+        public static nonBankReskin OtherSpriteSkins = new("OtherExtra", "Other");
 
         public static Dictionary<string, SkinModHelperConfig> skinConfigs = new(StringComparer.OrdinalIgnoreCase);
         public static Dictionary<string, SkinModHelperConfig> OtherskinConfigs = new(StringComparer.OrdinalIgnoreCase);
@@ -46,6 +43,9 @@ namespace Celeste.Mod.SkinModHelper {
 
             On.Monocle.SpriteBank.Create += SpriteBankCreateHook;
             On.Monocle.SpriteBank.CreateOn += SpriteBankCreateOnHook;
+
+            doneHooks.Add(new Hook(typeof(Atlas).GetMethod("get_Item", BindingFlags.Public | BindingFlags.Instance),
+                                   typeof(SkinsSystem).GetMethod("Atlas_GetItemHook", BindingFlags.NonPublic | BindingFlags.Static)));
             On.Monocle.Atlas.GetAtlasSubtextures += GetAtlasSubtexturesHook;
             On.Monocle.Sprite.ctor_Atlas_string += SpriteCtorAtlasStringHook;
         }
@@ -59,6 +59,9 @@ namespace Celeste.Mod.SkinModHelper {
             On.Monocle.SpriteBank.CreateOn -= SpriteBankCreateOnHook;
             On.Monocle.Atlas.GetAtlasSubtextures -= GetAtlasSubtexturesHook;
             On.Monocle.Sprite.ctor_Atlas_string -= SpriteCtorAtlasStringHook;
+        }
+
+        public static void LoadContent(bool firstLoad) {
         }
 
         #endregion
@@ -253,159 +256,70 @@ namespace Celeste.Mod.SkinModHelper {
         //-----------------------------Sprite Banks / Skin Xmls-----------------------------
         #region
         private static Sprite SpriteBankCreateHook(On.Monocle.SpriteBank.orig_Create orig, SpriteBank self, string id) {
-            string newId = id;
 
-            if (self == GFX.SpriteBank) {
-                newId = GetSpriteBankIDSkin(id);
-            } else if (self == GFX.PortraitsSpriteBank) {
-                newId = GetPortraitsBankIDSkin(id);
-            }
-
-            if (self.Has(newId)) {
-                id = newId;
+            if (RespriteBankModule.SearchInstance(self, out var skinbank)) {
+                string newId = skinbank.GetCurrentSkin(id);
+                if (self.Has(newId))
+                    id = newId;
             }
             return orig(self, id);
         }
         private static Sprite SpriteBankCreateOnHook(On.Monocle.SpriteBank.orig_CreateOn orig, SpriteBank self, Sprite sprite, string id) {
-            string newId = id;
+            if (sprite.Entity is OuiFileSelectSlot && SaveFilePortraits)
+                return orig(self, sprite, id);
 
-            if (self == GFX.SpriteBank) {
-                newId = GetSpriteBankIDSkin(id);
-            } else if (self == GFX.PortraitsSpriteBank) {
-                newId = GetPortraitsBankIDSkin(id);
-            }
-
-            if (self.Has(newId)) {
-                id = newId;
-                if (sprite is PlayerSprite playerSprite) {
+            if (RespriteBankModule.SearchInstance(self, out var skinbank)) {
+                string newId = skinbank.GetCurrentSkin(id);
+                if (self.Has(newId))
+                    id = newId;
+                if (sprite is PlayerSprite playerSprite)
                     DynamicData.For(playerSprite).Set("spriteName", id);
-                }
             }
             return orig(self, sprite, id);
         }
         #endregion
 
         #region
-        // Combine skin mod XML with a vanilla sprite bank
-        private static void CombineSpriteBanks(SpriteBank origBank, string skinId, string xmlPath, bool Enabled) {
-            SpriteBank newBank = BuildBank(origBank, skinId, xmlPath);
-            if (newBank == null) {
-                return;
+        public static void RespriteBank_Reload() {
+            var RespriteBanks = RespriteBankModule.ManagedInstance();
+            foreach (var instance in RespriteBanks) {
+                instance.ClearRecord();
             }
-
-            // For each overridden sprite, patch it and add it to the original bank with a unique identifier
-            foreach (KeyValuePair<string, SpriteData> spriteDataEntry in newBank.SpriteData) {
-                string spriteId = spriteDataEntry.Key;
-                SpriteData newSpriteData = spriteDataEntry.Value;
-
-                if (origBank.SpriteData.TryGetValue(spriteId, out SpriteData origSpriteData)) {
-                    PatchSprite(origSpriteData.Sprite, newSpriteData.Sprite);
-
-                    string newSpriteId = spriteId + skinId;
-                    origBank.SpriteData[newSpriteId] = newSpriteData;
-
-                    if (origBank == GFX.SpriteBank && !string.IsNullOrEmpty(skinId)) {
-                        SpriteSkin_record[spriteId] = null;  // "SpriteSkin_record" initialization.
-
-                        if (newSpriteData.Sources[0].XML["Metadata"] != null)
-                            PlayerSprite.CreateFramesMetadata(newSpriteId);  // Check if skin have metadata... no matter what skin it is.
-
-                    } else if (origBank == GFX.PortraitsSpriteBank && !string.IsNullOrEmpty(skinId)) {
-                        PortraitsSkin_record[spriteId] = null;  // "PortraitsSkin_record" initialization.
-                    }
-                }
-            }
-        }
-        public static void RecordSpriteBanks_Start() {
-            SpriteSkins_records.Clear();
-            PortraitsSkins_records.Clear();
-            OtherSkins_records.Clear();
 
             foreach (SkinModHelperConfig config in skinConfigs.Values) {
+                if (GFX.SpriteBank.SpriteData.ContainsKey(config.Character_ID)) {
+                    PlayerSprite.CreateFramesMetadata(config.Character_ID);
+                } else if (build_warning) {
+                    throw new Exception($"[SkinModHelper] '{config.Character_ID}' does not exist in Graphics/Sprites.xml");
+                }
+            }
+            foreach (SkinModHelperConfig config in skinConfigs.Values) {
                 if (!string.IsNullOrEmpty(config.OtherSprite_Path)) {
+                    string skinId = config.SkinName;
+                    string dir = config.OtherSprite_Path;
 
-                    string spritesXmlPath = $"Graphics/{config.OtherSprite_Path}/Sprites.xml";
-                    string portraitsXmlPath = $"Graphics/{config.OtherSprite_Path}/Portraits.xml";
-
-                    RecordSpriteBanks(GFX.SpriteBank, DEFAULT, spritesXmlPath);
-                    RecordSpriteBanks(GFX.PortraitsSpriteBank, DEFAULT, portraitsXmlPath);
-
-                    // This name is not actually used... just for ease of search (why?)
-                    string Name = config.SkinName + playercipher;
-                    RecordOtherSprite(GFX.Game, $"{config.OtherSprite_Path}/death_particle", "death_particle", Name);
-                    RecordOtherSprite(GFX.Game, $"{config.OtherSprite_Path}/objects/dreamblock/particles", "dreamblock_particles", Name);
-                    RecordOtherSprite(GFX.Game, $"{config.OtherSprite_Path}/particles/feather", "feather_particles", Name);
-                    RecordOtherSprite(MTN.Mountain, $"{config.OtherSprite_Path}/marker/runBackpack", "Mountain_marker", Name, true);
-                }
-            }
-
-            foreach (SkinModHelperConfig config in OtherskinConfigs.Values) {
-                if (!string.IsNullOrEmpty(config.OtherSprite_ExPath)) {
-
-                    string spritesXmlPath = $"Graphics/{config.OtherSprite_ExPath}/Sprites.xml";
-                    string portraitsXmlPath = $"Graphics/{config.OtherSprite_ExPath}/Portraits.xml";
-
-                    RecordSpriteBanks(GFX.SpriteBank, config.SkinName, spritesXmlPath);
-                    RecordSpriteBanks(GFX.PortraitsSpriteBank, config.SkinName, portraitsXmlPath);
-
-                    RecordOtherSprite(GFX.Game, $"{config.OtherSprite_ExPath}/death_particle", "death_particle", config.SkinName);
-                    RecordOtherSprite(GFX.Game, $"{config.OtherSprite_ExPath}/objects/dreamblock/particles", "dreamblock_particles", config.SkinName);
-                    RecordOtherSprite(GFX.Game, $"{config.OtherSprite_ExPath}/particles/feather", "feather_particles", config.SkinName);
-                    RecordOtherSprite(MTN.Mountain, $"{config.OtherSprite_ExPath}/marker/runBackpack", "Mountain_marker", config.SkinName, true);
-                }
-            }
-        }
-        public static void RecordOtherSprite(Atlas atlas, string spritePath, string otherSkin, string skinId, bool number_search = false) {
-            if ((number_search && atlas.HasAtlasSubtexturesAt(spritePath, 0)) || atlas.Has(spritePath)) {
-                RecordSpriteBanks(null, skinId, null, otherSkin);
-            }
-        }
-
-        private static void RecordSpriteBanks(SpriteBank origBank, string skinId, string xmlPath, string otherSkin = null) {
-            if (otherSkin == null) {
-                SpriteBank newBank = BuildBank(origBank, skinId, xmlPath);
-                if (newBank == null) {
-                    return;
-                }
-
-                foreach (KeyValuePair<string, SpriteData> spriteDataEntry in newBank.SpriteData) {
-                    string spriteId = spriteDataEntry.Key;
-                    if (!string.IsNullOrEmpty(skinId)) {
-                        if (origBank == GFX.SpriteBank && origBank.SpriteData.ContainsKey(spriteId)) {
-
-                            if (!SpriteSkins_records.ContainsKey(spriteId)) {
-                                SpriteSkins_records.Add(spriteId, new());
-                            }
-                            if (skinId != DEFAULT && !SpriteSkins_records[spriteId].Contains(skinId)) {
-                                SpriteSkins_records[spriteId].Add(skinId);
-                            }
-                        } else if (origBank == GFX.PortraitsSpriteBank && origBank.SpriteData.ContainsKey(spriteId)) {
-
-                            if (!PortraitsSkins_records.ContainsKey(spriteId)) {
-                                PortraitsSkins_records.Add(spriteId, new());
-                            }
-                            if (skinId != DEFAULT && !PortraitsSkins_records[spriteId].Contains(skinId)) {
-                                PortraitsSkins_records[spriteId].Add(skinId);
-                            }
-                        }
+                    foreach (var instance in RespriteBanks) {
+                        instance.DoRecord(config.SkinName, dir, playercipher);
+                        instance.DoCombine(config.SkinName, dir, playercipher);
                     }
                 }
-            } else {
-                string spriteId = otherSkin;
-                if (!OtherSkins_records.ContainsKey(spriteId)) {
-                    OtherSkins_records.Add(spriteId, new());
-                }
-                if (skinId != DEFAULT && !OtherSkins_records[spriteId].Contains(skinId)) {
-                    OtherSkins_records[spriteId].Add(skinId);
+            }
+            foreach (SkinModHelperConfig config in OtherskinConfigs.Values) {
+                if (!string.IsNullOrEmpty(config.OtherSprite_ExPath)) {
+                    string skinId = config.SkinName;
+                    string dir = config.OtherSprite_ExPath;
+
+                    foreach (var instance in RespriteBanks) {
+                        instance.DoRecord(skinId, dir);
+                        instance.DoCombine(skinId, dir);
+                    }
                 }
             }
         }
-        private static SpriteBank BuildBank(SpriteBank origBank, string skinId, string xmlPath) {
+        public static SpriteBank BuildBank(SpriteBank origBank, string skinId, string xmlPath) {
             string dir = xmlPath.Remove(xmlPath.LastIndexOf("/"));
             if (xmlPath == null)
                 return null;
-            if (skinId.EndsWith(playercipher))
-                skinId = skinId.Replace(playercipher, "");
 
             if (Xml_records.TryGetValue(xmlPath, out SpriteBank newBank))
                 return newBank;
@@ -420,7 +334,7 @@ namespace Celeste.Mod.SkinModHelper {
 
             } else if (AssetExists<AssetTypeXml>(xmlPath)) {
                 try {
-                    SpriteBank newBank_2 = new SpriteBank(origBank.Atlas, xmlPath);
+                    SpriteBank newBank_2 = new SpriteBank(origBank?.Atlas ?? GFX.Game, xmlPath);
                     return Xml_records[xmlPath] = newBank_2;
                 } catch (Exception e) {
                     Logger.Log(LogLevel.Error, "SkinModHelper", $"The {xmlPath.Replace(dir + "/", "")} of '{skinId}' build failed! \n {xmlPath}: {e.Message}");
@@ -434,22 +348,11 @@ namespace Celeste.Mod.SkinModHelper {
         //-----------------------------Other Sprite-----------------------------
         #region
         public static void UpdateParticles() {
+            // well... Atlas_GetItemHook will help we update this.
             FlyFeather.P_Collect.Source = GFX.Game["particles/feather"];
             FlyFeather.P_Boost.Source = GFX.Game["particles/feather"];
-
-            string CustomPath = "particles/feather";
-
-            string SpriteID = "feather_particles";
-            if (OtherSkins_records.ContainsKey(SpriteID)) {
-                CustomPath = getOtherSkin_ReskinPath(GFX.Game, "particles/feather", SpriteID);
-            }
-
-            if (CustomPath != null) {
-                FlyFeather.P_Collect.Source = GFX.Game[CustomPath];
-                FlyFeather.P_Boost.Source = GFX.Game[CustomPath];
-            }
         }
-        public static string searchTransform_withBackPack(Atlas atlas, string path) {
+        public static string RedirectPathToBackpack(Atlas atlas, string path) {
             if (atlas == MTN.Mountain) {
                 if (path == "marker/runNoBackpack" && (backpackSetting == 3 || backpackSetting == 1)) {
                     path = "marker/runBackpack";
@@ -462,40 +365,20 @@ namespace Celeste.Mod.SkinModHelper {
         #endregion
 
         #region
+        private static MTexture Atlas_GetItemHook(Func<Atlas, string, MTexture> orig, Atlas self, string path) {
+            // evil...
+            path = OtherSpriteSkins.GetSkinWithPath(self, path, false);
+
+            return orig(self, path);
+        }
         private static List<MTexture> GetAtlasSubtexturesHook(On.Monocle.Atlas.orig_GetAtlasSubtextures orig, Atlas self, string path) {
-            string SpriteID = null;
-            bool number_search = false;
-
-            if (self == MTN.Mountain) {
-                if (path == "marker/runNoBackpack" || path == "marker/Fall" || path == "marker/runBackpack") {
-                    path = searchTransform_withBackPack(self, path);
-                    SpriteID = "Mountain_marker";
-                    number_search = true;
-                }
-            }
-
-            if (SpriteID != null && OtherSkins_records.ContainsKey(SpriteID)) {
-                RefreshSkinValues_OtherExtra(SpriteID, null, true, false);
-                path = getOtherSkin_ReskinPath(self, path, SpriteID, number_search);
-            }
+            path = RedirectPathToBackpack(self, path);
+            path = OtherSpriteSkins.GetSkinWithPath(self, path, true);
             return orig(self, path);
         }
         private static void SpriteCtorAtlasStringHook(On.Monocle.Sprite.orig_ctor_Atlas_string orig, Sprite self, Atlas atlas, string path) {
-            string SpriteID = null;
-            bool number_search = false;
-
-            if (atlas == MTN.Mountain) {
-                if (path == "marker/runNoBackpack" || path == "marker/Fall" || path == "marker/runBackpack") {
-                    path = searchTransform_withBackPack(atlas, path);
-                    SpriteID = "Mountain_marker";
-                    number_search = true;
-                }
-            }
-
-            if (SpriteID != null && OtherSkins_records.ContainsKey(SpriteID)) {
-                RefreshSkinValues_OtherExtra(SpriteID, null, true, false);
-                path = getOtherSkin_ReskinPath(atlas, path, SpriteID, number_search);
-            }
+            path = RedirectPathToBackpack(atlas, path);
+            path = OtherSpriteSkins.GetSkinWithPath(atlas, path, true);
             orig(self, atlas, path);
         }
         #endregion
@@ -513,49 +396,16 @@ namespace Celeste.Mod.SkinModHelper {
                 }
             }
 
-            if (Xmls_refresh == true) {
+            if (Xmls_refresh) {
                 LogLevel logLevel = Logger.GetLogLevel("Atlas");
                 if (!build_warning)
                     Logger.SetLogLevel("Atlas", LogLevel.Error);
 
                 Xml_records.Clear();
                 FailedXml_record.Clear();
-
-                #region
-                bool Enabled = false;
-                foreach (SkinModHelperConfig config in OtherskinConfigs.Values) {
-                    Enabled = Settings.ExtraXmlList.ContainsKey(config.SkinName) && Settings.ExtraXmlList[config.SkinName];
-
-                    if (!string.IsNullOrEmpty(config.OtherSprite_ExPath)) {
-                        string spritesXmlPath = $"Graphics/{config.OtherSprite_ExPath}/Sprites.xml";
-                        string portraitsXmlPath = $"Graphics/{config.OtherSprite_ExPath}/Portraits.xml";
-
-                        CombineSpriteBanks(GFX.SpriteBank, config.SkinName, spritesXmlPath, Enabled);
-                        CombineSpriteBanks(GFX.PortraitsSpriteBank, config.SkinName, portraitsXmlPath, Enabled);
-                    }
-                }
-                foreach (SkinModHelperConfig config in skinConfigs.Values) {
-                    Enabled = Player_Skinid_verify == config.hashValues;
-
-                    if (GFX.SpriteBank.SpriteData.ContainsKey(config.Character_ID)) {
-                        PlayerSprite.CreateFramesMetadata(config.Character_ID);
-                    } else if (build_warning) {
-                        throw new Exception($"[SkinModHelper] '{config.Character_ID}' does not exist in Graphics/Sprites.xml");
-                    }
-
-                    if (!string.IsNullOrEmpty(config.OtherSprite_Path)) {
-                        string spritesXmlPath = $"Graphics/{config.OtherSprite_Path}/Sprites.xml";
-                        string portraitsXmlPath = $"Graphics/{config.OtherSprite_Path}/Portraits.xml";
-
-                        string skinId = config.SkinName + playercipher;
-                        CombineSpriteBanks(GFX.SpriteBank, skinId, spritesXmlPath, Enabled);
-                        CombineSpriteBanks(GFX.PortraitsSpriteBank, skinId, portraitsXmlPath, Enabled);
-                    }
-                }
-                #endregion
+                RespriteBank_Reload();
 
                 build_warning = false;
-                RecordSpriteBanks_Start();
                 Logger.SetLogLevel("Atlas", logLevel);
             }
             RefreshSkinValues(null, inGame);
@@ -680,68 +530,6 @@ namespace Celeste.Mod.SkinModHelper {
             int B = sample.B == 0 ? 0 : target.B * 255 / sample.B;
             value = new Color(R, G, B);
             return true;
-        }
-        #endregion
-        #region
-        public static string getSkinDefaultValues(SpriteBank selfBank, string SpriteID) {
-            string SkinID = null;
-
-            string playerSkinName = GetPlayerSkinName(Player_Skinid_verify) + playercipher;
-            if (playerSkinName != null) {
-                if (selfBank.Has(SpriteID + playerSkinName)) {
-                    SkinID = playerSkinName;
-                    if (Settings.PlayerSkinGreatestPriority) { return SkinID; }
-                }
-            }
-
-            if (Settings.FreeCollocations_OffOn) {
-                if ((selfBank == GFX.SpriteBank && Settings.FreeCollocations_Sprites.ContainsKey(SpriteID) && Settings.FreeCollocations_Sprites[SpriteID] == LockedToPlayer)
-                 || (selfBank == GFX.PortraitsSpriteBank && Settings.FreeCollocations_Portraits.ContainsKey(SpriteID) && Settings.FreeCollocations_Portraits[SpriteID] == LockedToPlayer))
-                    return SkinID;
-            }
-
-            foreach (SkinModHelperConfig config in GetEnabledGeneralSkins()) {
-                if (selfBank.Has(SpriteID + config.SkinName)) {
-                    SkinID = config.SkinName;
-                }
-            }
-            return SkinID;
-        }
-        public static string getOtherSkin_ReskinPath(Atlas atlas, string origPath, string SpriteID, bool number_search = false) {
-            string SkinId = GetOtherIDSkin(SpriteID);
-            if (SkinId == ORIGINAL) { return origPath; }
-
-            string CustomPath = origPath;
-            if (SkinId == DEFAULT || SkinId == LockedToPlayer) {
-                string SkinName = GetPlayerSkinName();
-                if (SkinName != null) {
-                    string spritePath = skinConfigs[SkinName].OtherSprite_Path;
-                    if (!string.IsNullOrEmpty(spritePath)) {
-                        spritePath = $"{spritePath}/{origPath}";
-                        if ((number_search && atlas.HasAtlasSubtexturesAt(spritePath, 0)) || atlas.Has(spritePath)) {
-                            CustomPath = spritePath;
-
-                            if (Settings.PlayerSkinGreatestPriority) { return CustomPath; }
-                        }
-                    }
-                }
-            }
-            if (SkinId == LockedToPlayer) { return CustomPath; }
-
-            if (SkinId == DEFAULT) {
-                foreach (SkinModHelperConfig config in GetEnabledGeneralSkins()) {
-                    string spritePath = $"{config.OtherSprite_ExPath}/{origPath}";
-                    if ((number_search && atlas.HasAtlasSubtexturesAt(spritePath, 0)) || atlas.Has(spritePath)) {
-                        CustomPath = spritePath;
-                    }
-                }
-            } else if (GetGeneralSkin(SkinId) != null) {
-                string spritePath = $"{OtherskinConfigs[SkinId].OtherSprite_ExPath}/{origPath}";
-                if ((number_search && atlas.HasAtlasSubtexturesAt(spritePath, 0)) || atlas.Has(spritePath)) {
-                    CustomPath = spritePath;
-                }
-            }
-            return CustomPath;
         }
         #endregion
         #region

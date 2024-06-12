@@ -92,7 +92,7 @@ namespace Celeste.Mod.SkinModHelper {
             // But cannot refresh timely when in a dialogue.
             if (cursor.TryGotoNext(MoveType.Before, instr => instr.MatchStfld<FancyText.Portrait>("Sprite"))) {
                 cursor.EmitDelegate<Func<string, string>>((orig) => {
-                    string skinId = GetPortraitsBankIDSkin("portrait_" + orig);
+                    string skinId = Reskin_PortraitsBank.GetCurrentSkin("portrait_" + orig);
                     if (GFX.PortraitsSpriteBank.Has(skinId))
                         orig = skinId.Substring(9);
                     return orig;
@@ -338,12 +338,8 @@ namespace Celeste.Mod.SkinModHelper {
                     spritePath = spritePath + "death_particle";
                 }
                 if (self.Entity is PlayerDeadBody) {
-                    string SpriteID = "death_particle";
-                    if (OtherSkins_records.ContainsKey(SpriteID)) {
-                        string overridePath = getOtherSkin_ReskinPath(GFX.Game, "death_particle", SpriteID);
-
-                        spritePath = overridePath == "death_particle" ? spritePath : overridePath;
-                    }
+                    string overridePath = OtherSpriteSkins.GetSkinWithPath(GFX.Game, "death_particle");
+                    spritePath = overridePath == "death_particle" ? spritePath : overridePath;
                 }
                 selfData.Set("spritePath", spritePath);
             }
@@ -444,12 +440,8 @@ namespace Celeste.Mod.SkinModHelper {
                 spritePath = spritePath + "death_particle";
 
                 if (entity is Player) {
-                    string SpriteID = "death_particle";
-                    if (OtherSkins_records.ContainsKey(SpriteID)) {
-                        string skinPath = getOtherSkin_ReskinPath(GFX.Game, "death_particle", SpriteID);
-
-                        spritePath = skinPath == "death_particle" ? spritePath : skinPath;
-                    }
+                    string overridePath = OtherSpriteSkins.GetSkinWithPath(GFX.Game, "death_particle");
+                    spritePath = overridePath == "death_particle" ? spritePath : overridePath;
                 }
                 DeathEffectNewDraw(position, color, ease, spritePath);
             } else {

@@ -112,6 +112,8 @@ namespace Celeste.Mod.SkinModHelper {
 
             ModAsset asset = Everest.Content.Get("Effects/SkinModHelperShader.cso", true);
             FxColorGrading_SMH = new Effect(graphicsDeviceService.GraphicsDevice, asset.Data);
+
+            SkinsSystem.LoadContent(firstLoad);
         }
         #endregion
 
@@ -190,66 +192,10 @@ namespace Celeste.Mod.SkinModHelper {
                 Settings.FreeCollocations_OffOn = (bool)Setting;
             }
 
-            foreach (string SpriteID in SpriteSkins_records.Keys) {
-                RefreshSkinValues_Sprites(SpriteID, null, inGame, false);
-            }
-            foreach (string SpriteID in PortraitsSkins_records.Keys) {
-                RefreshSkinValues_Portraits(SpriteID, null, inGame, false);
-            }
-            foreach (string SpriteID in OtherSkins_records.Keys) {
-                RefreshSkinValues_OtherExtra(SpriteID, null, inGame, false);
+            foreach (var respriteBank in RespriteBankModule.InstanceList) {
+                respriteBank.DoRefresh(inGame);
             }
             UpdateParticles();
-        }
-
-        public static string RefreshSkinValues_Sprites(string SpriteID, string SkinId, bool inGame, bool Setting = true) {
-            if (Setting) {
-                Settings.FreeCollocations_Sprites[SpriteID] = SkinId;
-            } else if (!Settings.FreeCollocations_Sprites.ContainsKey(SpriteID)) {
-                Settings.FreeCollocations_Sprites[SpriteID] = DEFAULT;
-            }
-            var value = Setting || SkinId == null ? Settings.FreeCollocations_Sprites[SpriteID] : SkinId;
-
-
-            if (!Settings.FreeCollocations_OffOn || value == DEFAULT || value == LockedToPlayer) {
-                SpriteSkin_record[SpriteID] = getSkinDefaultValues(GFX.SpriteBank, SpriteID);
-            } else {
-                SpriteSkin_record[SpriteID] = value;
-            }
-            return SpriteSkin_record[SpriteID];
-        }
-
-        public static string RefreshSkinValues_Portraits(string SpriteID, string SkinId, bool inGame, bool Setting = true) {
-            if (Setting) {
-                Settings.FreeCollocations_Portraits[SpriteID] = SkinId;
-            } else if (!Settings.FreeCollocations_Portraits.ContainsKey(SpriteID)) {
-                Settings.FreeCollocations_Portraits[SpriteID] = DEFAULT;
-            }
-            var value = Setting || SkinId == null ? Settings.FreeCollocations_Portraits[SpriteID] : SkinId;
-
-
-            if (!Settings.FreeCollocations_OffOn || value == DEFAULT || value == LockedToPlayer) {
-                PortraitsSkin_record[SpriteID] = getSkinDefaultValues(GFX.PortraitsSpriteBank, SpriteID);
-            } else {
-                PortraitsSkin_record[SpriteID] = value;
-            }
-            return PortraitsSkin_record[SpriteID];
-        }
-        public static string RefreshSkinValues_OtherExtra(string SpriteID, string SkinId, bool inGame, bool Setting = true) {
-            if (Setting) {
-                Settings.FreeCollocations_OtherExtra[SpriteID] = SkinId;
-            } else if (!Settings.FreeCollocations_OtherExtra.ContainsKey(SpriteID)) {
-                Settings.FreeCollocations_OtherExtra[SpriteID] = DEFAULT;
-            }
-            var value = Setting || SkinId == null ? Settings.FreeCollocations_OtherExtra[SpriteID] : SkinId;
-
-
-            if (!Settings.FreeCollocations_OffOn) {
-                OtherSkin_record[SpriteID] = DEFAULT;
-            } else {
-                OtherSkin_record[SpriteID] = value;
-            }
-            return OtherSkin_record[SpriteID];
         }
         #endregion
 
@@ -300,34 +246,6 @@ namespace Celeste.Mod.SkinModHelper {
 
         #endregion
         #region
-        public static string GetSpriteBankIDSkin(string SpriteId) {
-            if (Session?.SpriteSkin_record.ContainsKey(SpriteId) == true) {
-                return SpriteId + Session.SpriteSkin_record[SpriteId];
-
-            } else if (SpriteSkin_record.ContainsKey(SpriteId)) {
-                return SpriteId + SpriteSkin_record[SpriteId];
-            }
-            return SpriteId;
-        }
-        public static string GetPortraitsBankIDSkin(string SpriteId) {
-            if (Session?.PortraitsSkin_record.ContainsKey(SpriteId) == true) {
-                return SpriteId + Session.SpriteSkin_record[SpriteId];
-
-            } else if (PortraitsSkin_record.ContainsKey(SpriteId)) {
-                return SpriteId + PortraitsSkin_record[SpriteId];
-            }
-            return SpriteId;
-        }
-        public static string GetOtherIDSkin(string id) {
-            if (Session?.OtherSkin_record.ContainsKey(id) == true) {
-                return Session.OtherSkin_record[id];
-            } else if (OtherSkin_record.ContainsKey(id)) {
-                return OtherSkin_record[id];
-            }
-            return ORIGINAL;
-        }
-        #endregion
-        #region
         public static List<SkinModHelperConfig> GetEnabledGeneralSkins() {
             if (OtherskinConfigs.Count > 0) {
                 return OtherskinConfigs.Values.Where(config => GetGeneralSkin(config.SkinName) == true).ToList();
@@ -342,10 +260,7 @@ namespace Celeste.Mod.SkinModHelper {
             if (hashValues < 0) { hashValues = Player_Skinid_verify; }
 
             if (skinConfigs.Count > 0) {
-                var v = skinConfigs.Values.Where(config => config.hashValues == hashValues);
-                if (v.Count() > 0) {
-                    return v.First().SkinName;
-                }
+                return skinConfigs.Values.FirstOrDefault(config => config.hashValues == hashValues)?.SkinName;
             }
             return null;
         }

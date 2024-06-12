@@ -96,18 +96,17 @@ namespace Celeste.Mod.SkinModHelper {
                 RefreshSkins(true, false);
 
                 if (SaveFilePortraits) {
-                    // return the madeline's portrait to orig if SaveFilePortraits installed
-                    foreach (string SpriteID in PortraitsSkins_records.Keys) {
-                        PortraitsSkin_record[SpriteID] = null;
-                    }
-
-                    // Reload the SpriteID registration code of "SaveFilePortraits"
                     Logger.Log("SkinModHelper", $"SaveFilePortraits reload start");
                     SaveFilePortraits_Reload();
+                    Reskin_PortraitsBank.Active = false;
                 }
+            }
+            if (SaveFilePortraits) {
+                Reskin_PortraitsBank.Active = false;
             }
             slots_tracking[self.FileSlot] = self;
             orig(self);
+            Reskin_PortraitsBank.Active = true;
         }
         private static Dictionary<int, OuiFileSelectSlot> slots_tracking = new();
         private static void OuiFileSelectEnterILHook(ILContext il) {
@@ -139,21 +138,17 @@ namespace Celeste.Mod.SkinModHelper {
             List<string> Sources_record = new();
 
             foreach (string portrait in GFX.PortraitsSpriteBank.SpriteData.Keys) {
-
                 SpriteData sprite = GFX.PortraitsSpriteBank.SpriteData[portrait];
-                string SourcesPath = sprite.Sources[0].Path;
 
-                if (!Sources_record.Contains(SourcesPath)) {
-                    Sources_record.Add(SourcesPath);
+                foreach (string animation in sprite.Sprite.Animations.Keys) {
+                    if (animation.StartsWith("idle_") && !animation.Substring(5).Contains("_")
+                        && sprite.Sprite.Animations[animation].Frames[0].Height <= 200 && sprite.Sprite.Animations[animation].Frames[0].Width <= 200) {
 
-                    foreach (string animation in sprite.Sprite.Animations.Keys) {
-                        if (animation.StartsWith("idle_") && !animation.Substring(5).Contains("_")
-                            && sprite.Sprite.Animations[animation].Frames[0].Height <= 200 && sprite.Sprite.Animations[animation].Frames[0].Width <= 200) {
-                            On_ExistingPortraits.Add(new Tuple<string, string>(portrait, animation));
-                        }
+                        if (Sources_record.Contains($"{sprite.Sprite.GetFrame(animation, 0)}"))
+                            continue;
+                        Sources_record.Add($"{sprite.Sprite.GetFrame(animation, 0)}");
+                        On_ExistingPortraits.Add(new Tuple<string, string>(portrait, animation));
                     }
-                } else {
-                    //Logger.Log(LogLevel.Info, "SkinModHelper", $"maybe SkinModHelper made some Sources same of ID, will stop them re-register to SaveFilePortraits");
                 }
             }
             Logger.Log("SaveFilePortraits", $"Found {On_ExistingPortraits.Count} portraits to pick from.");

@@ -90,7 +90,7 @@ namespace Celeste.Mod.SkinModHelper {
                     return;
                 }
                 if (GFX.SpriteBank.Has(name)) {
-                    string skin = GetSpriteBankIDSkin(name);
+                    string skin = Reskin_SpriteBank[name];
                     Sprite sprite = GFX.SpriteBank.SpriteData[skin].Sprite;
                     skin = skin.Substring(name.Length).Replace(playercipher, "(player)");
 

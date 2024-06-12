@@ -29,8 +29,6 @@ namespace Celeste.Mod.SkinModHelper {
             On.Celeste.FlyFeather.Added += Celeste_flyFeather_Hook;
             On.Celeste.Cloud.Added += Celeste_Cloud_Hook;
 
-            IL.Celeste.DreamBlock.ctor_Vector2_float_float_Nullable1_bool_bool_bool += Celeste_DreamBlock_ILHook;
-
             On.Celeste.Refill.Added += Celeste_Refill_Hook;
             On.Monocle.Entity.Added += EntityAddedHook;
 
@@ -44,8 +42,6 @@ namespace Celeste.Mod.SkinModHelper {
             IL.Celeste.Booster.Added -= Celeste_Booster_ILHook;
             On.Celeste.FlyFeather.Added -= Celeste_flyFeather_Hook;
             On.Celeste.Cloud.Added -= Celeste_Cloud_Hook;
-
-            IL.Celeste.DreamBlock.ctor_Vector2_float_float_Nullable1_bool_bool_bool -= Celeste_DreamBlock_ILHook;
 
             On.Celeste.Refill.Added -= Celeste_Refill_Hook;
             On.Monocle.Entity.Added -= EntityAddedHook;
@@ -128,24 +124,6 @@ namespace Celeste.Mod.SkinModHelper {
                             }
                         }
                         if (GFX.Game.Has(SpritePath + "outline")) return SpritePath + "outline";
-                    }
-                    return orig;
-                });
-            }
-        }
-        #endregion
-
-        //-----------------------------DreamBlock-----------------------------
-        #region
-        public static void Celeste_DreamBlock_ILHook(ILContext il) {
-            ILCursor cursor = new(il);
-
-            while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdstr("objects/dreamblock/particles"))) {
-                cursor.EmitDelegate<Func<string, string>>((orig) => {
-
-                    string SpriteID = "dreamblock_particles";
-                    if (OtherSkins_records.ContainsKey(SpriteID)) {
-                        return getOtherSkin_ReskinPath(GFX.Game, "objects/dreamblock/particles", SpriteID);
                     }
                     return orig;
                 });

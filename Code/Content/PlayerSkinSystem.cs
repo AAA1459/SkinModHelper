@@ -22,7 +22,6 @@ namespace Celeste.Mod.SkinModHelper {
         public static SkinModHelperSettings Settings => (SkinModHelperSettings)Instance._Settings;
         public static SkinModHelperSession Session => (SkinModHelperSession)Instance._Session;
 
-
         public static void Load() {
             On.Monocle.SpriteBank.CreateOn += SpriteBankCreateOn;
             On.Celeste.PlayerSprite.ctor += on_PlayerSprite_ctor;
