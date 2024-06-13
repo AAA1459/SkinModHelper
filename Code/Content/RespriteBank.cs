@@ -180,7 +180,6 @@ namespace Celeste.Mod.SkinModHelper {
         public nonBankReskin(string menu_name, string prefix) : base(null, true) {
             O_SubMenuName = menu_name;
             O_DescriptionPrefix = prefix;
-            ClearRecord();
         }
         public override Dictionary<string, string> Settings { get => smh_Settings.FreeCollocations_OtherExtra; }
 
@@ -189,8 +188,8 @@ namespace Celeste.Mod.SkinModHelper {
         public Dictionary<string, string> SkinIdPath = new(StringComparer.OrdinalIgnoreCase);
 
 
-        public void AddSpriteInfo(string storageID, Atlas atlas, string orig_path, bool numberSet = false) {
-            PathSpriteId[new(atlas, orig_path, numberSet)] = storageID;
+        public void AddSpriteInfo(string storageId, Atlas atlas, string orig_path, bool numberSet = false) {
+            PathSpriteId[new(atlas, orig_path, numberSet)] = storageId;
         }
 
         public override void ClearRecord() {
@@ -211,15 +210,16 @@ namespace Celeste.Mod.SkinModHelper {
             if (string.IsNullOrEmpty(skinId))
                 return;
             directory = directory + "/";
+
             foreach (var tuple in PathSpriteId.Keys) {
                 if ((tuple.Item3 && tuple.Item1.HasAtlasSubtextures(directory + tuple.Item2)) || tuple.Item1.Has(directory + tuple.Item2)) {
 
                     string spriteId = PathSpriteId[tuple];
-
                     if (!SkinsRecords.ContainsKey(spriteId))
                         SkinsRecords.Add(spriteId, new());
                     if (cipher != playercipher && !SkinsRecords[spriteId].Contains(skinId + cipher))
                         SkinsRecords[spriteId].Add(skinId + cipher);
+
                     SkinIdPath[spriteId + skinId + cipher] = directory;
                 }
             }
@@ -252,7 +252,8 @@ namespace Celeste.Mod.SkinModHelper {
             if (tuple != null) {
                 string skinId = GetCurrentSkin(PathSpriteId[tuple]);
                 if (SkinIdPath.TryGetValue(skinId, out string path))
-                    return path + orig_path;
+                    if ((numberSet && atlas.HasAtlasSubtextures(path + orig_path)) || atlas.Has(path + orig_path))
+                        return path + orig_path;
             }
             return orig_path;
         }

@@ -368,7 +368,6 @@ namespace Celeste.Mod.SkinModHelper {
         private static MTexture Atlas_GetItemHook(Func<Atlas, string, MTexture> orig, Atlas self, string path) {
             // evil...
             path = OtherSpriteSkins.GetSkinWithPath(self, path, false);
-
             return orig(self, path);
         }
         private static List<MTexture> GetAtlasSubtexturesHook(On.Monocle.Atlas.orig_GetAtlasSubtextures orig, Atlas self, string path) {
