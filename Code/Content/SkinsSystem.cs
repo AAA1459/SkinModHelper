@@ -14,6 +14,7 @@ using Mono.Cecil.Cil;
 using Celeste.Mod.UI;
 using System.Xml;
 using System.Linq;
+using System.Diagnostics;
 
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 
@@ -31,6 +32,7 @@ namespace Celeste.Mod.SkinModHelper {
         public static nonBankReskin OtherSpriteSkins = new("OtherExtra", "Other");
 
         public static Dictionary<string, SkinModHelperConfig> skinConfigs = new(StringComparer.OrdinalIgnoreCase);
+
         public static Dictionary<string, SkinModHelperConfig> OtherskinConfigs = new(StringComparer.OrdinalIgnoreCase);
         public static Dictionary<string, SkinModHelperOldConfig> OtherskinOldConfig = new(StringComparer.OrdinalIgnoreCase);
 
@@ -366,8 +368,8 @@ namespace Celeste.Mod.SkinModHelper {
 
         #region
         private static MTexture Atlas_GetItemHook(Func<Atlas, string, MTexture> orig, Atlas self, string path) {
-            // evil...
             path = OtherSpriteSkins.GetSkinWithPath(self, path, false);
+
             return orig(self, path);
         }
         private static List<MTexture> GetAtlasSubtexturesHook(On.Monocle.Atlas.orig_GetAtlasSubtextures orig, Atlas self, string path) {
@@ -599,6 +601,17 @@ namespace Celeste.Mod.SkinModHelper {
                 return true;
             }
             return false;
+        }
+        public static Stopwatch stopwatch;
+        public static void StartDelayTiming() {
+            if (stopwatch == null)
+                stopwatch = Stopwatch.StartNew();
+            else
+                stopwatch.Restart();
+        }
+        public static void OutputDelayTiming() {
+            Logger.Log(LogLevel.Info, "SkinModHelper", $"delay: {stopwatch.ElapsedTicks} ticks");
+            stopwatch.Stop();
         }
         #endregion
     }

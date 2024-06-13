@@ -184,37 +184,58 @@ namespace Celeste.Mod.SkinModHelper {
         public override Dictionary<string, string> Settings { get => smh_Settings.FreeCollocations_OtherExtra; }
 
 
-        public Dictionary<Tuple<Atlas, string, bool>, string> PathSpriteId = new();
+        public Dictionary<string, Tuple<Atlas, string, string>> PathSpriteId = new();
+        public Dictionary<string, Tuple<Atlas, string, string>> PathStaticSpriteId = new();
+
         public Dictionary<string, string> SkinIdPath = new(StringComparer.OrdinalIgnoreCase);
 
 
-        public void AddSpriteInfo(string storageId, Atlas atlas, string orig_path, bool numberSet = false) {
-            PathSpriteId[new(atlas, orig_path, numberSet)] = storageId;
+        public void AddSpriteInfo(string storageId, Atlas atlas, string orig_path, bool isStatic = true) {
+            if (isStatic)
+                PathStaticSpriteId[atlas.DataPath + orig_path] = new(atlas, orig_path, storageId);
+            else
+                PathSpriteId[atlas.DataPath + orig_path] = new(atlas, orig_path, storageId);
         }
 
         public override void ClearRecord() {
             SkinsRecords.Clear();
             SkinIdPath.Clear();
             PathSpriteId.Clear();
+            PathStaticSpriteId.Clear();
 
             // evil...
             AddSpriteInfo("death_particle", GFX.Game, "death_particle");
             AddSpriteInfo("dreamblock_particles", GFX.Game, "objects/dreamblock/particles");
             AddSpriteInfo("feather_particles", GFX.Game, "particles/feather");
 
-            AddSpriteInfo("Mountain_marker", MTN.Mountain, "marker/runBackpack", true);
-            AddSpriteInfo("Mountain_marker", MTN.Mountain, "marker/runNoBackpack", true);
-            AddSpriteInfo("Mountain_marker", MTN.Mountain, "marker/Fall", true);
+            AddSpriteInfo("Mountain_marker", MTN.Mountain, "marker/runBackpack", false);
+            AddSpriteInfo("Mountain_marker", MTN.Mountain, "marker/runNoBackpack", false);
+            AddSpriteInfo("Mountain_marker", MTN.Mountain, "marker/Fall", false);
+
+            AddSpriteInfo("Interact_icons", GFX.Gui, "hover/idle");
+            AddSpriteInfo("Interact_icons", GFX.Gui, "hover/highlight");
         }
         public override void DoRecord(string skinId, string directory, string cipher) {
             if (string.IsNullOrEmpty(skinId))
                 return;
             directory = directory + "/";
 
-            foreach (var tuple in PathSpriteId.Keys) {
-                if ((tuple.Item3 && tuple.Item1.HasAtlasSubtextures(directory + tuple.Item2)) || tuple.Item1.Has(directory + tuple.Item2)) {
+            foreach (var kvp in PathSpriteId) {
+                if (kvp.Value.Item1.HasAtlasSubtextures(directory + kvp.Value.Item2)) {
 
-                    string spriteId = PathSpriteId[tuple];
+                    string spriteId = kvp.Value.Item3;
+                    if (!SkinsRecords.ContainsKey(spriteId))
+                        SkinsRecords.Add(spriteId, new());
+                    if (cipher != playercipher && !SkinsRecords[spriteId].Contains(skinId + cipher))
+                        SkinsRecords[spriteId].Add(skinId + cipher);
+
+                    SkinIdPath[spriteId + skinId + cipher] = directory;
+                }
+            }
+            foreach (var kvp in PathStaticSpriteId) {
+                if (kvp.Value.Item1.Has(directory + kvp.Value.Item2)) {
+
+                    string spriteId = kvp.Value.Item3;
                     if (!SkinsRecords.ContainsKey(spriteId))
                         SkinsRecords.Add(spriteId, new());
                     if (cipher != playercipher && !SkinsRecords[spriteId].Contains(skinId + cipher))
@@ -248,12 +269,12 @@ namespace Celeste.Mod.SkinModHelper {
             if (atlas == null || !Active)
                 return orig_path;
 
-            var tuple = PathSpriteId.Keys.FirstOrDefault(tuple => numberSet == tuple.Item3 && atlas.DataPath == tuple.Item1.DataPath && orig_path == tuple.Item2);
-            if (tuple != null) {
-                string skinId = GetCurrentSkin(PathSpriteId[tuple]);
-                if (SkinIdPath.TryGetValue(skinId, out string path))
-                    if ((numberSet && atlas.HasAtlasSubtextures(path + orig_path)) || atlas.Has(path + orig_path))
-                        return path + orig_path;
+            if ((numberSet ? PathSpriteId : PathStaticSpriteId).TryGetValue(atlas.DataPath + orig_path, out var tuple)) {
+
+                string skinId = GetCurrentSkin(tuple.Item3);
+                if (SkinIdPath.TryGetValue(skinId, out string path2))
+                    if (numberSet ? atlas.HasAtlasSubtextures(path2 + orig_path) : atlas.Has(path2 + orig_path))
+                        return path2 + orig_path;
             }
             return orig_path;
         }
