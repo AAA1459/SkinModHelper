@@ -264,6 +264,16 @@ namespace Celeste.Mod.SkinModHelper {
             }
             return null;
         }
+        public static List<string> GetAllConfigsSpritePath() {
+            List<string> paths = new();
+            foreach (SkinModHelperConfig config in skinConfigs.Values)
+                if (!string.IsNullOrEmpty(config.OtherSprite_Path) && !paths.Contains(config.OtherSprite_Path))
+                    paths.Add(config.OtherSprite_Path);
+            foreach (SkinModHelperConfig config in OtherskinConfigs.Values)
+                if (!string.IsNullOrEmpty(config.OtherSprite_ExPath) && !paths.Contains(config.OtherSprite_ExPath))
+                    paths.Add(config.OtherSprite_ExPath);
+            return paths;
+        }
         #endregion
     }
 }

@@ -15,6 +15,7 @@ using Celeste.Mod.UI;
 using System.Xml;
 using System.Linq;
 using System.Diagnostics;
+using Celeste.Mod.Meta;
 
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 
@@ -65,6 +66,7 @@ namespace Celeste.Mod.SkinModHelper {
 
         public static void LoadContent(bool firstLoad) {
         }
+        public static List<List<MTexture>> loadingTextures = new();
 
         #endregion
         #region
@@ -372,7 +374,12 @@ namespace Celeste.Mod.SkinModHelper {
 
             return orig(self, path);
         }
+
         private static List<MTexture> GetAtlasSubtexturesHook(On.Monocle.Atlas.orig_GetAtlasSubtextures orig, Atlas self, string path) {
+            if (self == OVR.Atlas && path == "loading/" && loadingTextures.Count > 0) {
+                return loadingTextures[new Random().Next() % loadingTextures.Count];
+            }
+
             path = RedirectPathToBackpack(self, path);
             path = OtherSpriteSkins.GetSkinWithPath(self, path, true);
             return orig(self, path);
@@ -613,6 +620,13 @@ namespace Celeste.Mod.SkinModHelper {
             Logger.Log(LogLevel.Info, "SkinModHelper", $"delay: {stopwatch.ElapsedTicks} ticks");
             stopwatch.Stop();
         }
+
+        public static string GetNumberFormat(int number, int ofDigits = 2) {
+            string str;
+            for (str = number.ToString(); str.Length < ofDigits; str = "0" + str) { }
+            return str;
+        }
+
         #endregion
     }
 }
