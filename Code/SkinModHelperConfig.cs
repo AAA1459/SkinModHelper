@@ -107,6 +107,7 @@ namespace Celeste.Mod.SkinModHelper {
         public class Tweak {
             public string Name { get; set; }
             public string Value { get; set; }
+            public string LimitOnType { get; set; }
 
             public bool subTEST;
             public List<Tweak> subTweaks { get; set; }
@@ -173,6 +174,18 @@ namespace Celeste.Mod.SkinModHelper {
             }
 
             foreach (Tweak t in tweaks) {
+                if (t.LimitOnType != null) {
+                    bool match = true;
+                    Type type2 = type;
+                    while (t.LimitOnType != type2.FullName) {
+                        if (match = t.LimitOnType == type2?.FullName)
+                            break;
+                        if ((type2 = type2.BaseType) == null)
+                            break;
+                    }
+                    if (!match)
+                        continue;
+                }
                 FieldInfo f = GetFieldPlus(type, t.Name);
                 if (f == null) {
                     Logger.Log(TEST ? LogLevel.Warn : LogLevel.Info, "SkinModHelper", $"{SourcePath}skinConfig/CharacterConfig Tweaks error: \n Not found the Instance Field: {type}.{t.Name}");

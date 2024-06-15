@@ -550,7 +550,7 @@ namespace Celeste.Mod.SkinModHelper {
             if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchCallvirt<PlayerSprite>("get_Mode"))) {
                 cursor.Emit(OpCodes.Ldarg_0);
                 cursor.EmitDelegate<Func<PlayerSpriteMode, Player, PlayerSpriteMode>>((orig, self) => {
-
+                    
                     CharacterConfig ModeConfig = CharacterConfig.For(self.Sprite);
                     if (ModeConfig != null) {
                         if (ModeConfig.BadelineMode == true) {

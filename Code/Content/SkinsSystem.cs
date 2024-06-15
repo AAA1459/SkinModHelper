@@ -33,6 +33,7 @@ namespace Celeste.Mod.SkinModHelper {
         public static nonBankReskin OtherSpriteSkins = new("OtherExtra", "Other");
 
         public static Dictionary<string, SkinModHelperConfig> skinConfigs = new(StringComparer.OrdinalIgnoreCase);
+        public static Dictionary<int, string> skinname_hashcache = new();
 
         public static Dictionary<string, SkinModHelperConfig> OtherskinConfigs = new(StringComparer.OrdinalIgnoreCase);
         public static Dictionary<string, SkinModHelperOldConfig> OtherskinOldConfig = new(StringComparer.OrdinalIgnoreCase);
@@ -142,6 +143,7 @@ namespace Celeste.Mod.SkinModHelper {
         public static void ConfigInsert(ModAsset asset) {
             if (asset.Type != typeof(AssetTypeYaml))
                 return;
+            skinname_hashcache.Clear();
 
             #region // nonPlus skin config
             if (LoadConfigFile<SkinModHelperOldConfig>(asset, out var old_config)) {
@@ -459,10 +461,10 @@ namespace Celeste.Mod.SkinModHelper {
                         if (Math.Abs(speed.X) < 15f) {
                             if (entityData.TryGet("smh_facingBack", out bool? front))
                                 if (front == false ? self.Scale.X < 0f : self.Scale.X > 0f)
-                                    self.Scale.X = self.Scale.X * -1f;
+                                    self.Scale.X *= -1f;
 
                         } else if ((speed.X > 0f && self.Scale.X < 0f) || (speed.X < 0f && self.Scale.X > 0f)) {
-                            self.Scale.X = self.Scale.X * -1f;
+                            self.Scale.X *=  -1f;
                             entityData.Set("smh_facingBack", self.Scale.X < 0f);
                         }
                     }
@@ -617,8 +619,8 @@ namespace Celeste.Mod.SkinModHelper {
                 stopwatch.Restart();
         }
         public static void OutputDelayTiming() {
-            Logger.Log(LogLevel.Info, "SkinModHelper", $"delay: {stopwatch.ElapsedTicks} ticks");
             stopwatch.Stop();
+            Logger.Log(LogLevel.Info, "SkinModHelper", $"delay: {stopwatch.ElapsedTicks} ticks");
         }
 
         public static string GetNumberFormat(int number, int ofDigits = 2) {

@@ -20,10 +20,14 @@ using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 
 namespace Celeste.Mod.SkinModHelper {
     public class RespriteBankModule {
+
         public static List<RespriteBankModule> InstanceList = new();
+        private static Dictionary<string, RespriteBankModule> cache = new();
         public static bool SearchInstance(SpriteBank bank, out RespriteBankModule bank2) {
-            bank2 = InstanceList.Find(bank3 => bank3.Basebank == bank);
-            return bank2 != null;
+            if (cache.TryGetValue(bank.XMLPath, out bank2))
+                return bank2 != null;
+
+            return (cache[bank.XMLPath] = bank2 = InstanceList.Find(bank3 => bank3.Basebank == bank)) != null;
         }
         public static List<RespriteBankModule> ManagedInstance() {
             return InstanceList.FindAll(bank3 => bank3.runhosting);
@@ -33,8 +37,9 @@ namespace Celeste.Mod.SkinModHelper {
             XML_name = xml_name;
             this.runhosting = runhosting;
 
-            if (InstanceList.Remove(InstanceList.Find(bank2 => bank2.GetType() == this.GetType())))
+            if (InstanceList.Remove(InstanceList.Find(bank => bank.GetType() == this.GetType())))
                 Logger.Log(LogLevel.Warn, "SkinModHelper", $"Warnning!  RespriteBank '{this.GetType()}' be created twice!");
+            cache?.Clear();
             InstanceList.Add(this);
         }
 

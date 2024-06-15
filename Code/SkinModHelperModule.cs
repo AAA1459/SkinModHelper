@@ -241,6 +241,7 @@ namespace Celeste.Mod.SkinModHelper {
             if (Settings.ExtraXmlList.ContainsKey(skinName)) {
                 return Settings.ExtraXmlList[skinName];
             }
+            
             return false;
         }
 
@@ -257,13 +258,15 @@ namespace Celeste.Mod.SkinModHelper {
         /// A method to get PlayerSkin's name based on it's hashValue. The hash defaults as player's current skin
         /// </summary>
         public static string GetPlayerSkinName(int hashValues = -1) {
-            if (hashValues < 0) { hashValues = Player_Skinid_verify; }
-
-            if (skinConfigs.Count > 0) {
-                return skinConfigs.Values.FirstOrDefault(config => config.hashValues == hashValues)?.SkinName;
+            if (hashValues < 0) {
+                hashValues = Player_Skinid_verify;
             }
-            return null;
+            if (skinname_hashcache.TryGetValue(hashValues, out string name)) {
+                return name;
+            }
+            return skinname_hashcache[hashValues] = skinConfigs.Values.FirstOrDefault(config => config.hashValues == hashValues)?.SkinName;
         }
+
         public static List<string> GetAllConfigsSpritePath() {
             List<string> paths = new();
             foreach (SkinModHelperConfig config in skinConfigs.Values)
