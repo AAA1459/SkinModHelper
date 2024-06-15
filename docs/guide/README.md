@@ -137,12 +137,14 @@ You can download them as examples for making skins:
 * [OshiroBoss But Badeline](https://gamebanana.com/mods/444994)
 * [Niko - Oneshot](https://gamebanana.com/mods/251814)
 * [Ralsei - Deltarune](https://gamebanana.com/mods/385893)
+
 And, there is also a test skin under the banana-page of skinmodhelperplus, that also is an example.
 
 ---
 ## _More Miscellaneous_
 1. SkinModHelper have some introduce of special textures, and collected various sources of IDs animation.
-   [clike here for check wiki](https://github.com/AAA1459/SkinModHelper/wiki/Textures-list-of-Various-Type#special-texture-settingreskin)
+   * [Special texture setting/reskin](https://github.com/AAA1459/SkinModHelper/wiki/Textures-list-of-Various-Type#special-texture-settingreskin)
+   * [of about OtherSprite_Path](https://github.com/AAA1459/SkinModHelper/wiki/Textures-list-of-Various-Type#of-about-othersprite_path)
 
 2. more complicated things
    * [Setting ColorGrade for skin](/docs/guide//skinconfig/ColorGrade.md)

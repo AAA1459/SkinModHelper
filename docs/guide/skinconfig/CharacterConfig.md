@@ -81,8 +81,9 @@ there maybe required you have some code knowledge...
 it'll allow customize entity's any initial-value, any sprites:
 ```
 EntityTweaks:
-- Name: [field name]  
-  Value: [field's new value]
+- Name: [Field name]  
+  Value: [Field's new value]
+  LimitOnType: [Limit this tweaks to on specific entity type]
   
   subTweaks:     # If the field type is special, you may need this to tweaks its sub-fields.
   - < Tweaks >     # A self-nesting, its structure same as "EntityTweaks".
