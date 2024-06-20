@@ -496,10 +496,8 @@ namespace Celeste.Mod.SkinModHelper {
             return skinConfigYaml.TryDeserialize(out t);
         }
         public static T searchSkinConfig<T>(string FilePath) {
-            foreach (ModContent mod in Everest.Content.Mods) {
-                if (mod.Map.TryGetValue(FilePath, out ModAsset configAsset) && configAsset.Type == typeof(AssetTypeYaml)) {
-                    return configAsset.Deserialize<T>();
-                }
+            if (Everest.Content.Map.TryGetValue(FilePath, out ModAsset configAsset) && configAsset.Type == typeof(AssetTypeYaml)) {
+                return configAsset.Deserialize<T>();
             }
             return default(T);
         }

@@ -31,7 +31,7 @@ namespace Celeste.Mod.SkinModHelper {
             if (subCommand == "player" || subCommand == "p") {
                 name = name?.ToLower();
                 if (string.IsNullOrWhiteSpace(name) || name == "help") {
-                    Send("SubSubCommands list: id, path, colorgrade(cg), hairpath");
+                    Send("SubSubCommands list: id, path, colorgrade(cg), hairpath, mode");
                     return;
                 }
 
@@ -51,8 +51,11 @@ namespace Celeste.Mod.SkinModHelper {
                         return;
                     }
                     if (name == "id") {
-                        string id = DynamicData.For(sprite).Get<string>("spriteName");
-                        Send($"The player spriteID: {id}");
+                        Send($"The player spriteID: {DynamicData.For(sprite).Get<string>("spriteName")}");
+                        return;
+                    }
+                    if (name == "mode") {
+                        Send($"The player mode: {(int)sprite.Mode} : (smh){Player_Skinid_verify} : {GetPlayerSkinName((int)sprite.Mode)}");
                         return;
                     }
                     if (name == "path") {
