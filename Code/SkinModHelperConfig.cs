@@ -123,7 +123,7 @@ namespace Celeste.Mod.SkinModHelper {
             string rootPath = getAnimationRootPath(target);
 
             if (config == null || config.SourcePath != rootPath) {
-                config = searchSkinConfig<CharacterConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "CharacterConfig") ?? new();
+                config = GetConfigOnSprite<CharacterConfig>(target, "skinConfig/CharacterConfig") ?? new();
                 config.Target = target;
                 config.SourcePath = rootPath;
 
@@ -213,12 +213,12 @@ namespace Celeste.Mod.SkinModHelper {
                             continue;
                         }
                         if (f.FieldType == typeof(Image)) {
-                            (v as Image).Texture = GFX.Game[SourcePath + t.Value];
+                            (v as Image).Texture = GetTextureOnSprite(Target, t.Value, out var texture) ? texture : GFX.Game["errorre"];
                             continue;
                         }
 
                         if (f.FieldType == typeof(MTexture))
-                            v = GFX.Game[SourcePath + t.Value];
+                            v = GetTextureOnSprite(Target, t.Value, out var texture) ? texture : GFX.Game["errorre"];
                         else if (f.FieldType == typeof(Color))
                             v = Calc.HexToColorWithAlpha(t.Value);
                         else if (f.FieldType.IsEnum) {
@@ -295,13 +295,16 @@ namespace Celeste.Mod.SkinModHelper {
 
             if (config == null || config.SourcePath != rootPath) {
 
-                string hairPath = rootPath;
                 if (OldConfigCheck(target.Sprite, out string isOld)) {
                     config = new();
                     config.Target = target;
                     config.SourcePath = rootPath;
 
-                    hairPath = $"{OtherskinConfigs[isOld].OtherSprite_ExPath}/characters/player/";
+                    string hairPath = $"{OtherskinConfigs[isOld].OtherSprite_ExPath}/characters/player/";
+                    if (GFX.Game.HasAtlasSubtextures(hairPath + "bangs"))
+                        config.new_bangs = GFX.Game.GetAtlasSubtextures(hairPath + "bangs");
+                    if (GFX.Game.HasAtlasSubtextures(hairPath + "hair"))
+                        config.new_hairs = GFX.Game.GetAtlasSubtextures(hairPath + "hair");
 
                     if (target.Entity is Player) {
                         config.oldHairColors = OtherskinOldConfig[isOld].HairColors ?? new();
@@ -310,21 +313,21 @@ namespace Celeste.Mod.SkinModHelper {
                             config.Old_BuildHairColors();
                     }
                 } else {
-                    config = searchSkinConfig<HairConfig>($"Graphics/Atlases/Gameplay/{rootPath}skinConfig/" + "HairConfig") ?? new();
+                    config = GetConfigOnSprite<HairConfig>(target.Sprite, "skinConfig/HairConfig") ?? new();
                     config.Target = target;
                     config.SourcePath = rootPath;
 
+                    if (GetTexturesOnSprite(target.Sprite, "bangs", out var textures))
+                        config.new_bangs = textures;
+                    if (GetTexturesOnSprite(target.Sprite, "hair", out var textures2))
+                        config.new_hairs = textures2;
+
                     if (!(SkinsSystem.Settings.PlayerSkinHairColorsDisabled && target.Entity is Player))
-                        if (config.HairColors != null || config.HairFlash == false || AssetExists<AssetTypeDirectory>($"{rootPath}ColorGrading", GFX.Game))
+                        if (config.HairColors != null || config.HairFlash == false || GetAssetOnSprite<AssetTypeDirectory>(target.Sprite, "ColorGrading") != null)
                             config.BuildHairColors();
                     if (!(SkinsSystem.Settings.PlayerSkinHairLengthsDisabled && target.Entity is Player))
                         config.BuildHairLengths();
                 }
-
-                if (GFX.Game.HasAtlasSubtextures(hairPath + "bangs"))
-                    config.new_bangs = GFX.Game.GetAtlasSubtextures(hairPath + "bangs");
-                if (GFX.Game.HasAtlasSubtextures(hairPath + "hair"))
-                    config.new_hairs = GFX.Game.GetAtlasSubtextures(hairPath + "hair");
 
                 selfData.Set("smh_hairConfig", config);
             }
@@ -396,7 +399,7 @@ namespace Celeste.Mod.SkinModHelper {
             Dictionary<int, int> HairLengths = new();
 
             foreach (HairLength hairLength in this.HairLengths) {
-                HairLengths[hairLength.Dashes] = Math.Max(Math.Min(hairLength.Length, MAX_HAIRLENGTH), 1);
+                HairLengths[hairLength.Dashes] = Calc.Clamp(hairLength.Length, 1, MAX_HAIRLENGTH);
             }
 
             ActualHairLengths = HairLengths;
@@ -452,8 +455,7 @@ namespace Celeste.Mod.SkinModHelper {
             if (!ActualHairColors.TryGetValue(index, out var colors)) {
                 colors = ActualHairColors[100];
             }
-            dashes = Math.Max(Math.Min(dashes, colors.Count - 1), 0);
-            color = colors[dashes];
+            color = colors[Calc.Clamp(dashes, 0, colors.Count - 1)];
             return true;
         }
 
@@ -462,7 +464,7 @@ namespace Celeste.Mod.SkinModHelper {
                 return null;
             }
             // dashes is -1 for when player into flyFeathers state.
-            int dashes = (int)get_dashes;
+            int dashes = get_dashes ?? 0;
             while (dashes > 2 && !ActualHairLengths.ContainsKey(dashes)) {
                 dashes--;
             }

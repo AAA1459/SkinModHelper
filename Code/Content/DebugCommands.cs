@@ -127,7 +127,7 @@ namespace Celeste.Mod.SkinModHelper {
                 return;
             }
             int pages = Math.Max(text.Length / pagelength, 0);
-            page = Math.Max(Math.Min((int)page, pages), 0);
+            page = Calc.Clamp((int)page, 0, pages);
 
             if (text.Length < ((int)page * pagelength))
                 text = text.Substring((int)page * pagelength);

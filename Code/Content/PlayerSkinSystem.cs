@@ -220,7 +220,7 @@ namespace Celeste.Mod.SkinModHelper {
                     if (hairConfig.Safe_GetHairColor(100, dashCount, out Color color)) {
                         orig = new(orig);
                         orig.Color = color;
-                        orig.Color2 = Color.Multiply(orig.Color, 1.4f);
+                        orig.Color2 = Color.Lerp(color, Color.White, 0.4f);
                     }
                     return orig;
                 });
@@ -302,12 +302,12 @@ namespace Celeste.Mod.SkinModHelper {
 
             #region
             if (colorGrade_Path == null) {
-                colorGrade_Path = $"{getAnimationRootPath(self.Sprite)}ColorGrading/dash";
-
+                colorGrade_Path = getAnimationRootPath(self.Sprite, "idle") + "ColorGrading/";
+                
                 //Check if config from v0.7 Before---
                 if (self.Entity is Player && OldConfigCheck(self.Sprite, out string isOld)) {
                     atlas = GFX.ColorGrades;
-                    colorGrade_Path = $"{OtherskinConfigs[isOld].OtherSprite_ExPath}/dash";
+                    colorGrade_Path = OtherskinConfigs[isOld].OtherSprite_ExPath + '/';
                 }
                 //---
                 selfData.Set("ColorGrade_Path", colorGrade_Path);
@@ -479,7 +479,7 @@ namespace Celeste.Mod.SkinModHelper {
 
             if (detectPath.StartsWith("characters/player_no_backpack/") || detectPath.StartsWith("characters/player/")
                 || detectPath.StartsWith("characters/player_badeline/") || detectPath.StartsWith("characters/player_playback/") || detectPath.StartsWith("characters/badeline/")) {
-                if (GFX.Game.HasAtlasSubtexturesAt(spritePath + "bangs", 0) && !detectPath.StartsWith(spritePath)
+                if (config.new_bangs != null && !detectPath.StartsWith(spritePath)
                     && DynamicData.For(self).Get("SMH_DisposableLog_aPhggdddd") == null && DynamicData.For(self.Sprite).Get("isGhost") == null) {
 
                     Logger.Log(LogLevel.Info, "SkinModHelper", $"Avoid the possible invisible hair texture work to vanilla characters...");
@@ -650,10 +650,7 @@ namespace Celeste.Mod.SkinModHelper {
             return !(skinName?.EndsWith("_NB") ?? mode == 1 || mode == 4);
         }
         public static int GetStartedDashingCount(Player player) {
-            int? dashCount = DynamicData.For(player).Get<int?>("TrailDashCount");
-            if (dashCount == null)
-                return SetStartedDashingCount(player);
-            return (int)dashCount;
+            return DynamicData.For(player).Get<int?>("TrailDashCount") ?? SetStartedDashingCount(player);
         }
         public static int SetStartedDashingCount(Player player, int? count = null) {
             int dashCount = Math.Max(count ?? player.Dashes - 1, 0);

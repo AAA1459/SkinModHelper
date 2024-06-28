@@ -68,10 +68,9 @@ namespace Celeste.Mod.SkinModHelper {
             orig(self, scene);
             DynamicData selfData = DynamicData.For(self);
 
-            string SpritePath = getAnimationRootPath(selfData.Get<Sprite>("sprite")) + "outline";
-            if (GFX.Game.Has(SpritePath)) {
-                Image outline = selfData.Get<Image>("outline");
-                outline.Texture = GFX.Game[SpritePath];
+            if (GetTextureOnSprite(selfData.Get<Sprite>("sprite"), "outline", out var outline)) {
+                Image outline2 = selfData.Get<Image>("outline");
+                outline2.Texture = outline;
             }
         }
         #endregion
@@ -81,14 +80,11 @@ namespace Celeste.Mod.SkinModHelper {
         public static void Celeste_Cloud_Hook(On.Celeste.Cloud.orig_Added orig, Cloud self, Scene scene) {
             orig(self, scene);
             DynamicData selfData = DynamicData.For(self);
-            Sprite sprite = selfData.Get<Sprite>("sprite");
 
-            string SpritePath = getAnimationRootPath(sprite);
-
-            if (GFX.Game.Has(SpritePath + "clouds")) {
+            if (GetTextureOnSprite(selfData.Get<Sprite>("sprite"), "clouds", out var clouds)) {
                 ParticleType particleType = new(selfData.Get<ParticleType>("particleType"));
 
-                particleType.Source = GFX.Game[SpritePath + "clouds"];
+                particleType.Source = clouds;
                 particleType.Color = Color.White;
                 selfData.Set("particleType", particleType);
             }
@@ -104,26 +100,18 @@ namespace Celeste.Mod.SkinModHelper {
                 cursor.Emit(OpCodes.Ldarg_0);
                 cursor.EmitDelegate<Func<string, Entity, string>>((orig, self) => {
 
-                    Sprite sprite = self.Get<Sprite>();
+                    if (GetTextureOnSprite(self.Get<Sprite>(), "blob", out var blob)) {
+                        var Field_particle = GetFieldPlus(self.GetType(), "particleType");
 
-                    if (sprite != null) {
-                        string SpritePath = getAnimationRootPath(sprite);
+                        if (Field_particle != null && Field_particle.GetValue(self) is ParticleType particleType) {
+                            // Clone object to prevent lost of vanilla
+                            particleType = new(particleType);
+                            Field_particle.SetValue(self, particleType);
+                            //
 
-                        // At the same time, reskin particles if its exist.
-                        if (GFX.Game.Has(SpritePath + "blob")) {
-                            var Field_particle = GetFieldPlus(self.GetType(), "particleType");
-
-                            if (Field_particle != null && Field_particle.GetValue(self) is ParticleType particleType) {
-                                // Clone object to prevent lost of vanilla
-                                particleType = new(particleType);
-                                Field_particle.SetValue(self, particleType);
-                                //
-
-                                particleType.Source = GFX.Game[SpritePath + "blob"];
-                                particleType.Color = Color.White;
-                            }
+                            particleType.Source = blob;
+                            particleType.Color = Color.White;
                         }
-                        if (GFX.Game.Has(SpritePath + "outline")) return SpritePath + "outline";
                     }
                     return orig;
                 });
@@ -174,9 +162,8 @@ namespace Celeste.Mod.SkinModHelper {
                 }
             }
 
-            SpritePath = getAnimationRootPath(sprite) + "outline";
-            if (GFX.Game.Has(SpritePath) && selfData.TryGet("outline", out Image outline)) {
-                outline.Texture = GFX.Game[SpritePath];
+            if (selfData.TryGet("outline", out Image outline) && GetTextureOnSprite(sprite, "outline", out var outline2)) {
+                outline.Texture = outline2;
             }
         }
         #endregion
@@ -191,8 +178,7 @@ namespace Celeste.Mod.SkinModHelper {
 
                     // 'Celeste.Seeker' Created new 'Monocle.Entity' to made an 'Celeste.DeathEffect'
                     // But that let we cannot get Seeker's data by {orig.Entity} in DeathEffect, so we self to add that data
-                    Sprite sprite = DynamicData.For(self).Get<Sprite>("sprite");
-                    DynamicData.For(orig).Set("sprite", sprite);
+                    DynamicData.For(orig).Set("sprite", DynamicData.For(self).Get<Sprite>("sprite"));
                     return orig;
                 });
             }
@@ -215,10 +201,8 @@ namespace Celeste.Mod.SkinModHelper {
             Sprite sprite = self.Get<Sprite>();
 
             if (stretch != null && sprite != null) {
-                string SpritePath = getAnimationRootPath(sprite);
-
-                if (GFX.Game.Has(SpritePath + "stretch")) {
-                    stretch.Texture = GFX.Game[SpritePath + "stretch"];
+                if (GetTextureOnSprite(sprite, "stretch", out var stretch2)) {
+                    stretch.Texture = stretch2;
                 }
             }
         }

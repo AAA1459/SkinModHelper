@@ -268,7 +268,12 @@ namespace Celeste.Mod.SkinModHelper {
                 if (self.Has(newId))
                     id = newId;
             }
-            return orig(self, id);
+            Sprite sprite = orig(self, id);
+            if (sprite != null) {
+                DynamicData.For(sprite).Set("smh_spriteName", id);
+                DynamicData.For(sprite).Set("smh_spriteData", self.SpriteData[id]);
+            }
+            return sprite;
         }
         private static Sprite SpriteBankCreateOnHook(On.Monocle.SpriteBank.orig_CreateOn orig, SpriteBank self, Sprite sprite, string id) {
             if (sprite.Entity is OuiFileSelectSlot && SaveFilePortraits)
@@ -281,7 +286,12 @@ namespace Celeste.Mod.SkinModHelper {
                 if (sprite is PlayerSprite playerSprite)
                     DynamicData.For(playerSprite).Set("spriteName", id);
             }
-            return orig(self, sprite, id);
+            sprite = orig(self, sprite, id);
+            if (sprite != null) {
+                DynamicData.For(sprite).Set("smh_spriteName", id);
+                DynamicData.For(sprite).Set("smh_spriteData", self.SpriteData[id]);
+            }
+            return sprite;
         }
         #endregion
 
@@ -446,6 +456,7 @@ namespace Celeste.Mod.SkinModHelper {
         #endregion
 
         //-----------------------------Customize-----------------------------
+        #region
         private static void SpriteRenderHook(Action<Sprite> orig, Sprite self) {
             if (self.Active && self.Entity != null) {
                 // this line also invoke EntityTweaks.
@@ -464,7 +475,7 @@ namespace Celeste.Mod.SkinModHelper {
                                     self.Scale.X *= -1f;
 
                         } else if ((speed.X > 0f && self.Scale.X < 0f) || (speed.X < 0f && self.Scale.X > 0f)) {
-                            self.Scale.X *=  -1f;
+                            self.Scale.X *= -1f;
                             entityData.Set("smh_facingBack", self.Scale.X < 0f);
                         }
                     }
@@ -472,6 +483,7 @@ namespace Celeste.Mod.SkinModHelper {
             }
             orig(self);
         }
+        #endregion
 
         //-----------------------------Method-----------------------------
         #region
@@ -542,19 +554,14 @@ namespace Celeste.Mod.SkinModHelper {
         #endregion
         #region
         public static string getAnimationRootPath(object type) {
-            if (type is PlayerSprite playerSprite) {
-                string spriteName = DynamicData.For(playerSprite).Get<string>("spriteName");
-                if (spriteName != null && GFX.SpriteBank.SpriteData.ContainsKey(spriteName)) {
-                    SpriteData spriteData = GFX.SpriteBank.SpriteData[spriteName];
-
-                    if (!string.IsNullOrEmpty(spriteData.Sources[0].OverridePath)) {
-                        return spriteData.Sources[0].OverridePath;
-                    } else {
-                        return spriteData.Sources[0].Path;
-                    }
-                }
-            }
             if (type is Sprite sprite) {
+                var data = DynamicData.For(sprite).Get<SpriteData>("smh_spriteData");
+                if (data != null) {
+                    if (!string.IsNullOrEmpty(data.Sources[0].OverridePath)) {
+                        return data.Sources[0].OverridePath;
+                    }
+                    return data.Sources[0].Path;
+                }
                 type = $"{(sprite.Has("idle") ? sprite.GetFrame("idle", 0) : sprite.Texture)}";
             } else if (type is Image image) {
                 type = $"{image.Texture}";
@@ -627,6 +634,90 @@ namespace Celeste.Mod.SkinModHelper {
             return str;
         }
 
+        #endregion
+        #region 
+        /// <summary> 
+        /// Find out if specified textures-set exists under the sprite's inherited path or own path
+        /// </summary>
+        public static bool GetTexturesOnSprite(Image sprite, string filename, out List<MTexture> textures) {
+            textures = null;
+            var data = DynamicData.For(sprite).Get<SpriteData>("smh_spriteData");
+            if (data == null) {
+                string path = getAnimationRootPath(sprite) + filename;
+                if (GFX.Game.HasAtlasSubtextures(path)) {
+                    textures = GFX.Game.GetAtlasSubtextures(path);
+                }
+                return textures != null;
+            }
+            if (data.Atlas == null) {
+                return false;
+            }
+            if (!string.IsNullOrEmpty(data.Sources[0].OverridePath) && data.Atlas.HasAtlasSubtextures(data.Sources[0].OverridePath + filename)) {
+                textures = data.Atlas.GetAtlasSubtextures(data.Sources[0].OverridePath + filename);
+                return true;
+            } 
+            if (data.Atlas.HasAtlasSubtextures(data.Sources[0].Path + filename)) {
+                textures = data.Atlas.GetAtlasSubtextures(data.Sources[0].Path + filename);
+                return true;
+            }
+            return false;
+        }
+        /// <summary> 
+        /// Find out if specified texture exists under the sprite's inherited path or own path
+        /// </summary>
+        public static bool GetTextureOnSprite(Image sprite, string filename, out MTexture texture) {
+            texture = null;
+            var data = DynamicData.For(sprite).Get<SpriteData>("smh_spriteData");
+            if (data == null) {
+                string path = getAnimationRootPath(sprite) + filename;
+                if (GFX.Game.Has(path)) {
+                    texture = GFX.Game[path];
+                }
+                return texture != null;
+            }
+            if (data.Atlas == null) {
+                return false;
+            }
+            if (!string.IsNullOrEmpty(data.Sources[0].OverridePath) && data.Atlas.Has(data.Sources[0].OverridePath + filename)) {
+                texture = data.Atlas[data.Sources[0].OverridePath + filename];
+                return true;
+            }
+            if (data.Atlas.Has(data.Sources[0].Path + filename)) {
+                texture = data.Atlas[data.Sources[0].Path + filename];
+                return true;
+            }
+            return false;
+        }
+        /// <summary> 
+        /// Find out if specified assets exists under the sprite's inherited path or own path
+        /// </summary>
+        public static ModAsset GetAssetOnSprite<T>(Image sprite, string filename) {
+            var data = DynamicData.For(sprite).Get<SpriteData>("smh_spriteData");
+            if (data == null) {
+                if (Everest.Content.TryGet(GFX.Game.DataPath + "/" + getAnimationRootPath(sprite) + filename, out var asset) && asset.Type == typeof(T))
+                    return asset;
+                return null;
+            }
+            if (data.Atlas == null) {
+                return null;
+            }
+            string path = data.Atlas.DataPath;
+            if (!string.IsNullOrEmpty(path)) { path += '/'; }
+            if (!string.IsNullOrEmpty(data.Sources[0].OverridePath) && Everest.Content.TryGet(path + data.Sources[0].OverridePath + filename, out var asset2) && asset2.Type == typeof(T)) {
+                return asset2;
+            }
+            if (Everest.Content.TryGet(path + data.Sources[0].Path + filename, out asset2) && asset2.Type == typeof(T)) {
+                return asset2;
+            }
+            return null;
+        }
+        public static T GetConfigOnSprite<T>(Image sprite, string filename) {
+            ModAsset asset = GetAssetOnSprite<AssetTypeYaml>(sprite, filename);
+            if (asset != null) {
+                return asset.Deserialize<T>();
+            }
+            return default(T);
+        }
         #endregion
     }
 }
