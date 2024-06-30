@@ -53,7 +53,7 @@ so need to do more for it:
 <?xml version="1.0" encoding="utf-8" ?>
 
 <Sprites>
-  <!--  ↙<should be Character_ID you setted>   ↙<sprite directory under '[somemod]/Graphics/Atlases/Gameplay/' directory>   -->
+  <!--  ↙<should be Character_ID you setted>   ↓<sprite directory under '[somemod]/Graphics/Atlases/Gameplay/' directory> -->
   <MySkin copy="player" path="characters/MySkin/">
   <!--          ↑<an ID this inherit from>   -->
     <!--      ↓<anim name>             ↓<anim speed> -->
@@ -61,10 +61,10 @@ so need to do more for it:
     <!-- ↖               ↑<sprites name>          ↑<non-required, the next after this anim>
         ↗<Anim/Loop like Off/On for whether loop playing>   -->
 
-    <Metadata> <!-- ←←← where set the hair offset -->
-       <!--          ↓<sprites name>         ↓<x,y:hair_frame> -->
+    <!-- ↓←← where set the hair offset -->
+    <Metadata> <!--  ↓<sprites name>         ↓<x,y:hair_frame> -->
        <Frames path="dash" hair="2,0|2,0|2,0|2,1:0" />
-    <Metadata>   <!-- sprite frame grouping ↑ -->
+    </Metadata> <!--  sprite frame grouping ↑ -->
   </MySkin>
 
 </Sprites>
