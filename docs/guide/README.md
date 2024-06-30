@@ -48,24 +48,35 @@ If you want your skin to be a unique player skin, so set this:
 This becomes the ID that you modify in the sprites.xml instead of the normal `<player>`, 
 so need to do more for it:
 1. Open or create a file named "Sprites.xml" within your mod's "Graphics" folder.
-2. write these in that `Sprites.xml`:
+2. write these in that `Sprites.xml`， as a simplest template:
 ```xml
 <?xml version="1.0" encoding="utf-8" ?>
 
 <Sprites>
-  <!-- assume id "MySkin" is Character_ID you setted -->
+  <!--  ↙<should be Character_ID you setted>   ↙<sprite directory under '[somemod]/Graphics/Atlases/Gameplay/' directory>   -->
   <MySkin copy="player" path="characters/MySkin/">
-    <!-- shortened -->
+  <!--          ↑<an ID this inherit from>   -->
+    <!--      ↓<anim name>             ↓<anim speed> -->
+    <Anim id="dash" path="dash" delay="0.09" goto="dash" />
+    <!-- ↖               ↑<sprites name>          ↑<non-required, the next after this anim>
+        ↗<Anim/Loop like Off/On for whether loop playing>   -->
+
+    <Metadata> <!-- ←←← where set the hair offset -->
+       <!--          ↓<sprites name>         ↓<x,y:hair_frame> -->
+       <Frames path="dash" hair="2,0|2,0|2,0|2,1:0" />
+    <Metadata>   <!-- sprite frame grouping ↑ -->
   </MySkin>
+
 </Sprites>
 ```
+* * The `player` ID from `Celeste/Content/Graphics/Sprites.xml`, or you could copy that ID's everything instead of inherit it like this template
 3. Make sure Sprites.xml there have your `Character_ID` or it is matched, otherwise the game will crash.
 
 ---
 ### OtherSprite_Path
 SMH+ uses xml files to edit other sprites if you noticed. Visit [everest's wiki](https://github.com/EverestAPI/Resources/wiki/Reskinning-Entities#reskinning-entities-through-spritesxml) for a more comprehensive guide on xml files.
 
-here is used to set the directory of Sprites.xml, or Portraits.xml. it take works when the skin is activated.
+here is used to set the directory of `Sprites.xml` or `Portraits.xml` their smh+ supports. it take works when the skin is activated.
 ```
   OtherSprite_Path: [the directory of xmls]     # The starting point of below path: "...Graphics/"
 ```
