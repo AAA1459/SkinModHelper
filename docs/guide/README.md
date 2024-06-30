@@ -48,7 +48,7 @@ If you want your skin to be a unique player skin, so set this:
 This becomes the ID that you modify in the sprites.xml instead of the normal `<player>`, 
 so need to do more for it:
 1. Open or create a file named "Sprites.xml" within your mod's "Graphics" folder.
-2. write these in that `Sprites.xml`， as a simplest template:
+2. write these in that `Sprites.xml`, as a simplest template:
 ```xml
 <?xml version="1.0" encoding="utf-8" ?>
 
