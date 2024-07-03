@@ -213,15 +213,21 @@ namespace Celeste.Mod.SkinModHelper {
                             continue;
                         }
                         if (f.FieldType == typeof(Image)) {
-                            (v as Image).Texture = GetTextureOnSprite(Target, t.Value, out var texture) ? texture : GFX.Game["errorre"];
+                            if (GetTextureOnSprite(Target, t.Value, out var texture))
+                                (v as Image).Texture = texture;
+                            else
+                                Logger.Log(LogLevel.Warn, "SkinModHelper", $"{SourcePath}skinConfig/CharacterConfig Tweaks error: \n texture {SourcePath}{t.Value} does not exist");
                             continue;
                         }
 
-                        if (f.FieldType == typeof(MTexture))
-                            v = GetTextureOnSprite(Target, t.Value, out var texture) ? texture : GFX.Game["errorre"];
-                        else if (f.FieldType == typeof(Color))
+                        if (f.FieldType == typeof(MTexture)) {
+                            if (GetTextureOnSprite(Target, t.Value, out var texture2))
+                                v = texture2;
+                            else
+                                Logger.Log(LogLevel.Warn, "SkinModHelper", $"{SourcePath}skinConfig/CharacterConfig Tweaks error: \n texture {SourcePath}{t.Value} does not exist");
+                        } else if (f.FieldType == typeof(Color)) {
                             v = Calc.HexToColorWithAlpha(t.Value);
-                        else if (f.FieldType.IsEnum) {
+                        } else if (f.FieldType.IsEnum) {
                             if (int.TryParse(t.Value, out int v3)) // string value cannot convert to enum, but int value can.
                                 v = v3;
                             else
@@ -323,7 +329,7 @@ namespace Celeste.Mod.SkinModHelper {
                         config.new_hairs = textures2;
 
                     if (!(SkinsSystem.Settings.PlayerSkinHairColorsDisabled && target.Entity is Player))
-                        if (config.HairColors != null || config.HairFlash == false || GetAssetOnSprite<AssetTypeDirectory>(target.Sprite, "ColorGrading") != null)
+                        if (config.HairColors != null || config.HairFlash == false || AssetExists<AssetTypeDirectory>(getAnimationRootPath(target.Sprite, "idle") + "ColorGrading", GFX.Game))
                             config.BuildHairColors();
                     if (!(SkinsSystem.Settings.PlayerSkinHairLengthsDisabled && target.Entity is Player))
                         config.BuildHairLengths();

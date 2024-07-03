@@ -96,13 +96,17 @@ namespace Celeste.Mod.SkinModHelper {
                     PatchSprite(origSpriteData.Sprite, newSpriteData.Sprite);
 
                     string newSpriteId = spriteId + skinId + cipher;
+
+                    foreach (SpriteDataSource source in origSpriteData.Sources)
+                        newSpriteData.Sources.Add(source);
                     Basebank.SpriteData[newSpriteId] = newSpriteData;
 
-                    if (newSpriteData.Sources[0].XML["Metadata"] != null)
-                        PlayerSprite.CreateFramesMetadata(newSpriteId);  // Check if skin have metadata... no matter what skin it is.
+                    OnCombine(newSpriteId, newSpriteData);
                 }
             }
         }
+        public virtual void OnCombine(string n_name, SpriteData n_data) { }
+
         public virtual void DoRefresh(bool inGame) {
             foreach (string spriteId in SkinsRecords.Keys) {
                 SetCurrentSkin(spriteId, SettingsActive && Settings.TryGetValue(spriteId, out var value) ? value ?? DEFAULT : DEFAULT);
@@ -166,6 +170,11 @@ namespace Celeste.Mod.SkinModHelper {
         }
         public override SpriteBank Basebank { get => GFX.SpriteBank; }
         public override Dictionary<string, string> Settings { get => smh_Settings.FreeCollocations_Sprites; }
+        public override void OnCombine(string n_name, SpriteData n_data) {
+
+            if (n_data.Sources[0].XML["Metadata"] != null)
+                PlayerSprite.CreateFramesMetadata(n_name);  // Check if skin have metadata... no matter what skin it is.
+        }
     }
     public class ReportraitsBank : RespriteBankModule {
         public ReportraitsBank(string xml_name, string menu_name, string prefix) : base(xml_name, true) {
@@ -250,8 +259,8 @@ namespace Celeste.Mod.SkinModHelper {
                 }
             }
         }
-        public override void DoCombine(string skinId, string directory, string cipher) {
-        }
+        public override void DoCombine(string skinId, string directory, string cipher) {}
+
         public override string GetDefaultSkin(string SpriteID, string cipher) {
             if (!SkinsRecords.TryGetValue(SpriteID, out var value))
                 return null;

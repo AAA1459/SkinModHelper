@@ -491,10 +491,10 @@ namespace Celeste.Mod.SkinModHelper {
         /// Copies the animations of origSprite that newSprite missing to newSprite.
         /// </summary>
         public static void PatchSprite(Sprite origSprite, Sprite newSprite) {
-            Dictionary<string, Sprite.Animation> newAnims = newSprite.GetAnimations();
+            Dictionary<string, Sprite.Animation> newAnims = newSprite.Animations;
 
             // Shallow copy... sometimes new animations get added mid-update?
-            Dictionary<string, Sprite.Animation> oldAnims = new(origSprite.GetAnimations());
+            Dictionary<string, Sprite.Animation> oldAnims = new(origSprite.Animations);
             foreach (KeyValuePair<string, Sprite.Animation> animEntry in oldAnims) {
                 string origAnimId = animEntry.Key;
                 Sprite.Animation origAnim = animEntry.Value;
@@ -557,16 +557,13 @@ namespace Celeste.Mod.SkinModHelper {
             if (type is Sprite sprite) {
                 var data = DynamicData.For(sprite).Get<SpriteData>("smh_spriteData");
                 if (data != null) {
-                    if (!string.IsNullOrEmpty(data.Sources[0].OverridePath)) {
-                        return data.Sources[0].OverridePath;
-                    }
-                    return data.Sources[0].Path;
+                    return data.Sources[0].OverridePath ?? data.Sources[0].Path;
                 }
-                type = $"{(sprite.Has("idle") ? sprite.GetFrame("idle", 0) : sprite.Texture)}";
+                type = (sprite.Has("idle") ? sprite.GetFrame("idle", 0) : sprite.Texture ?? sprite.Animations?.First().Value.Frames[0]).ToString();
             } else if (type is Image image) {
-                type = $"{image.Texture}";
+                type = image.Texture.ToString();
             } else {
-                type = $"{type}";
+                type = type.ToString();
             }
 
             if (type is string path && path != null && path.LastIndexOf("/") >= 0) {
@@ -652,13 +649,15 @@ namespace Celeste.Mod.SkinModHelper {
             if (data.Atlas == null) {
                 return false;
             }
-            if (!string.IsNullOrEmpty(data.Sources[0].OverridePath) && data.Atlas.HasAtlasSubtextures(data.Sources[0].OverridePath + filename)) {
-                textures = data.Atlas.GetAtlasSubtextures(data.Sources[0].OverridePath + filename);
-                return true;
-            } 
-            if (data.Atlas.HasAtlasSubtextures(data.Sources[0].Path + filename)) {
-                textures = data.Atlas.GetAtlasSubtextures(data.Sources[0].Path + filename);
-                return true;
+            foreach (SpriteDataSource source in data.Sources) {
+                if (!string.IsNullOrEmpty(source.OverridePath) && data.Atlas.HasAtlasSubtextures(source.OverridePath + filename)) {
+                    textures = data.Atlas.GetAtlasSubtextures(source.OverridePath + filename);
+                    return true;
+                }
+                if (data.Atlas.HasAtlasSubtextures(source.Path + filename)) {
+                    textures = data.Atlas.GetAtlasSubtextures(source.Path + filename);
+                    return true;
+                }
             }
             return false;
         }
@@ -678,13 +677,15 @@ namespace Celeste.Mod.SkinModHelper {
             if (data.Atlas == null) {
                 return false;
             }
-            if (!string.IsNullOrEmpty(data.Sources[0].OverridePath) && data.Atlas.Has(data.Sources[0].OverridePath + filename)) {
-                texture = data.Atlas[data.Sources[0].OverridePath + filename];
-                return true;
-            }
-            if (data.Atlas.Has(data.Sources[0].Path + filename)) {
-                texture = data.Atlas[data.Sources[0].Path + filename];
-                return true;
+            foreach (SpriteDataSource source in data.Sources) {
+                if (!string.IsNullOrEmpty(source.OverridePath) && data.Atlas.Has(source.OverridePath + filename)) {
+                    texture = data.Atlas[source.OverridePath + filename];
+                    return true;
+                }
+                if (data.Atlas.Has(source.Path + filename)) {
+                    texture = data.Atlas[source.Path + filename];
+                    return true;
+                }
             }
             return false;
         }
@@ -703,11 +704,13 @@ namespace Celeste.Mod.SkinModHelper {
             }
             string path = data.Atlas.DataPath;
             if (!string.IsNullOrEmpty(path)) { path += '/'; }
-            if (!string.IsNullOrEmpty(data.Sources[0].OverridePath) && Everest.Content.TryGet(path + data.Sources[0].OverridePath + filename, out var asset2) && asset2.Type == typeof(T)) {
-                return asset2;
-            }
-            if (Everest.Content.TryGet(path + data.Sources[0].Path + filename, out asset2) && asset2.Type == typeof(T)) {
-                return asset2;
+            foreach (SpriteDataSource source in data.Sources) {
+                if (!string.IsNullOrEmpty(source.OverridePath) && Everest.Content.TryGet(path + source.OverridePath + filename, out var asset2) && asset2.Type == typeof(T)) {
+                    return asset2;
+                }
+                if (Everest.Content.TryGet(path + source.Path + filename, out asset2) && asset2.Type == typeof(T)) {
+                    return asset2;
+                }
             }
             return null;
         }
