@@ -258,13 +258,13 @@ namespace Celeste.Mod.SkinModHelper {
                     CharacterConfig ModeConfig = CharacterConfig.For(player.Sprite);
                     
                     object backup = null;
-                    if (ModeConfig.LowStaminaFlashColor != null && new Regex(@"^[a-fA-F0-9]{6}$").IsMatch(ModeConfig.LowStaminaFlashColor)) {
+                    if (ModeConfig.LowStaminaFlashColor != null && RGB_Regex.IsMatch(ModeConfig.LowStaminaFlashColor)) {
                         backup = color = Calc.HexToColor(ModeConfig.LowStaminaFlashColor);
                         if (ModeConfig.SilhouetteMode == true) {
                             color = ColorBlend(player.Hair.Color, color);
                         }
                     } else if (ModeConfig.SilhouetteMode == true) {
-                        color = ColorBlend(player.Hair.Color, (backup = 0.5f));
+                        color = ColorBlend(player.Hair.Color, (backup = 0.4f));
                     }
 
                     if (ModeConfig.LowStaminaFlashHair || (ModeConfig.SilhouetteMode == true)) {
@@ -444,7 +444,7 @@ namespace Celeste.Mod.SkinModHelper {
                 HairConfig hairConfig = HairConfig.For(self);
                 CharacterConfig ModeConfig = CharacterConfig.For(self.Sprite);
 
-                if (hairConfig.OutlineColor != null && new Regex(@"^[a-fA-F0-9]{6}$").IsMatch(hairConfig.OutlineColor))
+                if (hairConfig.OutlineColor != null && RGB_Regex.IsMatch(hairConfig.OutlineColor))
                     self.Border = Calc.HexToColor(hairConfig.OutlineColor);
                 else
                     self.Border = Color.Black;

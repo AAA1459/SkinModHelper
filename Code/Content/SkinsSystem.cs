@@ -87,6 +87,7 @@ namespace Celeste.Mod.SkinModHelper {
 
         /// <summary> 0-Default, 1-Invert, 2-Off, 3-On </summary>
         public static int backpackSetting = 0;
+        public static Regex RGB_Regex = new Regex(@"^[a-fA-F0-9]{6}$");
 
         public static bool build_warning = true;
         public static List<string> FailedXml_record = new();
@@ -525,7 +526,10 @@ namespace Celeste.Mod.SkinModHelper {
                 c2 = c2 * (255f / c2.A) * GetAlpha(c1);
                 return new Color(c1.R * c2.R / 255, c1.G * c2.G / 255, c1.B * c2.B / 255, c1.A);
             } else if (obj is float f) {
-                return new Color((int)(c1.R * f), (int)(c1.G * f), (int)(c1.B * f), c1.A);
+                if (f > 1f)
+                    return Color.Lerp(c1, Color.White, f--);
+                else
+                    return Color.Lerp(Color.Black, c1, f);
             }
             return c1;
         }

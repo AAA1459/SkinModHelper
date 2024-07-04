@@ -344,12 +344,11 @@ namespace Celeste.Mod.SkinModHelper {
         #region
         public void BuildHairColors() {
             Dictionary<int, Color> changed = new();
-            Regex hairColorRegex = new(@"^[a-fA-F0-9]{6}$");
 
             int maxCount = 2;
             if (this.HairColors != null) {
                 foreach (HairColor hairColor in this.HairColors) {
-                    if (hairColor.Dashes >= 0 && hairColorRegex.IsMatch(hairColor.Color)) {
+                    if (hairColor.Dashes >= 0 && RGB_Regex.IsMatch(hairColor.Color)) {
                         changed[hairColor.Dashes] = Calc.HexToColor(hairColor.Color);
                         if (maxCount < hairColor.Dashes)
                             maxCount = hairColor.Dashes;
@@ -377,7 +376,7 @@ namespace Celeste.Mod.SkinModHelper {
                     if (hairColor.SegmentsColors != null && changed.ContainsKey(hairColor.Dashes)) {
                         foreach (HairColor.SegmentsColor SegmentColor in hairColor.SegmentsColors) {
 
-                            if (SegmentColor.Segment <= MAX_HAIRLENGTH && hairColorRegex.IsMatch(SegmentColor.Color)) {
+                            if (SegmentColor.Segment <= MAX_HAIRLENGTH && RGB_Regex.IsMatch(SegmentColor.Color)) {
                                 if (!HairColors.ContainsKey(SegmentColor.Segment)) {
                                     HairColors[SegmentColor.Segment] = new(GeneratedHairColors); // i never knew this work like a the variable or entity of static,  clone it.
                                 }
@@ -414,12 +413,11 @@ namespace Celeste.Mod.SkinModHelper {
         #region
         public void Old_BuildHairColors() {
             Dictionary<int, Color> changed = new();
-            Regex hairColorRegex = new(@"^[a-fA-F0-9]{6}$");
 
             int maxCount = 2;
             if (oldHairColors != null) {
                 foreach (SkinModHelperOldConfig.HairColor hairColor in oldHairColors) {
-                    if (hairColor.Dashes >= 0 && hairColorRegex.IsMatch(hairColor.Color)) {
+                    if (hairColor.Dashes >= 0 && RGB_Regex.IsMatch(hairColor.Color)) {
                         changed[hairColor.Dashes] = Calc.HexToColor(hairColor.Color);
                         if (maxCount < hairColor.Dashes)
                             maxCount = hairColor.Dashes;
