@@ -81,6 +81,7 @@ namespace Celeste.Mod.SkinModHelper {
         public static readonly MethodInfo CloneMethod = typeof(object).GetMethod("MemberwiseClone", BindingFlags.NonPublic | BindingFlags.Instance);
 
         public static int Player_Skinid_verify;
+        public static int Last_Player_Skinid_verify;
 
         public static bool? actualBackpack;
         public static bool backpackOn = true;
