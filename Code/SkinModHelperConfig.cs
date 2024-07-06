@@ -140,12 +140,8 @@ namespace Celeste.Mod.SkinModHelper {
             return config;
         }
         public void ModeInitialize(PlayerSpriteMode mode) {
-            if (BadelineMode == null) {
-                BadelineMode = mode == (PlayerSpriteMode)2 || mode == (PlayerSpriteMode)3;
-            }
-            if (SilhouetteMode == null) {
-                SilhouetteMode = mode == (PlayerSpriteMode)4;
-            }
+            BadelineMode ??= mode == (PlayerSpriteMode)2 || mode == (PlayerSpriteMode)3;
+            SilhouetteMode ??= mode == (PlayerSpriteMode)4;
         }
         #endregion
 

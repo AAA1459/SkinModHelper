@@ -110,73 +110,62 @@ namespace Celeste.Mod.SkinModHelper {
         private static void on_PlayerSprite_ctor(On.Celeste.PlayerSprite.orig_ctor orig, PlayerSprite self, PlayerSpriteMode mode) {
             Level level = Engine.Scene as Level ?? (Engine.Scene as LevelLoader)?.Level;
 
-            DynamicData selfData = DynamicData.For(self);
             bool isGhost = mode < 0;
 
             if (!isGhost && level != null) {
                 backpackOn = backpackSetting == 3 || (backpackSetting == 0 && level.Session.Inventory.Backpack) || (backpackSetting == 1 && !level.Session.Inventory.Backpack);
             }
-
-            string hash_object = null;
             if (isGhost) {
-                selfData.Set("isGhost", true);
-            } else if (mode == PlayerSpriteMode.Madeline || mode == PlayerSpriteMode.MadelineNoBackpack || mode == PlayerSpriteMode.MadelineAsBadeline) {
-                hash_object = GetPlayerSkin();
-
-            } else if (mode == PlayerSpriteMode.Playback) {
-                hash_object = GetSilhouetteSkin();
-
-            } else if (mode == (PlayerSpriteMode)444482 || mode == (PlayerSpriteMode)444483) {
-                hash_object = GetPlayerSkin("_lantern");
-                if (hash_object == GetPlayerSkin())
-                    hash_object = null;
+                DynamicData.For(self).Set("isGhost", true);
+            } else {
+                string hash_object = null;
+                switch (mode) {
+                    case PlayerSpriteMode.Madeline:
+                    case PlayerSpriteMode.MadelineNoBackpack:
+                    case PlayerSpriteMode.MadelineAsBadeline:
+                        hash_object = GetPlayerSkin();
+                        break;
+                    case PlayerSpriteMode.Playback:
+                        hash_object = GetSilhouetteSkin();
+                        break;
+                    case (PlayerSpriteMode)444482:
+                    case (PlayerSpriteMode)444483:
+                        if ((hash_object = GetPlayerSkin("_lantern")) == GetPlayerSkin())
+                            hash_object = null;
+                        break;
+                    default:
+                        break;
+                }
+                if (hash_object != null) {
+                    mode = (PlayerSpriteMode)skinConfigs[!backpackOn ? GetPlayerSkin("_NB", hash_object) : hash_object].hashValues;
+                } else if (!backpackOn && mode == PlayerSpriteMode.Madeline) {
+                    mode = PlayerSpriteMode.MadelineNoBackpack;
+                } else if (backpackOn && mode == PlayerSpriteMode.MadelineNoBackpack) {
+                    mode = PlayerSpriteMode.Madeline;
+                }
             }
 
-
-            if (hash_object != null) {
-                mode = (PlayerSpriteMode)skinConfigs[!backpackOn ? GetPlayerSkin("_NB", hash_object) : hash_object].hashValues;
-            } else if (!backpackOn && mode == PlayerSpriteMode.Madeline) {
-                mode = PlayerSpriteMode.MadelineNoBackpack;
-            } else if (backpackOn && mode == PlayerSpriteMode.MadelineNoBackpack) {
-                mode = PlayerSpriteMode.Madeline;
-            }
             orig(self, mode);
             int requestMode = (int)(isGhost ? (1 << 31) + mode : mode);
 
-            foreach (SkinModHelperConfig config in skinConfigs.Values) {
-                if (requestMode == config.hashValues) {
-                    string id = config.Character_ID;
-                    selfData.Set("spriteName", id);
-                    GFX.SpriteBank.CreateOn(self, id);
+            string name =  GetPlayerSkinName(requestMode);
+            if (name != null && skinConfigs.TryGetValue(name, out var config)) {
+                GFX.SpriteBank.CreateOn(self, self.spriteName = config.Character_ID);
 
-                    if (config.JungleLanternMode == true) {
-                        // replay the "idle" sprite to make it apply immediately.
-                        self.Play("idle", restart: true);
-
-                        // when the look up animation finishes, rewind it to frame 7: this way we are getting 7-11 playing in a loop.
-                        self.OnFinish += anim => {
-                            if (anim == "lookUp") {
-                                self.Play("lookUp", restart: true);
-                                self.SetAnimationFrame(5);
-                            }
-                        };
-                    }
-                    break;
+                if (config.JungleLanternMode == true) {
+                    self.Play("idle", restart: true); // replay the "idle" sprite to make it apply immediately.
+                    self.OnFinish += anim => { // when the look up animation finishes, rewind it to frame 7: this way we are getting 7-11 playing in a loop.
+                        if (anim == "lookUp") {
+                            self.Play("lookUp", restart: true);
+                            self.SetAnimationFrame(5);
+                        }
+                    };
                 }
             }
 
-            if (isGhost && selfData.Get<string>("spriteName") == "") {
+            if (isGhost && self.spriteName == "") {
                 Logger.Log(LogLevel.Info, "SkinModHelper", $"Someone in CelesteNet uses skin mod '{requestMode}' which you don't have");
-                #region
-                string id = "player";
-                if (!level.Session.Inventory.Backpack) {
-                    selfData.Set("spriteName", id = "player_no_backpack");
-                } else {
-                    selfData.Set("spriteName", id = "player");
-                }
-                GFX.SpriteBank.CreateOn(self, id);
-                #endregion 
-
+                GFX.SpriteBank.CreateOn(self, self.spriteName = (level.Session.Inventory.Backpack ? "player" : "player_no_backpack"));
             } else if (isGhost) {
                 Logger.Log(LogLevel.Verbose, "SkinModHelper", $"GhostModeValue: {requestMode}");
             } else {
@@ -269,7 +258,6 @@ namespace Celeste.Mod.SkinModHelper {
                 cursor.Emit(OpCodes.Ldarg_0);
                 cursor.EmitDelegate<Func<Color, Player, Color>>((color, player) => {
 
-                    DynamicData selfData = DynamicData.For(player.Hair);
                     CharacterConfig ModeConfig = CharacterConfig.For(player.Sprite);
                     
                     object backup = null;
@@ -283,7 +271,7 @@ namespace Celeste.Mod.SkinModHelper {
                     }
 
                     if (ModeConfig.LowStaminaFlashHair || (ModeConfig.SilhouetteMode == true)) {
-                        selfData.Set("HairColorGrading", backup ?? color);
+                        DynamicData.For(player.Hair).Set("HairColorGrading", backup ?? color);
                     }
                     return color;
                 });
@@ -330,13 +318,12 @@ namespace Celeste.Mod.SkinModHelper {
 
             int? get_dashCount;
             if (self.Entity is Player player) {
-                int lastDashes = DynamicData.For(player).Get<int>("lastDashes");
                 if (player.OverrideHairColor == Player.UsedHairColor)
                     get_dashCount = 0;
-                else if (player.MaxDashes <= 0 && lastDashes < 2)
+                else if (player.MaxDashes <= 0 && player.lastDashes < 2)
                     get_dashCount = 1;
                 else
-                    get_dashCount = Math.Max(lastDashes, 0);
+                    get_dashCount = Math.Max(player.lastDashes, 0);
             } else {
                 get_dashCount = GetDashCount(self);
             }
@@ -363,8 +350,7 @@ namespace Celeste.Mod.SkinModHelper {
                 colorGradeEffect.CurrentTechnique = colorGradeEffect.Techniques["ColorGradeSingle"];
                 Engine.Graphics.GraphicsDevice.Textures[1] = atlas[colorGrade_Path].Texture.Texture_Safe;
 
-                DynamicData spriteData = DynamicData.For(Draw.SpriteBatch);
-                Matrix matrix = spriteData.Get<Matrix>("transformMatrix");
+                Matrix matrix = DynamicData.For(Draw.SpriteBatch).Get<Matrix>("transformMatrix");
 
                 GameplayRenderer.End();
                 Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, colorGradeEffect, matrix);
@@ -387,8 +373,7 @@ namespace Celeste.Mod.SkinModHelper {
                     colorGradeEffect.CurrentTechnique = colorGradeEffect.Techniques["ColorGradeSingle"];
                     Engine.Graphics.GraphicsDevice.Textures[1] = atlas[colorGrade_Path].Texture.Texture_Safe;
 
-                    DynamicData spriteData = DynamicData.For(Draw.SpriteBatch);
-                    Matrix matrix = spriteData.Get<Matrix>("transformMatrix");
+                    Matrix matrix = DynamicData.For(Draw.SpriteBatch).Get<Matrix>("transformMatrix");
 
                     GameplayRenderer.End();
                     Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, colorGradeEffect, matrix);
@@ -446,9 +431,8 @@ namespace Celeste.Mod.SkinModHelper {
             }
 
             if (self.Entity is Player player && player.StateMachine.State == 14) {
-                HairConfig hairConfig = HairConfig.For(self);
-
-                if (hairConfig.Safe_GetHairColor(100, (int)GetDashCount(player), out Color color))
+                int? dashes = GetDashCount(player);
+                if (dashes != null && HairConfig.For(self).Safe_GetHairColor(100, (int)dashes, out Color color))
                     self.Color = color;
             }
             orig(self);
@@ -458,7 +442,6 @@ namespace Celeste.Mod.SkinModHelper {
             if (self.Active) {
                 DynamicData selfData = DynamicData.For(self);
                 HairConfig hairConfig = HairConfig.For(self);
-                CharacterConfig ModeConfig = CharacterConfig.For(self.Sprite);
 
                 if (hairConfig.OutlineColor != null && RGB_Regex.IsMatch(hairConfig.OutlineColor))
                     self.Border = Calc.HexToColor(hairConfig.OutlineColor);
@@ -470,7 +453,7 @@ namespace Celeste.Mod.SkinModHelper {
                 int? get_dashCount = GetDashCount(self);
                 if (get_dashCount != null && (self.Color != Color.White || hairConfig.HairFlash == false) && hairConfig.Safe_GetHairColor(100, (int)get_dashCount, out Color color))
                     self.Color = color;
-                if (ModeConfig.SilhouetteMode == true)
+                if (CharacterConfig.For(self.Sprite).SilhouetteMode == true)
                     self.Border = ColorBlend(self.Border, self.Color);
                 orig(self);
 
@@ -491,18 +474,26 @@ namespace Celeste.Mod.SkinModHelper {
         private static MTexture PlayerHairGetHairTextureHook(On.Celeste.PlayerHair.orig_GetHairTexture orig, PlayerHair self, int index) {
 
             HairConfig config = HairConfig.For(self);
-            string spritePath = config.SourcePath;
             string detectPath = getAnimationRootPath(self.Sprite.Texture);
+            if (detectPath.Length > 11 && (int)self.Sprite.Mode > 4) {
+                int i = detectPath.IndexOf('/', 11);
+                if (i > 0) {
+                    switch (detectPath.Remove(i)) {
+                        case "characters/player":
+                        case "characters/badeline":
+                        case "characters/player_badeline":
+                        case "characters/player_playback":
+                        case "characters/player_no_backpack":
+                            if (config.new_bangs != null && !detectPath.StartsWith(config.SourcePath) && DynamicData.For(self).Get("SMH_DisposableLog_aPhggdddd") == null) {
 
-            if (detectPath.StartsWith("characters/player_no_backpack/") || detectPath.StartsWith("characters/player/")
-                || detectPath.StartsWith("characters/player_badeline/") || detectPath.StartsWith("characters/player_playback/") || detectPath.StartsWith("characters/badeline/")) {
-                if (config.new_bangs != null && !detectPath.StartsWith(spritePath)
-                    && DynamicData.For(self).Get("SMH_DisposableLog_aPhggdddd") == null && DynamicData.For(self.Sprite).Get("isGhost") == null) {
-
-                    Logger.Log(LogLevel.Info, "SkinModHelper", $"Avoid the possible invisible hair texture work to vanilla characters...");
-                    DynamicData.For(self).Set("SMH_DisposableLog_aPhggdddd", "");
+                                Logger.Log(LogLevel.Info, "SkinModHelper", $"Avoid the possible invisible hair texture work to vanilla characters...");
+                                DynamicData.For(self).Set("SMH_DisposableLog_aPhggdddd", "");
+                            }
+                            return orig(self, index);
+                        default:
+                            break;
+                    }
                 }
-                return orig(self, index);
             }
 
             if (index == 0) {
@@ -524,22 +515,17 @@ namespace Celeste.Mod.SkinModHelper {
             return orig(self, index);
         }
         private static Color PlayerHairGetHairColorHook(On.Celeste.PlayerHair.orig_GetHairColor orig, PlayerHair self, int index) {
-            DynamicData selfData = DynamicData.For(self);
             HairConfig hairConfig = HairConfig.For(self);
 
-            int? get_dashCount = GetDashCount(self);
+            int? dashes = GetDashCount(self);
+            if (hairConfig.ActualHairColors != null && dashes != null && (self.Color != Color.White || hairConfig.HairFlash == false)) {
+                int index2 = hairConfig.ActualHairColors.ContainsKey(index - self.Sprite.HairCount) ? index - self.Sprite.HairCount : index;
 
-            if (hairConfig.ActualHairColors != null && get_dashCount != null && (self.Color != Color.White || hairConfig.HairFlash == false)) {
-                int Index = hairConfig.ActualHairColors.ContainsKey(index - self.Sprite.HairCount) ? index - self.Sprite.HairCount : index;
-
-                if (hairConfig.Safe_GetHairColor(Index, (int)get_dashCount, out Color color)) {
-
-                    if (index == 0)
-                        self.Color = color;
-                    return ColorBlend(color * self.Alpha, selfData.Get("HairColorGrading"));
+                if (hairConfig.Safe_GetHairColor(index2, (int)dashes, out Color color)) {
+                    return ColorBlend(color * self.Alpha, DynamicData.For(self).Get("HairColorGrading"));
                 }
             }
-            return ColorBlend(orig(self, index), selfData.Get("HairColorGrading"));
+            return ColorBlend(orig(self, index), DynamicData.For(self).Get("HairColorGrading"));
         }
         #endregion
 
@@ -625,26 +611,25 @@ namespace Celeste.Mod.SkinModHelper {
         }
         public static int? GetDashCount(object type) {
             int? get_dashCount = null;
-            if ((type as PlayerHair)?.Sprite.Mode == (PlayerSpriteMode)2 || (type as PlayerSprite)?.Mode == (PlayerSpriteMode)2)
-                get_dashCount = 0;
-            if (type is Component component)
+            if (type is Component component) {
+                if (((type as PlayerHair)?.Sprite ?? (type as PlayerSprite)).Mode == (PlayerSpriteMode)2)
+                    get_dashCount = 0;
                 type = component.Entity;
+            }
 
             switch (type) {
                 case BadelineOldsite badelineOldsite:
-                    return DynamicData.For(badelineOldsite).Get<int>("index");
+                    return badelineOldsite.index;
                 case Player player:
                     if (player.StateMachine.State == Player.StStarFly)
-                        return null;
-                    int lastDashes = DynamicData.For(player).Get<int>("lastDashes");
+                        return get_dashCount;
 
                     // DJMapHelper's MaxDashesTrigger setting OverrideHairColor for 0 dashes blue hair, so let's skin also get 0 dashes.
                     if (player.OverrideHairColor == Player.UsedHairColor)
                         return 0;
-
-                    if (lastDashes == 0 && player.MaxDashes <= 0)
+                    if (player.lastDashes == 0 && player.MaxDashes <= 0)
                         return 1;
-                    return Math.Max(lastDashes, 0);
+                    return Math.Max(player.lastDashes, 0);
                 case PlayerPlayback:
                     return null;
                 default:
@@ -652,7 +637,7 @@ namespace Celeste.Mod.SkinModHelper {
             }
         }
         public static bool OldConfigCheck(PlayerSprite sprite, out string key) {
-            string spriteName = DynamicData.For(sprite).Get<string>("spriteName");
+            string spriteName = sprite.spriteName;
             foreach (string _key in OtherskinOldConfig.Keys) {
                 if (spriteName.EndsWith($"{_key}")) {
                     key = _key;

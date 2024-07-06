@@ -81,7 +81,6 @@ namespace Celeste.Mod.SkinModHelper {
         public static readonly MethodInfo CloneMethod = typeof(object).GetMethod("MemberwiseClone", BindingFlags.NonPublic | BindingFlags.Instance);
 
         public static int Player_Skinid_verify;
-        public static int Last_Player_Skinid_verify;
 
         public static bool? actualBackpack;
         public static bool backpackOn = true;
@@ -286,7 +285,7 @@ namespace Celeste.Mod.SkinModHelper {
                 if (self.Has(newId))
                     id = newId;
                 if (sprite is PlayerSprite playerSprite)
-                    DynamicData.For(playerSprite).Set("spriteName", id);
+                    playerSprite.spriteName = id;
             }
             sprite = orig(self, sprite, id);
             if (sprite != null) {

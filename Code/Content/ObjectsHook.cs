@@ -53,12 +53,8 @@ namespace Celeste.Mod.SkinModHelper {
         public static void on_Lookout_Interact(On.Celeste.Lookout.orig_Interact orig, Lookout self, Player player) {
             orig(self, player);
             if (Player_Skinid_verify != 0) {
-                DynamicData selfData = DynamicData.For(self);
-                if (selfData.Get<string>("animPrefix") == "badeline_" || selfData.Get<string>("animPrefix") == "nobackpack_") {
-                    selfData.Set("animPrefix", "");
-                }
+                self.animPrefix = "";
             }
-            return;
         }
         #endregion
 
@@ -66,11 +62,8 @@ namespace Celeste.Mod.SkinModHelper {
         #region
         public static void Celeste_flyFeather_Hook(On.Celeste.FlyFeather.orig_Added orig, FlyFeather self, Scene scene) {
             orig(self, scene);
-            DynamicData selfData = DynamicData.For(self);
-
-            if (GetTextureOnSprite(selfData.Get<Sprite>("sprite"), "outline", out var outline)) {
-                Image outline2 = selfData.Get<Image>("outline");
-                outline2.Texture = outline;
+            if (GetTextureOnSprite(self.sprite, "outline", out var outline)) {
+                self.outline.Texture = outline;
             }
         }
         #endregion
@@ -79,14 +72,11 @@ namespace Celeste.Mod.SkinModHelper {
         #region
         public static void Celeste_Cloud_Hook(On.Celeste.Cloud.orig_Added orig, Cloud self, Scene scene) {
             orig(self, scene);
-            DynamicData selfData = DynamicData.For(self);
-
-            if (GetTextureOnSprite(selfData.Get<Sprite>("sprite"), "clouds", out var clouds)) {
-                ParticleType particleType = new(selfData.Get<ParticleType>("particleType"));
-
-                particleType.Source = clouds;
-                particleType.Color = Color.White;
-                selfData.Set("particleType", particleType);
+            if (GetTextureOnSprite(self.sprite, "clouds", out var clouds)) {
+                self.particleType = new(self.particleType) {
+                    Source = clouds,
+                    Color = Color.White
+                };
             }
         }
         #endregion
@@ -98,20 +88,17 @@ namespace Celeste.Mod.SkinModHelper {
 
             while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdstr("objects/booster/outline"))) {
                 cursor.Emit(OpCodes.Ldarg_0);
-                cursor.EmitDelegate<Func<string, Entity, string>>((orig, self) => {
+                cursor.EmitDelegate<Func<string, Booster, string>>((orig, self) => {
 
-                    if (GetTextureOnSprite(self.Get<Sprite>(), "blob", out var blob)) {
-                        var Field_particle = GetFieldPlus(self.GetType(), "particleType");
-
-                        if (Field_particle != null && Field_particle.GetValue(self) is ParticleType particleType) {
-                            // Clone object to prevent lost of vanilla
-                            particleType = new(particleType);
-                            Field_particle.SetValue(self, particleType);
-                            //
-
-                            particleType.Source = blob;
-                            particleType.Color = Color.White;
-                        }
+                    if (GetTextureOnSprite(self.sprite, "blob", out var blob)) {
+                        // Clone object to prevent lost of vanilla
+                        self.particleType = new(self.particleType) {
+                            Source = blob,
+                            Color = Color.White
+                        };
+                    }
+                    if (GetTextureOnSprite(self.sprite, "outline", out var outline)) {
+                        orig = outline.ToString();
                     }
                     return orig;
                 });
@@ -123,12 +110,10 @@ namespace Celeste.Mod.SkinModHelper {
         #region
         private static void Celeste_Refill_Hook(On.Celeste.Refill.orig_Added orig, Refill self, Scene scene) {
             orig(self, scene);
-            DynamicData selfData = DynamicData.For(self);
-
             string SpriteID = null;
 
-            Sprite sprite = selfData.Get<Sprite>("sprite");
-            Sprite flash = selfData.Get<Sprite>("flash");
+            Sprite sprite = self.sprite;
+            Sprite flash = self.flash;
             string SpritePath = getAnimationRootPath(sprite);
             
             // Filter the refills that using texture different than vanilla.
@@ -151,7 +136,7 @@ namespace Celeste.Mod.SkinModHelper {
                 PatchSprite(backup, sprite);
 
                 sprite.Play("idle", true);
-                if (selfData.Get<bool>("oneUse")) {
+                if (self.oneUse) {
                     if (idlenr && SpriteExt_TryPlay(sprite, "idlenr") && SpritePath != getAnimationRootPath(sprite, "idlenr")) {
 
                     } else if (SpritePath != getAnimationRootPath(sprite, "oneuse_idle")) {
@@ -162,8 +147,8 @@ namespace Celeste.Mod.SkinModHelper {
                 }
             }
 
-            if (selfData.TryGet("outline", out Image outline) && GetTextureOnSprite(sprite, "outline", out var outline2)) {
-                outline.Texture = outline2;
+            if (GetTextureOnSprite(sprite, "outline", out var outline2)) {
+                self.outline.Texture = outline2;
             }
         }
         #endregion
@@ -178,7 +163,7 @@ namespace Celeste.Mod.SkinModHelper {
 
                     // 'Celeste.Seeker' Created new 'Monocle.Entity' to made an 'Celeste.DeathEffect'
                     // But that let we cannot get Seeker's data by {orig.Entity} in DeathEffect, so we self to add that data
-                    DynamicData.For(orig).Set("sprite", DynamicData.For(self).Get<Sprite>("sprite"));
+                    DynamicData.For(orig).Set("sprite", self.sprite);
                     return orig;
                 });
             }

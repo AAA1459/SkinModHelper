@@ -28,6 +28,7 @@
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net7.0|AnyCPU'">
 	  <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
+	  <Optimize>False</Optimize>
 	</PropertyGroup>
 
 	<!--Disable "Copy Local" for all references-->

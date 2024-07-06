@@ -151,7 +151,6 @@ namespace Celeste.Mod.SkinModHelper {
                 SpriteExt_TryPlay(self.Sprite, "jumpCrazy");
             }
         }
-        private static MethodInfo Player_SwimCheck = typeof(Player).GetMethod("SwimCheck", BindingFlags.NonPublic | BindingFlags.Instance);
         private static void PlayerSpritePlayHook(On.Monocle.Sprite.orig_Play orig, Sprite self, string id, bool restart = false, bool randomizeFrame = false) {
             string origID = id;
 
@@ -159,8 +158,7 @@ namespace Celeste.Mod.SkinModHelper {
                 #region Animations modify and extended
 
                 if (!restart && self.LastAnimationID != null) {
-                    DynamicData playerData = DynamicData.For(player);
-                    bool SwimCheck = player.Collidable ? (bool)Player_SwimCheck.Invoke(player, null) : false;
+                    bool SwimCheck = player.Collidable ? player.SwimCheck() : false;
 
                     if (id == "walk" && player.Holding != null) {
                         // Patched on when player running in cutscene and carrying something.
@@ -190,7 +188,7 @@ namespace Celeste.Mod.SkinModHelper {
                             origID = id;
                         }
                         if (self.LastAnimationID.Contains(id)) {
-                            DynamicData.For(self).Set("LastAnimationID", origID);
+                            self.LastAnimationID = origID;
                             return;
                         }
                     } else if ((origID != id || id == "duck" || id == "lookUp") && self.LastAnimationID.Contains(id)) {
@@ -200,21 +198,21 @@ namespace Celeste.Mod.SkinModHelper {
                         return;
                     } else if (self.LastAnimationID.Contains("jumpCrazy")) {
                         if ((origID == "jumpFast" || origID == "fallSlow" || origID == "runFast" || origID == "runWind") &&
-                            (!playerData.Get<bool>("onGround") || !player.OnGround())) {
+                            (!player.onGround || !player.OnGround())) {
                             return;
                         }
                     } else if (self.LastAnimationID.Contains("jumpHyper") || self.LastAnimationID.Contains("jumpSuper")) {
 
                         if ((origID == "jumpFast" || origID == "fallFast" || origID == "runFast" || origID == "runWind" || (origID == "duck" && player.StartedDashing == false) || origID == "idle" || origID == "jumpSlow")
-                            && (!player.OnGround() || !playerData.Get<bool>("wasOnGround"))
+                            && (!player.OnGround() || !player.wasOnGround)
                             && (Math.Abs(player.Speed.X) > 110f
-                               || (playerData.Get<float>("wallSpeedRetentionTimer") > 0f && Math.Abs(playerData.Get<float>("wallSpeedRetained")) > 110f))) {
+                               || (player.wallSpeedRetentionTimer > 0f && Math.Abs(player.wallSpeedRetained) > 110f))) {
                             return;
                         }
 
                     } else if (self.LastAnimationID.Contains("wallBounce")) {
                         if ((origID == "jumpFast" || origID == "jumpSlow" || origID == "fallSlow" || origID == "fallFast") &&
-                            (!playerData.Get<bool>("onGround"))) {
+                            (!player.onGround)) {
                             return;
                         }
                     }
@@ -234,7 +232,7 @@ namespace Celeste.Mod.SkinModHelper {
                 if (self.Has(id)) {
                     orig(self, id, restart, randomizeFrame);
                     if (origID == "startStarFly") {
-                        selfData.Set("CurrentAnimationID", origID);
+                        self.CurrentAnimationID = origID;
                     }
                     return;
                 } else {
@@ -407,12 +405,14 @@ namespace Celeste.Mod.SkinModHelper {
             }
 
             deathAnim.Play(id);
-            DynamicData.For(self).Set("deathAnimating", true);
+            DynamicData data = DynamicData.For(self);
+            data.Set("deathAnimating", true);
 
             deathAnim.OnFinish = anim => {
                 deathAnim.Visible = false;
                 entity.RemoveSelf();
-                if (self != null) DynamicData.For(self).Set("deathAnimating", false);
+                if (self != null)
+                    data.Set("deathAnimating", false);
             };
         }
         #endregion
@@ -421,7 +421,7 @@ namespace Celeste.Mod.SkinModHelper {
         private static void DeathEffectDrawHook(On.Celeste.DeathEffect.orig_Draw orig, Vector2 position, Color color, float ease) {
             Entity entity = null;
             foreach (Player player in (Engine.Scene as Level)?.Tracker?.GetEntities<Player>()) {
-                if (player.Center + DynamicData.For(player).Get<Vector2>("deadOffset") == position) {
+                if (player.Center + player.deadOffset == position) {
                     entity = player;
                     break;
                 }
