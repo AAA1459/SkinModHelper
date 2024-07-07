@@ -319,9 +319,9 @@ namespace Celeste.Mod.SkinModHelper {
                     config.Target = target;
                     config.SourcePath = rootPath;
 
-                    if (GetTexturesOnSprite(target.Sprite, "bangs", out var textures))
+                    if (GetTexturesOnSprite(target.Sprite, "bangs", out var textures) && textures[0].ToString() != "characters/player/bangs00")
                         config.new_bangs = textures;
-                    if (GetTexturesOnSprite(target.Sprite, "hair", out var textures2))
+                    if (GetTexturesOnSprite(target.Sprite, "hair", out var textures2) && textures2[0].ToString() != "characters/player/hair00")
                         config.new_hairs = textures2;
 
                     if (!(SkinsSystem.Settings.PlayerSkinHairColorsDisabled && target.Entity is Player))

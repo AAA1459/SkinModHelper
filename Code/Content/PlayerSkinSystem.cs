@@ -165,7 +165,7 @@ namespace Celeste.Mod.SkinModHelper {
 
             if (isGhost && self.spriteName == "") {
                 Logger.Log(LogLevel.Info, "SkinModHelper", $"Someone in CelesteNet uses skin mod '{requestMode}' which you don't have");
-                GFX.SpriteBank.CreateOn(self, self.spriteName = (level.Session.Inventory.Backpack ? "player" : "player_no_backpack"));
+                GFX.SpriteBank.CreateOn(self, self.spriteName = (level == null || level.Session.Inventory.Backpack ? "player" : "player_no_backpack"));
             } else if (isGhost) {
                 Logger.Log(LogLevel.Verbose, "SkinModHelper", $"GhostModeValue: {requestMode}");
             } else {
@@ -474,24 +474,25 @@ namespace Celeste.Mod.SkinModHelper {
         private static MTexture PlayerHairGetHairTextureHook(On.Celeste.PlayerHair.orig_GetHairTexture orig, PlayerHair self, int index) {
 
             HairConfig config = HairConfig.For(self);
-            string detectPath = getAnimationRootPath(self.Sprite.Texture);
-            if (detectPath.Length > 11 && (int)self.Sprite.Mode > 4) {
-                int i = detectPath.IndexOf('/', 11);
-                if (i > 0) {
-                    switch (detectPath.Remove(i)) {
-                        case "characters/player":
-                        case "characters/badeline":
-                        case "characters/player_badeline":
-                        case "characters/player_playback":
-                        case "characters/player_no_backpack":
-                            if (config.new_bangs != null && !detectPath.StartsWith(config.SourcePath) && DynamicData.For(self).Get("SMH_DisposableLog_aPhggdddd") == null) {
-
-                                Logger.Log(LogLevel.Info, "SkinModHelper", $"Avoid the possible invisible hair texture work to vanilla characters...");
-                                DynamicData.For(self).Set("SMH_DisposableLog_aPhggdddd", "");
-                            }
-                            return orig(self, index);
-                        default:
-                            break;
+            if (config.new_bangs != null) {
+                string detectPath = getAnimationRootPath(self.Sprite.Texture);
+                if (detectPath.Length > 17) {
+                    int i = detectPath.IndexOf('/', 17);
+                    if (i > 0) {
+                        switch (detectPath.Remove(i)) {
+                            case "characters/player":
+                            case "characters/badeline":
+                            case "characters/player_badeline":
+                            case "characters/player_playback":
+                            case "characters/player_no_backpack":
+                                if (!detectPath.StartsWith(config.SourcePath) && DynamicData.For(self).Get("SMH_DisposableLog_aPhggdddd") == null) {
+                                    Logger.Log(LogLevel.Info, "SkinModHelper", $"Avoid the {self.Sprite.spriteName}'s bangs texture work on vanilla characters texture...");
+                                    DynamicData.For(self).Set("SMH_DisposableLog_aPhggdddd", "");
+                                }
+                                return orig(self, index);
+                            default:
+                                break;
+                        }
                     }
                 }
             }
@@ -510,7 +511,6 @@ namespace Celeste.Mod.SkinModHelper {
                     return GFX.Game[$"{hair}_{index}"]; //Set the texture for hair of each section.
                 else
                     return hair;
-
             }
             return orig(self, index);
         }
@@ -636,17 +636,15 @@ namespace Celeste.Mod.SkinModHelper {
                     return get_dashCount;
             }
         }
+        private static Dictionary<string, string> oldskinname_cache = new();
         public static bool OldConfigCheck(PlayerSprite sprite, out string key) {
             string spriteName = sprite.spriteName;
-            foreach (string _key in OtherskinOldConfig.Keys) {
-                if (spriteName.EndsWith($"{_key}")) {
-                    key = _key;
-                    return true;
-                }
+            if (oldskinname_cache.TryGetValue(spriteName, out key)) {
+                return key != null;
             }
-            key = null;
-            return false;
+            return (oldskinname_cache[spriteName] = key = OtherskinOldConfig.Keys.FirstOrDefault(key2 => spriteName.EndsWith($"{key2}"))) != null;
         }
+
         public static bool actualBackpack(int mode) {
             string skinName = GetPlayerSkinName(mode);
             return !(skinName?.EndsWith("_NB") ?? mode == 1 || mode == 4);
