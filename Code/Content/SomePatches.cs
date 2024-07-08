@@ -151,6 +151,8 @@ namespace Celeste.Mod.SkinModHelper {
                 SpriteExt_TryPlay(self.Sprite, "jumpCrazy");
             }
         }
+
+        private static MethodInfo Player_SwimCheck = typeof(Player).GetMethod("SwimCheck", BindingFlags.NonPublic | BindingFlags.Instance);
         private static void PlayerSpritePlayHook(On.Monocle.Sprite.orig_Play orig, Sprite self, string id, bool restart = false, bool randomizeFrame = false) {
             string origID = id;
 
@@ -158,7 +160,8 @@ namespace Celeste.Mod.SkinModHelper {
                 #region Animations modify and extended
 
                 if (!restart && self.LastAnimationID != null) {
-                    bool SwimCheck = player.Collidable ? player.SwimCheck() : false;
+                    DynamicData playerData = DynamicData.For(player);
+                    bool SwimCheck = player.Collidable ? (bool)Player_SwimCheck.Invoke(player, null) : false;
 
                     if (id == "walk" && player.Holding != null) {
                         // Patched on when player running in cutscene and carrying something.
@@ -188,7 +191,7 @@ namespace Celeste.Mod.SkinModHelper {
                             origID = id;
                         }
                         if (self.LastAnimationID.Contains(id)) {
-                            self.LastAnimationID = origID;
+                            DynamicData.For(self).Set("LastAnimationID", origID);
                             return;
                         }
                     } else if ((origID != id || id == "duck" || id == "lookUp") && self.LastAnimationID.Contains(id)) {
@@ -198,21 +201,21 @@ namespace Celeste.Mod.SkinModHelper {
                         return;
                     } else if (self.LastAnimationID.Contains("jumpCrazy")) {
                         if ((origID == "jumpFast" || origID == "fallSlow" || origID == "runFast" || origID == "runWind") &&
-                            (!player.onGround || !player.OnGround())) {
+                            (!playerData.Get<bool>("onGround") || !player.OnGround())) {
                             return;
                         }
                     } else if (self.LastAnimationID.Contains("jumpHyper") || self.LastAnimationID.Contains("jumpSuper")) {
 
                         if ((origID == "jumpFast" || origID == "fallFast" || origID == "runFast" || origID == "runWind" || (origID == "duck" && player.StartedDashing == false) || origID == "idle" || origID == "jumpSlow")
-                            && (!player.OnGround() || !player.wasOnGround)
+                            && (!player.OnGround() || !playerData.Get<bool>("wasOnGround"))
                             && (Math.Abs(player.Speed.X) > 110f
-                               || (player.wallSpeedRetentionTimer > 0f && Math.Abs(player.wallSpeedRetained) > 110f))) {
+                               || (playerData.Get<float>("wallSpeedRetentionTimer") > 0f && Math.Abs(playerData.Get<float>("wallSpeedRetained")) > 110f))) {
                             return;
                         }
 
                     } else if (self.LastAnimationID.Contains("wallBounce")) {
                         if ((origID == "jumpFast" || origID == "jumpSlow" || origID == "fallSlow" || origID == "fallFast") &&
-                            (!player.onGround)) {
+                            (!playerData.Get<bool>("onGround"))) {
                             return;
                         }
                     }
@@ -232,7 +235,7 @@ namespace Celeste.Mod.SkinModHelper {
                 if (self.Has(id)) {
                     orig(self, id, restart, randomizeFrame);
                     if (origID == "startStarFly") {
-                        self.CurrentAnimationID = origID;
+                        selfData.Set("CurrentAnimationID", origID);
                     }
                     return;
                 } else {

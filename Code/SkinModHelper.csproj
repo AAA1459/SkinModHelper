@@ -43,8 +43,8 @@
 		<PackageReference Include="MonoMod.RuntimeDetour" Version="22.01.04.03">
 			<IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
+		<PackageReference Include="CelesteMod.Publicizer" Version="*" CelesteAssembly="$(CelestePrefix)\Celeste.dll" />
 		<PackageReference Include="YamlDotNet" Version="15.3.0" />
-        <PackageReference Include="CelesteMod.Publicizer" Version="*" CelesteAssembly="$(CelestePrefix)\Celeste.dll" />
 	</ItemGroup>
 
 	<!--Include Celeste.dll and MMHOOK_Celeste.dll-->

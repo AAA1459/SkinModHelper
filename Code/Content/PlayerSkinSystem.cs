@@ -148,7 +148,7 @@ namespace Celeste.Mod.SkinModHelper {
             orig(self, mode);
             int requestMode = (int)(isGhost ? (1 << 31) + mode : mode);
 
-            string name =  GetPlayerSkinName(requestMode);
+            string name = GetPlayerSkinName(requestMode);
             if (name != null && skinConfigs.TryGetValue(name, out var config)) {
                 GFX.SpriteBank.CreateOn(self, self.spriteName = config.Character_ID);
 
@@ -642,11 +642,11 @@ namespace Celeste.Mod.SkinModHelper {
             if (oldskinname_cache.TryGetValue(spriteName, out key)) {
                 return key != null;
             }
-            return (oldskinname_cache[spriteName] = key = OtherskinOldConfig.Keys.FirstOrDefault(key2 => spriteName.EndsWith($"{key2}"))) != null;
+            return (oldskinname_cache[spriteName] = key = OtherskinOldConfig.Keys.FirstOrDefault(key2 => spriteName.EndsWith(key2))) != null;
         }
 
         public static bool actualBackpack(int mode) {
-            return !(GetPlayerSkinName(mode)?.EndsWith("_NB") ?? mode == 1 || mode == 4);
+            return !(GetPlayerSkinName()?.EndsWith("_NB") ?? mode == 1 || mode == 4);
         }
         public static int GetStartedDashingCount(Player player) {
             return DynamicData.For(player).Get<int?>("TrailDashCount") ?? SetStartedDashingCount(player);

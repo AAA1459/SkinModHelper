@@ -218,7 +218,14 @@ namespace Celeste.Mod.SkinModHelper {
                     }
                     //--------------------------------------------#
 
-                    string name = GetPlayerSkinName(config.hashValues);
+                    string name = null;
+                    // Don't use GetPlayerSkinName() method here, It will disrupt somecache in extreme cases.
+                    foreach (SkinModHelperConfig config2 in skinConfigs.Values) {
+                        if (config.hashValues == config2.hashValues) {
+                            name = config2.SkinName;
+                            break;
+                        }
+                    }
                     if (name == null || name == config.SkinName) {
                         string s = "   ";
                         for (int i = config.SkinName.Length; i < 32; s += " ", i++) { }
@@ -271,8 +278,9 @@ namespace Celeste.Mod.SkinModHelper {
             }
             Sprite sprite = orig(self, id);
             if (sprite != null) {
-                DynamicData.For(sprite).Set("smh_spriteName", id);
-                DynamicData.For(sprite).Set("smh_spriteData", self.SpriteData[id]);
+                DynamicData spriteData = DynamicData.For(sprite);
+                spriteData.Set("smh_spriteName", id);
+                spriteData.Set("smh_spriteData", self.SpriteData[id]);
             }
             return sprite;
         }
@@ -287,12 +295,9 @@ namespace Celeste.Mod.SkinModHelper {
                 if (sprite is PlayerSprite playerSprite)
                     playerSprite.spriteName = id;
             }
-            sprite = orig(self, sprite, id);
-            if (sprite != null) {
-                DynamicData.For(sprite).Set("smh_spriteName", id);
-                DynamicData.For(sprite).Set("smh_spriteData", self.SpriteData[id]);
-            }
-            return sprite;
+            DynamicData.For(sprite).Set("smh_spriteName", id);
+            DynamicData.For(sprite).Set("smh_spriteData", self.SpriteData[id]);
+            return orig(self, sprite, id);
         }
         #endregion
 
@@ -558,10 +563,10 @@ namespace Celeste.Mod.SkinModHelper {
         public static string getAnimationRootPath(object type) {
             if (type is Sprite sprite) {
                 var data = DynamicData.For(sprite).Get<SpriteData>("smh_spriteData");
-                if (data != null) {
+                if (data?.Sources != null) {
                     return data.Sources[0].OverridePath ?? data.Sources[0].Path;
                 }
-                type = (sprite.Has("idle") ? sprite.GetFrame("idle", 0) : sprite.Texture ?? sprite.Animations?.First().Value.Frames[0]).ToString();
+                type = $"{(sprite.Has("idle") ? sprite.GetFrame("idle", 0) : sprite.Texture ?? sprite.Animations.Values.FirstOrDefault()?.Frames?.FirstOrDefault())}";
             } else if (type is Image image) {
                 type = image.Texture.ToString();
             } else {
@@ -574,7 +579,7 @@ namespace Celeste.Mod.SkinModHelper {
             return "";
         }
         public static string getAnimationRootPath(Sprite sprite, string id) {
-            return sprite.Has(id) ? getAnimationRootPath(sprite.GetFrame(id, 0)) : getAnimationRootPath(sprite);
+            return sprite.Has(id) && sprite.Animations[id].Frames?.Length > 0 ? getAnimationRootPath(sprite.Animations[id].Frames[0]) : getAnimationRootPath(sprite);
         }
         public static string getAnimationRootPath(object type, out string returnValue) {
             return returnValue = getAnimationRootPath(type);
@@ -648,7 +653,7 @@ namespace Celeste.Mod.SkinModHelper {
                 }
                 return textures != null;
             }
-            if (data.Atlas == null) {
+            if (data.Atlas == null || data.Sources == null) {
                 return false;
             }
             foreach (SpriteDataSource source in data.Sources) {
@@ -676,7 +681,7 @@ namespace Celeste.Mod.SkinModHelper {
                 }
                 return texture != null;
             }
-            if (data.Atlas == null) {
+            if (data.Atlas == null || data.Sources == null) {
                 return false;
             }
             foreach (SpriteDataSource source in data.Sources) {
@@ -696,12 +701,12 @@ namespace Celeste.Mod.SkinModHelper {
         /// </summary>
         public static ModAsset GetAssetOnSprite<T>(Image sprite, string filename) {
             var data = DynamicData.For(sprite).Get<SpriteData>("smh_spriteData");
-            if (data == null) {
+            if (data == null || data.Sources?.Count < 1) {
                 if (Everest.Content.TryGet(GFX.Game.DataPath + "/" + getAnimationRootPath(sprite) + filename, out var asset) && asset.Type == typeof(T))
                     return asset;
                 return null;
             }
-            if (data.Atlas == null) {
+            if (data.Atlas == null || data.Sources == null) {
                 return null;
             }
             string path = data.Atlas.DataPath;
