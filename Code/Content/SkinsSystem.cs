@@ -442,9 +442,7 @@ namespace Celeste.Mod.SkinModHelper {
             }
 
             int player_skinid_verify = 0;
-            string SkinName = GetPlayerSkinName((int)self.Sprite.Mode);
-
-            if (SkinName != null) {
+            if (GetPlayerSkinName((int)self.Sprite.Mode) != null) {
                 player_skinid_verify = (int)self.Sprite.Mode;
             }
 

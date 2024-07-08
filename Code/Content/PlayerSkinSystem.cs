@@ -646,8 +646,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
 
         public static bool actualBackpack(int mode) {
-            string skinName = GetPlayerSkinName(mode);
-            return !(skinName?.EndsWith("_NB") ?? mode == 1 || mode == 4);
+            return !(GetPlayerSkinName(mode)?.EndsWith("_NB") ?? mode == 1 || mode == 4);
         }
         public static int GetStartedDashingCount(Player player) {
             return DynamicData.For(player).Get<int?>("TrailDashCount") ?? SetStartedDashingCount(player);

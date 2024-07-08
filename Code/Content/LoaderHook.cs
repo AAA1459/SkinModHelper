@@ -92,7 +92,6 @@ namespace Celeste.Mod.SkinModHelper {
                 if (SaveFilePortraits) {
                     Logger.Log("SkinModHelper", $"SaveFilePortraits reload start");
                     SaveFilePortraits_Reload();
-                    Reskin_PortraitsBank.Active = false;
                 }
             }
             if (SaveFilePortraits) {
@@ -135,13 +134,12 @@ namespace Celeste.Mod.SkinModHelper {
                 SpriteData sprite = GFX.PortraitsSpriteBank.SpriteData[portrait];
 
                 foreach (string animation in sprite.Sprite.Animations.Keys) {
-                    if (animation.StartsWith("idle_") && !animation.Substring(5).Contains("_")
-                        && sprite.Sprite.Animations[animation].Frames[0].Height <= 200 && sprite.Sprite.Animations[animation].Frames[0].Width <= 200) {
-
-                        if (Sources_record.Contains($"{sprite.Sprite.GetFrame(animation, 0)}"))
-                            continue;
-                        Sources_record.Add($"{sprite.Sprite.GetFrame(animation, 0)}");
-                        On_ExistingPortraits.Add(new Tuple<string, string>(portrait, animation));
+                    if (animation.StartsWith("idle_") && !animation.Substring(5).Contains("_")) {
+                        MTexture texture = sprite.Sprite.Animations[animation].Frames[0];
+                        if (texture.Height <= 200 && texture.Width <= 200 && !Sources_record.Contains(texture.ToString())) {
+                            Sources_record.Add($"{sprite.Sprite.GetFrame(animation, 0)}");
+                            On_ExistingPortraits.Add(new Tuple<string, string>(portrait, animation));
+                        }
                     }
                 }
             }
