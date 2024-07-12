@@ -152,7 +152,6 @@ namespace Celeste.Mod.SkinModHelper {
             }
         }
 
-        private static MethodInfo Player_SwimCheck = typeof(Player).GetMethod("SwimCheck", BindingFlags.NonPublic | BindingFlags.Instance);
         private static void PlayerSpritePlayHook(On.Monocle.Sprite.orig_Play orig, Sprite self, string id, bool restart = false, bool randomizeFrame = false) {
             string origID = id;
 
@@ -161,22 +160,34 @@ namespace Celeste.Mod.SkinModHelper {
 
                 if (!restart && self.LastAnimationID != null) {
                     DynamicData playerData = DynamicData.For(player);
-                    bool SwimCheck = player.Collidable ? (bool)Player_SwimCheck.Invoke(player, null) : false;
+                    bool SwimCheck = player.Collidable ? player.SwimCheck() : false;
 
-                    if (id == "walk" && player.Holding != null) {
-                        // Patched on when player running in cutscene and carrying something.
-                        id = "runSlow_carry";
-
-                    } else if (id == "dash" && SwimCheck && self.Has("swimDash")) {
-                        id = "swimDash";
-
-                    } else if (id == "duck" && player.DashAttacking == true) {
-                        if (SwimCheck && self.Has("swimDashCrouch")) {
-                            id = "swimDashCrouch";
-
-                        } else if (self.Has("dashCrouch")) {
-                            id = "dashCrouch";
-                        }
+                    switch (id) {
+                        case "walk":
+                            if (player.Holding != null)
+                                id = "runSlow_carry";
+                            break;
+                        case "dash":
+                            if (SwimCheck && self.Has("swimDash"))
+                                id = "swimDash";
+                            break;
+                        case "duck":
+                            if (player.DashAttacking == true)
+                                if (SwimCheck && self.Has("swimDashCrouch"))
+                                    id = "swimDashCrouch";
+                                else if (self.Has("dashCrouch"))
+                                    id = "dashCrouch";
+                            break;
+                        case "swimIdle":
+                        case "swimUp":
+                        case "swimDown":
+                            if (self.Has("swimSide") && (player.Speed.X != 0 || player.moveX != 0) && Math.Abs(player.Speed.X) >= Math.Abs(player.Speed.Y)) {
+                                if (id == "swimIdle" || player.wallSpeedRetentionTimer <= 0f)
+                                    id = "swimSide";
+                            }
+                            break;
+                        default:
+                            break;
                     }
 
                     // Universal code... if you are theo smuggle enthusiast...
@@ -200,22 +211,18 @@ namespace Celeste.Mod.SkinModHelper {
                     } else if (origID == "runStumble") {
                         return;
                     } else if (self.LastAnimationID.Contains("jumpCrazy")) {
-                        if ((origID == "jumpFast" || origID == "fallSlow" || origID == "runFast" || origID == "runWind") &&
-                            (!playerData.Get<bool>("onGround") || !player.OnGround())) {
+                        if ((origID == "jumpFast" || origID == "fallSlow" || origID == "runFast" || origID == "runWind") && (!player.onGround || !player.OnGround())) {
                             return;
                         }
                     } else if (self.LastAnimationID.Contains("jumpHyper") || self.LastAnimationID.Contains("jumpSuper")) {
-
                         if ((origID == "jumpFast" || origID == "fallFast" || origID == "runFast" || origID == "runWind" || (origID == "duck" && player.StartedDashing == false) || origID == "idle" || origID == "jumpSlow")
-                            && (!player.OnGround() || !playerData.Get<bool>("wasOnGround"))
-                            && (Math.Abs(player.Speed.X) > 110f
-                               || (playerData.Get<float>("wallSpeedRetentionTimer") > 0f && Math.Abs(playerData.Get<float>("wallSpeedRetained")) > 110f))) {
+                            && (!player.OnGround() || !player.wasOnGround)
+                            && (Math.Abs(player.Speed.X) > 110f || (player.wallSpeedRetentionTimer > 0f && Math.Abs(player.wallSpeedRetained) > 110f))) {
                             return;
                         }
 
                     } else if (self.LastAnimationID.Contains("wallBounce")) {
-                        if ((origID == "jumpFast" || origID == "jumpSlow" || origID == "fallSlow" || origID == "fallFast") &&
-                            (!playerData.Get<bool>("onGround"))) {
+                        if ((origID == "jumpFast" || origID == "jumpSlow" || origID == "fallSlow" || origID == "fallFast") && !player.onGround) {
                             return;
                         }
                     }
@@ -238,21 +245,20 @@ namespace Celeste.Mod.SkinModHelper {
                         selfData.Set("CurrentAnimationID", origID);
                     }
                     return;
-                } else {
-                    string spriteName = selfData.Get<string>("spriteName");
-                    if (spriteName != "") {
-                        Logger.Log(LogLevel.Error, "SkinModHelper", $"'{spriteName}' missing animation: {id}");
-                    }
-
-                    if (GFX.SpriteBank.SpriteData["player"].Sprite.Animations.TryGetValue(id, out Sprite.Animation anim) ||
-                        GFX.SpriteBank.SpriteData["player_no_backpack"].Sprite.Animations.TryGetValue(id, out anim)) {
-
-                        self.Animations[id] = anim;
-                        if (GFX.SpriteBank.Has(spriteName))
-                            GFX.SpriteBank.SpriteData[spriteName].Sprite.Animations[id] = anim;
-                    }
-                    return;
                 }
+                string spriteName = selfData.Get<string>("spriteName");
+                if (spriteName != "") {
+                    Logger.Log(LogLevel.Error, "SkinModHelper", $"'{spriteName}' missing animation: {id}");
+                }
+
+                if (GFX.SpriteBank.SpriteData["player"].Sprite.Animations.TryGetValue(id, out Sprite.Animation anim) ||
+                    GFX.SpriteBank.SpriteData["player_no_backpack"].Sprite.Animations.TryGetValue(id, out anim)) {
+
+                    self.Animations[id] = anim;
+                    if (GFX.SpriteBank.Has(spriteName))
+                        GFX.SpriteBank.SpriteData[spriteName].Sprite.Animations[id] = anim;
+                }
+                return;
             }
             orig(self, id, restart, randomizeFrame);
         }
