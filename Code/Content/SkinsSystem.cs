@@ -21,22 +21,12 @@ using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 
 namespace Celeste.Mod.SkinModHelper {
     public class SkinsSystem {
-        #region
+        #region Hooks
 
         public static SkinModHelperSettings Settings => (SkinModHelperSettings)Instance._Settings;
         public static SkinModHelperSession Session => (SkinModHelperSession)Instance._Session;
         public static SkinModHelperSettings smh_Settings => Settings;
         public static SkinModHelperSession smh_Session => Session;
-
-        public static RespriteBank Reskin_SpriteBank = new("Sprites.xml", "SpritesXml", "Sprite");
-        public static ReportraitsBank Reskin_PortraitsBank = new("Portraits.xml", "PortraitsXml", "Portraits");
-        public static nonBankReskin OtherSpriteSkins = new("OtherExtra", "Other");
-
-        public static Dictionary<string, SkinModHelperConfig> skinConfigs = new(StringComparer.OrdinalIgnoreCase);
-        public static Dictionary<int, string> skinname_hashcache = new();
-
-        public static Dictionary<string, SkinModHelperConfig> OtherskinConfigs = new(StringComparer.OrdinalIgnoreCase);
-        public static Dictionary<string, SkinModHelperOldConfig> OtherskinOldConfig = new(StringComparer.OrdinalIgnoreCase);
 
         public static void Load() {
             Everest.Content.OnUpdate += EverestContentUpdateHook;
@@ -70,7 +60,19 @@ namespace Celeste.Mod.SkinModHelper {
         public static List<List<MTexture>> loadingTextures = new();
 
         #endregion
-        #region
+
+        #region Values
+
+        public static RespriteBank Reskin_SpriteBank = new("Sprites.xml", "SpritesXml", "Sprite");
+        public static ReportraitsBank Reskin_PortraitsBank = new("Portraits.xml", "PortraitsXml", "Portraits");
+        public static nonBankReskin OtherSpriteSkins = new("OtherExtra", "Other");
+
+        public static Dictionary<string, SkinModHelperConfig> skinConfigs = new(StringComparer.OrdinalIgnoreCase);
+        public static Dictionary<int, string> skinname_hashcache = new();
+
+        public static Dictionary<string, SkinModHelperConfig> OtherskinConfigs = new(StringComparer.OrdinalIgnoreCase);
+        public static Dictionary<string, SkinModHelperOldConfig> OtherskinOldConfig = new(StringComparer.OrdinalIgnoreCase);
+
         public static readonly int MAX_HAIRLENGTH = 99;
         public static readonly string playercipher = "_+";
 
@@ -95,8 +97,6 @@ namespace Celeste.Mod.SkinModHelper {
 
         /// <summary> Similar to GFX.FxColorGrading, But indexing new color on colorGrade only based the rgb color of the texture source. </summary>
         public static Effect FxColorGrading_SMH;
-        #endregion
-        #region
 
         /// <summary> 
         /// Invoke when after SkinRefresh.  both values respectively as Xmls_refresh and inGame 
@@ -110,8 +110,7 @@ namespace Celeste.Mod.SkinModHelper {
 
         #endregion
 
-        //-----------------------------Build Skins-----------------------------
-        #region
+        #region Config Initialize
         private static void EverestContentUpdateHook(ModAsset oldAsset, ModAsset newAsset) {
             if (newAsset != null) {
                 if (newAsset.PathVirtual.StartsWith("SkinModHelperConfig")) {
@@ -267,8 +266,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        //-----------------------------Sprite Banks / Skin Xmls-----------------------------
-        #region
+        #region SpriteBank Reskin
         private static Sprite SpriteBankCreateHook(On.Monocle.SpriteBank.orig_Create orig, SpriteBank self, string id) {
 
             if (RespriteBankModule.SearchInstance(self, out var skinbank)) {
@@ -301,7 +299,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        #region
+        #region RespriteBank Reload
         public static void RespriteBank_Reload() {
             var RespriteBanks = RespriteBankModule.ManagedInstance();
             foreach (var instance in RespriteBanks) {
@@ -367,8 +365,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        //-----------------------------Other Sprite-----------------------------
-        #region
+        #region Other Sprite Reload
         public static void UpdateParticles() {
             // well... Atlas_GetItemHook will help we update this.
             FlyFeather.P_Collect.Source = GFX.Game["particles/feather"];
@@ -386,7 +383,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        #region
+        #region Other Sprite Reskin
         private static MTexture Atlas_GetItemHook(Func<Atlas, string, MTexture> orig, Atlas self, string path) {
             path = OtherSpriteSkins.GetSkinWithPath(self, path, false);
 
@@ -409,8 +406,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        //-----------------------------Skins Refresh-----------------------------
-        #region
+        #region Skins Refresh
         public static void RefreshSkins(bool Xmls_refresh, bool inGame = true) {
             beforeSkinRefresh?.Invoke(Xmls_refresh, inGame);
             if (!inGame) {
@@ -459,8 +455,7 @@ namespace Celeste.Mod.SkinModHelper {
 
         #endregion
 
-        //-----------------------------Customize-----------------------------
-        #region
+        #region Customize
         private static void SpriteRenderHook(Action<Sprite> orig, Sprite self) {
             if (self.Active && self.Entity != null) {
                 // this line also invoke EntityTweaks.
@@ -489,8 +484,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        //-----------------------------Method-----------------------------
-        #region
+        #region Method #1
         /// <summary> 
         /// Copies the animations of origSprite that newSprite missing to newSprite.
         /// </summary>
@@ -559,7 +553,7 @@ namespace Celeste.Mod.SkinModHelper {
             return true;
         }
         #endregion
-        #region
+        #region Method #2
         public static string getAnimationRootPath(object type) {
             if (type is Sprite sprite) {
                 var data = DynamicData.For(sprite).Get<SpriteData>("smh_spriteData");
@@ -585,7 +579,7 @@ namespace Celeste.Mod.SkinModHelper {
             return returnValue = getAnimationRootPath(type);
         }
         #endregion
-        #region
+        #region Method #3
         public static FieldInfo GetFieldPlus(Type type, string name) {
             FieldInfo field = null;
             while (field == null && type != null) {
@@ -639,7 +633,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
 
         #endregion
-        #region 
+        #region Method #4
         /// <summary> 
         /// Find out if specified textures-set exists under the sprite's inherited path or own path
         /// </summary>

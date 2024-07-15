@@ -18,7 +18,7 @@ using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 namespace Celeste.Mod.SkinModHelper
 {
     public class SkinModHelperUI {
-        #region
+        #region Create Options
         public static SkinModHelperSettings Settings => (SkinModHelperSettings)Instance._Settings;
         public static SkinModHelperSession Session => (SkinModHelperSession)Instance._Session;
 
@@ -60,8 +60,7 @@ namespace Celeste.Mod.SkinModHelper
         }
         #endregion
 
-        //-----------------------------Options-----------------------------
-        #region // player skin
+        #region // Player Skins Options
         private void BuildPlayerSkinSelectMenu(TextMenu menu, bool inGame) {
             int index = 0;
             List<TextMenu.Option<string>> playback_option = new();
@@ -202,7 +201,7 @@ namespace Celeste.Mod.SkinModHelper
         }
         #endregion
 
-        #region // silhouette skin
+        #region // Silhouette Skins Options
         private TextMenu.Option<string> InsertSilhouetteVariant(List<SkinModHelperConfig> configs, TextMenu menu, 
             TextMenuExt.OptionSubMenu options_lists, List<TextMenu.Item> options, TextMenuExt.EaseInSubHeaderExt _text, bool inGame) {
 
@@ -381,7 +380,7 @@ namespace Celeste.Mod.SkinModHelper
         }
         #endregion
 
-        #region // general skin        
+        #region // General Skins Options       
         public void BuildExSkinsMenu(TextMenu menu, bool inGame) {
             TextMenuExt.OptionSubMenu options_lists = new(Dialog.Clean("SkinModHelper_Settings_Otherskin")) { ItemIndent = 25f };
             options_lists.Add(Dialog.Clean("SkinModHelper_Settings_Otherskin_null"), new());
@@ -442,7 +441,7 @@ namespace Celeste.Mod.SkinModHelper
         }
         #endregion
 
-        #region // more options menu
+        #region // Advanced Options Menu
         public TextMenuExt.SubMenu BuildMoreOptionsMenu(TextMenu menu, bool inGame, bool includeCategorySubmenus, Action submenuBackAction) {
             return new TextMenuExt.SubMenu(Dialog.Clean("SkinModHelper_MORE_OPTIONS"), false).Apply(subMenu => {
                 TextMenuButtonExt SpriteSubmenu;
@@ -468,7 +467,7 @@ namespace Celeste.Mod.SkinModHelper
         }
         #endregion
 
-        #region // precisely skin choose
+        #region // Precisely Skin Choose
         public void Build_SkinFreeConfig_NewMenu(TextMenu menu, bool inGame) {
             List<TextMenu.Option<string>> allOptions = new();
             TextMenu.OnOff SkinFreeConfig_OnOff = new TextMenu.OnOff(Dialog.Clean("SkinModHelper_SkinFreeConfig_OnOff"), Settings.FreeCollocations_OffOn);
@@ -574,8 +573,7 @@ namespace Celeste.Mod.SkinModHelper
         }
         #endregion
 
-        //-----------------------------Method-----------------------------
-        #region
+        #region Method
         public static bool Disabled(bool inGame) {
             if (inGame) {
                 Player player = Engine.Scene?.Tracker.GetEntity<Player>();
@@ -607,8 +605,8 @@ namespace Celeste.Mod.SkinModHelper
             return dict;
         }
         #endregion
-        #region
-        // Reference to EverestCore.
+
+        #region SearchBox Reimplement (Reference from EverestCore)
         static public Action AddSearchBox(TextMenu menu, Overworld overworld = null) {
             TextMenuExt.TextBox textBox = new(overworld) {
                 PlaceholderText = Dialog.Clean("MODOPTIONS_COREMODULE_SEARCHBOX_PLACEHOLDER")
@@ -697,8 +695,8 @@ namespace Celeste.Mod.SkinModHelper
         }
         #endregion
     }
-    //-----------------------------Submenu System (from ExtendedVariant)-----------------------------
-    #region
+
+    #region Submenu System (from ExtendedVariant)
     public static class CommonExtensions
     {
         public static EaseInSubMenu Apply<EaseInSubMenu>(this EaseInSubMenu obj, Action<EaseInSubMenu> action)
@@ -962,8 +960,7 @@ namespace Celeste.Mod.SkinModHelper
     }
     #endregion
 
-    //-----------------------------Search Button-----------------------------
-    #region
+    #region Search Button UI
     public class InputSearchUI : Entity {
         public VirtualButton Key;
         public static InputSearchUI Instance;
@@ -995,7 +992,7 @@ namespace Celeste.Mod.SkinModHelper
         public override void Render() {
             if (inputEase > 0f) {
                 float num = 0.5f;
-                float num2 = Overworld?.ShowInputUI == true ? 48f : 0f;
+                float num2 = Overworld?.inputEase > 0f ? 48f : 0f;
                 string label = Dialog.Clean("MAPLIST_SEARCH");
                 float num3 = ButtonUI.Width(label, Key);
 

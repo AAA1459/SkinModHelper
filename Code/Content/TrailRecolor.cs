@@ -20,8 +20,7 @@ using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 
 namespace Celeste.Mod.SkinModHelper {
     public class TrailRecolor {
-        #region
-
+        #region Hooks
         public static void Load() {
             On.Celeste.TrailManager.Add_Vector2_Image_PlayerHair_Vector2_Color_int_float_bool_bool += onTrailManager_Add_V2IV2CIFBB;
         }
@@ -29,9 +28,7 @@ namespace Celeste.Mod.SkinModHelper {
         public static void Unload() {
             On.Celeste.TrailManager.Add_Vector2_Image_PlayerHair_Vector2_Color_int_float_bool_bool -= onTrailManager_Add_V2IV2CIFBB;
         }
-        #endregion
 
-        //-----------------------------Hooks-----------------------------
         private static TrailManager.Snapshot onTrailManager_Add_V2IV2CIFBB(On.Celeste.TrailManager.orig_Add_Vector2_Image_PlayerHair_Vector2_Color_int_float_bool_bool orig,
             Vector2 position, Image image, PlayerHair hair, Vector2 scale, Color color, int depth, float duration, bool frozenUpdate, bool useRawDeltaTime) {
 
@@ -53,5 +50,6 @@ namespace Celeste.Mod.SkinModHelper {
             }
             return color;
         }
+        #endregion
     }
 }

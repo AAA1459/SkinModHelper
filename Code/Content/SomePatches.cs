@@ -19,7 +19,7 @@ using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 
 namespace Celeste.Mod.SkinModHelper {
     public class SomePatches {
-        #region
+        #region Hooks
         public static SkinModHelperSettings Settings => (SkinModHelperSettings)Instance._Settings;
         public static SkinModHelperSession Session => (SkinModHelperSession)Instance._Session;
 
@@ -63,6 +63,22 @@ namespace Celeste.Mod.SkinModHelper {
             }
         }
 
+        public static void LazyLoad() {
+            if (MaddieHelpingHandInstalled) {
+                Logger.Log(LogLevel.Info, "SkinModHelper", $"interruption MaddieHelpingHand's silhouettes render, Let SkinModHelperPlus own render it");
+
+                using (new DetourContext() { Before = { "*" } }) { // Make those hook to take precedence over the same hook that ExtendedVariants
+                    Assembly assembly = Everest.Modules.Where(m => m.Metadata?.Name == "MaxHelpingHand").First().GetType().Assembly;
+                    Type madelineSilhouetteTrigger = assembly.GetType("Celeste.Mod.MaxHelpingHand.Triggers.MadelineSilhouetteTrigger");
+
+                    doneILHooks.Add(new ILHook(madelineSilhouetteTrigger.GetNestedType("<>c", BindingFlags.NonPublic)
+                                .GetMethod("<patchPlayerRender>b__4_1", BindingFlags.NonPublic | BindingFlags.Instance), hookMadelineIsSilhouette));
+                    doneILHooks.Add(new ILHook(madelineSilhouetteTrigger.GetNestedType("<>c", BindingFlags.NonPublic)
+                        .GetMethod("<patchPlayerRender>b__4_3", BindingFlags.NonPublic | BindingFlags.Instance), hookMadelineIsSilhouette));
+                }
+            }
+        }
+
         public static void Unload() {
             On.Celeste.DeathEffect.Render -= DeathEffectRenderHook;
             On.Celeste.DeathEffect.Draw -= DeathEffectDrawHook;
@@ -79,10 +95,9 @@ namespace Celeste.Mod.SkinModHelper {
             On.Monocle.Sprite.SetAnimationFrame -= SpriteSetAnimationFrameHook;
         }
 
-        #endregion
+        #endregion Hooks
 
-        //-----------------------------Portraits-----------------------------
-        #region
+        #region Portraits
 
         // Relinking portrait skin's textbox and sfx, instead of just changing the portrait self.
         private static void ilFancyTextParse(ILContext il) {
@@ -136,8 +151,7 @@ namespace Celeste.Mod.SkinModHelper {
 
         #endregion
 
-        //-----------------------------Players-----------------------------
-        #region
+        #region Player Animations Extensions
         private static void PlayerSuperWallJumpHook(On.Celeste.Player.orig_SuperWallJump orig, Player self, int dir) {
             orig(self, dir);
             if (!self.Sprite.CurrentAnimationID.Contains("dreamDashOut") && !SpriteExt_TryPlay(self.Sprite, "wallBounce")) {
@@ -155,11 +169,10 @@ namespace Celeste.Mod.SkinModHelper {
         private static void PlayerSpritePlayHook(On.Monocle.Sprite.orig_Play orig, Sprite self, string id, bool restart = false, bool randomizeFrame = false) {
             string origID = id;
 
+            #region Animations Extensions
             if (self.Entity is Player player) {
-                #region Animations modify and extended
 
                 if (!restart && self.LastAnimationID != null) {
-                    DynamicData playerData = DynamicData.For(player);
                     bool SwimCheck = player.Collidable ? player.SwimCheck() : false;
 
                     switch (id) {
@@ -227,44 +240,36 @@ namespace Celeste.Mod.SkinModHelper {
                         }
                     }
                 }
-                #endregion
             }
+            #endregion
 
             if (self.Entity is Player || self.Entity is PlayerDeadBody) {
-                DynamicData selfData = DynamicData.For(self);
+                if (!self.Has(id)) {
+                    string spriteName = (self as PlayerSprite)?.spriteName;
+                    if (spriteName != null)
+                        Logger.Log(LogLevel.Error, "SkinModHelper", $"'{spriteName}' missing animation: {id}");
 
-                string spriteName_orig = selfData.Get<string>("spriteName_orig");
-                if (spriteName_orig != null) {
-                    GFX.SpriteBank.CreateOn(self, spriteName_orig);
-                    selfData.Set("spriteName_orig", null);
-                }
+                    if (GFX.SpriteBank.SpriteData["player"].Sprite.Animations.TryGetValue(id, out Sprite.Animation anim) ||
+                        GFX.SpriteBank.SpriteData["player_no_backpack"].Sprite.Animations.TryGetValue(id, out anim)) {
 
-                if (self.Has(id)) {
-                    orig(self, id, restart, randomizeFrame);
-                    if (origID == "startStarFly") {
-                        selfData.Set("CurrentAnimationID", origID);
+                        self.Animations[id] = anim;
+                        if (spriteName != null && GFX.SpriteBank.Has(spriteName))
+                            GFX.SpriteBank.SpriteData[spriteName].Sprite.Animations[id] = anim;
+                    } else {
+                        return;
                     }
-                    return;
                 }
-                string spriteName = selfData.Get<string>("spriteName");
-                if (spriteName != "") {
-                    Logger.Log(LogLevel.Error, "SkinModHelper", $"'{spriteName}' missing animation: {id}");
-                }
-
-                if (GFX.SpriteBank.SpriteData["player"].Sprite.Animations.TryGetValue(id, out Sprite.Animation anim) ||
-                    GFX.SpriteBank.SpriteData["player_no_backpack"].Sprite.Animations.TryGetValue(id, out anim)) {
-
-                    self.Animations[id] = anim;
-                    if (GFX.SpriteBank.Has(spriteName))
-                        GFX.SpriteBank.SpriteData[spriteName].Sprite.Animations[id] = anim;
-                }
+                orig(self, id, restart, randomizeFrame);
+                if (origID == "startStarFly")
+                    self.CurrentAnimationID = origID;
                 return;
             }
             orig(self, id, restart, randomizeFrame);
         }
 
         #endregion
-        #region
+
+        #region Player
         private static void TempleFallCoroutineILHook(ILContext il) {
             ILCursor cursor = new ILCursor(il);
             while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdstr("idle"))) {
@@ -305,8 +310,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        //-----------------------------Log Patch-----------------------------
-        #region
+        #region Log Patch
         private static void SpriteSetAnimationFrameHook(On.Monocle.Sprite.orig_SetAnimationFrame orig, Sprite self, int frame) {
             try {
                 orig(self, frame);
@@ -316,8 +320,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        //-----------------------------Death Effect-----------------------------
-        #region
+        #region DeathEffect Reimplement
         private static void DeathEffectRenderHook(On.Celeste.DeathEffect.orig_Render orig, DeathEffect self) {
 
             DynamicData selfData = DynamicData.For(self);
@@ -425,7 +428,8 @@ namespace Celeste.Mod.SkinModHelper {
             };
         }
         #endregion
-        #region
+
+        #region DeathEffect other
         // Although in "DeathEffectRenderHook", we blocked the original method. but only Player will still run this...
         private static void DeathEffectDrawHook(On.Celeste.DeathEffect.orig_Draw orig, Vector2 position, Color color, float ease) {
             Entity entity = null;
@@ -461,27 +465,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        //-----------------------------Lazy Load-----------------------------
-        #region
-        public static void LazyLoad() {
-            if (MaddieHelpingHandInstalled) {
-                Logger.Log(LogLevel.Info, "SkinModHelper", $"interruption MaddieHelpingHand's silhouettes render, Let SkinModHelperPlus own render it");
-
-                using (new DetourContext() { Before = { "*" } }) { // Make those hook to take precedence over the same hook that ExtendedVariants
-                    Assembly assembly = Everest.Modules.Where(m => m.Metadata?.Name == "MaxHelpingHand").First().GetType().Assembly;
-                    Type madelineSilhouetteTrigger = assembly.GetType("Celeste.Mod.MaxHelpingHand.Triggers.MadelineSilhouetteTrigger");
-
-                    doneILHooks.Add(new ILHook(madelineSilhouetteTrigger.GetNestedType("<>c", BindingFlags.NonPublic)
-                                .GetMethod("<patchPlayerRender>b__4_1", BindingFlags.NonPublic | BindingFlags.Instance), hookMadelineIsSilhouette));
-                    doneILHooks.Add(new ILHook(madelineSilhouetteTrigger.GetNestedType("<>c", BindingFlags.NonPublic)
-                        .GetMethod("<patchPlayerRender>b__4_3", BindingFlags.NonPublic | BindingFlags.Instance), hookMadelineIsSilhouette));
-                }
-            }
-        }
-        #endregion
-
-        //-----------------------------Hook MaddieHelpingHand / MaxHelpingHand-----------------------------
-        #region
+        #region MaddieHelpingHand
         private static void hookMadelineIsSilhouette(ILContext il) {
             ILCursor cursor = new ILCursor(il);
             while (cursor.TryGotoNext(MoveType.After, instr => instr.OpCode == OpCodes.Callvirt && (instr.Operand as MethodReference).Name == "get_MadelineIsSilhouette")) {
@@ -492,8 +476,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        #region
-        // Maybe... maybe maybe...
+        #region OldSkinModHelper Block
         private static void EmptyBlocks_1(object obj) { }
         private static bool EmptyBlocks_0_boolen() { return false; }
         private static void modOptions_EmptyBlocks(Action<EverestModule, TextMenu, bool, EventInstance> orig, EverestModule self, TextMenu menu, bool inGame, EventInstance snapshot) {

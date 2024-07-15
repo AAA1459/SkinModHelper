@@ -20,7 +20,7 @@ using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 
 namespace Celeste.Mod.SkinModHelper {
     public class RespriteBankModule {
-
+        #region Method
         public static List<RespriteBankModule> InstanceList = new();
         private static Dictionary<string, RespriteBankModule> cache = new();
         public static bool SearchInstance(SpriteBank bank, out RespriteBankModule bank2) {
@@ -32,7 +32,9 @@ namespace Celeste.Mod.SkinModHelper {
         public static List<RespriteBankModule> ManagedInstance() {
             return InstanceList.FindAll(bank3 => bank3.runhosting);
         }
-        #region
+        #endregion 
+
+        #region Ctor / Values
         public RespriteBankModule(string xml_name, bool runhosting) {
             XML_name = xml_name;
             this.runhosting = runhosting;
@@ -61,7 +63,7 @@ namespace Celeste.Mod.SkinModHelper {
         public bool runhosting { get; private set; }
         #endregion
 
-        #region
+        #region Record / Combine
         public virtual void DoRecord(string skinId, string directory, string cipher = "") {
             if (string.IsNullOrEmpty(skinId) || Basebank == null)
                 return;
@@ -123,7 +125,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        #region
+        #region Method #2
         public virtual string this[string SpriteID] {
             get {
                 return Active && CurrentSkins.TryGetValue(SpriteID, out var value) ? value : null;
@@ -163,6 +165,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
     }
+    #region RespriteBank
     public class RespriteBank : RespriteBankModule {
         public RespriteBank(string xml_name, string menu_name, string prefix) : base(xml_name, true) {
             O_SubMenuName = menu_name;
@@ -176,6 +179,9 @@ namespace Celeste.Mod.SkinModHelper {
                 PlayerSprite.CreateFramesMetadata(n_name);  // Check if skin have metadata... no matter what skin it is.
         }
     }
+    #endregion
+
+    #region ReportraitsBank
     public class ReportraitsBank : RespriteBankModule {
         public ReportraitsBank(string xml_name, string menu_name, string prefix) : base(xml_name, true) {
             O_SubMenuName = menu_name;
@@ -184,26 +190,24 @@ namespace Celeste.Mod.SkinModHelper {
         public override SpriteBank Basebank { get => GFX.PortraitsSpriteBank; }
         public override Dictionary<string, string> Settings { get => smh_Settings.FreeCollocations_Portraits; }
     }
+    #endregion
 
-
-
-
-
-
+    #region nonBankReskin / Other Sprite
     public class nonBankReskin : RespriteBankModule {
+        #region Ctor / Values
         public nonBankReskin(string menu_name, string prefix) : base(null, true) {
             O_SubMenuName = menu_name;
             O_DescriptionPrefix = prefix;
         }
         public override Dictionary<string, string> Settings { get => smh_Settings.FreeCollocations_OtherExtra; }
 
-
         public Dictionary<string, Tuple<Atlas, string, string>> PathSpriteId = new();
         public Dictionary<string, Tuple<Atlas, string, string>> PathStaticSpriteId = new();
 
         public Dictionary<string, string> SkinIdPath = new(StringComparer.OrdinalIgnoreCase);
+        #endregion
 
-
+        #region Record / Combine
         public void AddSpriteInfo(string storageId, Atlas atlas, string orig_path, bool isStatic = true) {
             if (isStatic)
                 PathStaticSpriteId[atlas.DataPath + orig_path] = new(atlas, orig_path, storageId);
@@ -260,7 +264,9 @@ namespace Celeste.Mod.SkinModHelper {
             }
         }
         public override void DoCombine(string skinId, string directory, string cipher) {}
+        #endregion
 
+        #region Method
         public override string GetDefaultSkin(string SpriteID, string cipher) {
             if (!SkinsRecords.TryGetValue(SpriteID, out var value))
                 return null;
@@ -292,5 +298,7 @@ namespace Celeste.Mod.SkinModHelper {
             }
             return orig_path;
         }
+        #endregion
     }
+    #endregion
 }

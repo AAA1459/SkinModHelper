@@ -22,7 +22,7 @@ namespace Celeste.Mod.SkinModHelper {
         public const string HelpInfo = "SubCommands list: player(p), spriteidpath, sip";
 
         [Command("skinmodhelper", HelpInfo)]
-        #region
+        #region Process
         public static void Process(string subCommand, string name, string subname) {
             subCommand = subCommand?.ToLower();
             if (string.IsNullOrWhiteSpace(subCommand) || subCommand == "help") { Send(HelpInfo); return; }

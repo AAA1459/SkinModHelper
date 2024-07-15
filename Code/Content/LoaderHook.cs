@@ -17,7 +17,7 @@ using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 
 namespace Celeste.Mod.SkinModHelper {
     public class LoaderHook {
-        #region
+        #region Hooks
         public static SkinModHelperSettings Settings => (SkinModHelperSettings)Instance._Settings;
         public static SkinModHelperSession Session => (SkinModHelperSession)Instance._Session;
 
@@ -41,9 +41,8 @@ namespace Celeste.Mod.SkinModHelper {
         }
 
         #endregion
-
-        //-----------------------------Loader-----------------------------
-        #region
+        
+        #region Loader
         // loading if game starts.
         private static void GameLoaderBeginHook(On.Celeste.GameLoader.orig_Begin orig, GameLoader self) {
             ReloadSettings();
@@ -83,7 +82,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        #region
+        #region OuiFileSelect
         // loading if save file menu be first time enter when before overworld reloaded.
         private static void OuiFileSelectSlotSetupHook(On.Celeste.OuiFileSelectSlot.orig_Setup orig, OuiFileSelectSlot self) {
             if (self.FileSlot == 0) {

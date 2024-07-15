@@ -19,7 +19,7 @@ using static Celeste.Mod.SkinModHelper.SkinsSystem;
 
 namespace Celeste.Mod.SkinModHelper {
     public class SkinModHelperModule : EverestModule {
-        #region
+        #region Values
         public static SkinModHelperModule Instance;
         public override Type SettingsType => typeof(SkinModHelperSettings);
         public override Type SessionType => typeof(SkinModHelperSession);
@@ -32,8 +32,7 @@ namespace Celeste.Mod.SkinModHelper {
         public static List<ILHook> doneILHooks = new List<ILHook>();
         #endregion
 
-        //-----------------------------Hooks-----------------------------
-        #region
+        #region Hooks
         public static bool JungleHelperInstalled = false;
         public static bool SaveFilePortraits = false;
         public static bool OrigSkinModHelper_loaded = false;
@@ -50,7 +49,7 @@ namespace Celeste.Mod.SkinModHelper {
 
         public override void Load() {
             SkinModHelperInterop.Load();
-            SkinModHelperInterop.Load();
+            SkinsSystem.Load();
 
             LoaderHook.Load();
             PlayerSkinSystem.Load();
@@ -84,8 +83,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        //-----------------------------UI-----------------------------
-        #region
+        #region UI
         public override void CreateModMenuSection(TextMenu menu, bool inGame, EventInstance snapshot) {
             base.CreateModMenuSection(menu, inGame, snapshot);
 
@@ -100,8 +98,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        //-----------------------------Somethings-----------------------------
-        #region
+        #region LoadContent
         public override void LoadContent(bool firstLoad) {
             base.LoadContent(firstLoad);
 
@@ -117,8 +114,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        //-----------------------------Setting update-----------------------------
-        #region
+        #region Setting Update
         public static void UpdatePlayerSkin(string newSkinId, bool inGame) {
             if (Session != null) {
                 SessionSet_PlayerSkin(null);
@@ -145,8 +141,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        //-----------------------------Session update-----------------------------
-        #region
+        #region Session Update
         public static void SessionSet_PlayerSkin(string newSkinId) {
             if (Session == null) {
                 Logger.Log(LogLevel.Warn, "SkinModHelper", $"The player is not in the level, cannot setting session!");
@@ -185,8 +180,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        //-----------------------------Skins Refresh-----------------------------
-        #region
+        #region Skins Refresh
         public static void RefreshSkinValues(bool? Setting, bool inGame) {
             if (Setting != null) {
                 Settings.FreeCollocations_OffOn = (bool)Setting;
@@ -199,8 +193,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        //-----------------------------Method----------------------------- 
-        #region
+        #region Method #1
 
         /// <returns> 
         /// Return settings or specified PlayerSkin if it exist, or with suffix.
@@ -246,7 +239,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
 
         #endregion
-        #region
+        #region Method #2
         public static List<SkinModHelperConfig> GetEnabledGeneralSkins() {
             if (OtherskinConfigs.Count > 0) {
                 return OtherskinConfigs.Values.Where(config => GetGeneralSkin(config.SkinName) == true).ToList();

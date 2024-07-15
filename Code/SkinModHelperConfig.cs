@@ -15,11 +15,9 @@ using static Celeste.Mod.SkinModHelper.PlayerSkinSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 
 namespace Celeste.Mod.SkinModHelper {
-
-    //-----------------------------MainConfig-----------------------------
-    #region
+    #region SkinModHelperConfig
     public class SkinModHelperConfig {
-        #region
+        #region Ctor
         public SkinModHelperConfig() {
         }
         public SkinModHelperConfig(SkinModHelperOldConfig old_config) : this() {
@@ -29,8 +27,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        //-----------------------------Values-----------------------------
-        #region
+        #region Values
         public string SkinName { get; set; }
         public bool Player_List { get; set; }
         public bool Silhouette_List { get; set; }
@@ -71,51 +68,18 @@ namespace Celeste.Mod.SkinModHelper {
         public string SkinDialogKey { get; set; }
         public string hashSeed { get; set; }
         public string Mod { get; set; }
-        #endregion
-        #region
+
         public int hashValues = -1;
         #endregion
     }
     #endregion
 
-    //-----------------------------CharacterConfig-----------------------------
-    #region
+    #region CharacterConfig
     public class CharacterConfig {
+        #region Ctor / Initialization
         public CharacterConfig() {
         }
 
-        //-----------------------------Values-----------------------------
-        #region
-        public bool? BadelineMode { get; set; }
-        public bool? SilhouetteMode { get; set; }
-
-        public string LowStaminaFlashColor { get; set; }
-        public bool LowStaminaFlashHair { get; set; }
-        public bool HoldableFacingFlipable { get; set; }
-
-        public string TrailsColor { get; set; }
-        public string DeathParticleColor { get; set; }
-
-
-        #endregion
-        #region
-        public Image Target;
-        public string SourcePath;
-
-        public bool TweaksTEST;
-        public List<Tweak> EntityTweaks { get; set; }
-        public class Tweak {
-            public string Name { get; set; }
-            public string Value { get; set; }
-            public string LimitOnType { get; set; }
-
-            public bool subTEST;
-            public List<Tweak> subTweaks { get; set; }
-        }
-        #endregion
-
-        //-----------------------------Initialization-----------------------------
-        #region
         public static CharacterConfig For(Image target) {
             DynamicData selfData = DynamicData.For(target);
             CharacterConfig config = selfData.Get<CharacterConfig>("smh_characterConfig");
@@ -145,7 +109,37 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        #region
+        #region Values
+        public bool? BadelineMode { get; set; }
+        public bool? SilhouetteMode { get; set; }
+
+        public string LowStaminaFlashColor { get; set; }
+        public bool LowStaminaFlashHair { get; set; }
+        public bool HoldableFacingFlipable { get; set; }
+
+        public string TrailsColor { get; set; }
+        public string DeathParticleColor { get; set; }
+
+
+        #endregion
+
+        #region Other Values 
+        public Image Target;
+        public string SourcePath;
+
+        public bool TweaksTEST;
+        public List<Tweak> EntityTweaks { get; set; }
+        public class Tweak {
+            public string Name { get; set; }
+            public string Value { get; set; }
+            public string LimitOnType { get; set; }
+
+            public bool subTEST;
+            public List<Tweak> subTweaks { get; set; }
+        }
+        #endregion
+
+        #region EntityTweaks Method
         private static List<Type> NotCloneList = new List<Type>() {
             typeof(Image)
         };
@@ -244,51 +238,10 @@ namespace Celeste.Mod.SkinModHelper {
     }
     #endregion
 
-    //-----------------------------HairConfig-----------------------------
-    #region
+    #region HairConfig
     public class HairConfig {
-        #region
-        public HairConfig() {
-        }
-        #endregion
-
-        //-----------------------------Values-----------------------------
-        #region
-        public string OutlineColor { get; set; }
-        public bool HairFlash { get; set; } = true;
-        public int? HairFloatingDashCount { get; set; }
-
-        public List<HairColor> HairColors { get; set; }
-        public class HairColor {
-            public int Dashes { get; set; }
-            public string Color { get; set; }
-            public List<SegmentsColor> SegmentsColors { get; set; }
-            public class SegmentsColor {
-                public int Segment { get; set; }
-                public string Color { get; set; }
-            }
-        }
-
-        public List<HairLength> HairLengths { get; set; }
-        public class HairLength {
-            public int Dashes { get; set; }
-            public int Length { get; set; }
-        }
-        #endregion
-        #region
-        public PlayerHair Target;
-        public string SourcePath;
-        public List<SkinModHelperOldConfig.HairColor> oldHairColors;
-
-        public List<MTexture> new_bangs;
-        public List<MTexture> new_hairs;
-
-        public Dictionary<int, List<Color>> ActualHairColors;
-        public Dictionary<int, int> ActualHairLengths;
-        #endregion
-
-        //-----------------------------Initialization-----------------------------
-        #region
+        #region Ctor / Initialization
+        public HairConfig() { }
         public static HairConfig For(PlayerHair target) {
             DynamicData selfData = DynamicData.For(target);
             HairConfig config = selfData.Get<HairConfig>("smh_hairConfig");
@@ -337,7 +290,43 @@ namespace Celeste.Mod.SkinModHelper {
         }
 
         #endregion
-        #region
+
+        #region Values
+        public string OutlineColor { get; set; }
+        public bool HairFlash { get; set; } = true;
+        public int? HairFloatingDashCount { get; set; }
+
+        public List<HairColor> HairColors { get; set; }
+        public class HairColor {
+            public int Dashes { get; set; }
+            public string Color { get; set; }
+            public List<SegmentsColor> SegmentsColors { get; set; }
+            public class SegmentsColor {
+                public int Segment { get; set; }
+                public string Color { get; set; }
+            }
+        }
+
+        public List<HairLength> HairLengths { get; set; }
+        public class HairLength {
+            public int Dashes { get; set; }
+            public int Length { get; set; }
+        }
+        #endregion
+
+        #region Other Values
+        public PlayerHair Target;
+        public string SourcePath;
+        public List<SkinModHelperOldConfig.HairColor> oldHairColors;
+
+        public List<MTexture> new_bangs;
+        public List<MTexture> new_hairs;
+
+        public Dictionary<int, List<Color>> ActualHairColors;
+        public Dictionary<int, int> ActualHairLengths;
+        #endregion
+
+        #region Build Hair Colors / Lengths
         public void BuildHairColors() {
             Dictionary<int, Color> changed = new();
 
@@ -406,7 +395,8 @@ namespace Celeste.Mod.SkinModHelper {
             ActualHairLengths = HairLengths;
         }
         #endregion
-        #region
+
+        #region Build Old Skins Hair Colors
         public void Old_BuildHairColors() {
             Dictionary<int, Color> changed = new();
 
@@ -445,8 +435,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        //-----------------------------Method-----------------------------
-        #region
+        #region Method
         public bool Safe_GetHairColor(int index, int dashes, out Color color) {
             if (ActualHairColors == null) {
                 color = new();
@@ -477,8 +466,7 @@ namespace Celeste.Mod.SkinModHelper {
     }
     #endregion
 
-    //-----------------------------OldConfig-----------------------------
-    #region
+    #region SkinModHelperOldConfig
     public class SkinModHelperOldConfig {
         public string SkinId { get; set; }
         public string SkinDialogKey { get; set; }

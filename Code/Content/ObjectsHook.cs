@@ -17,7 +17,7 @@ using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 
 namespace Celeste.Mod.SkinModHelper {
     public class ObjectsHook {
-        #region
+        #region Hooks
         public static SkinModHelperSettings Settings => (SkinModHelperSettings)Instance._Settings;
         public static SkinModHelperSession Session => (SkinModHelperSession)Instance._Session;
 
@@ -48,8 +48,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        //-----------------------------Lookout-----------------------------
-        #region
+        #region Lookout
         public static void on_Lookout_Interact(On.Celeste.Lookout.orig_Interact orig, Lookout self, Player player) {
             orig(self, player);
             if (Player_Skinid_verify != 0) {
@@ -58,8 +57,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        //-----------------------------flyFeather-----------------------------
-        #region
+        #region flyFeather
         public static void Celeste_flyFeather_Hook(On.Celeste.FlyFeather.orig_Added orig, FlyFeather self, Scene scene) {
             orig(self, scene);
             if (GetTextureOnSprite(self.sprite, "outline", out var outline)) {
@@ -68,8 +66,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        //-----------------------------Cloud-----------------------------
-        #region
+        #region Cloud
         public static void Celeste_Cloud_Hook(On.Celeste.Cloud.orig_Added orig, Cloud self, Scene scene) {
             orig(self, scene);
             if (GetTextureOnSprite(self.sprite, "clouds", out var clouds)) {
@@ -81,8 +78,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        //-----------------------------Booster-----------------------------
-        #region
+        #region Booster
         public static void Celeste_Booster_ILHook(ILContext il) {
             ILCursor cursor = new(il);
 
@@ -106,8 +102,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        //-----------------------------Refill-----------------------------
-        #region
+        #region Refill
         private static void Celeste_Refill_Hook(On.Celeste.Refill.orig_Added orig, Refill self, Scene scene) {
             orig(self, scene);
             string SpriteID = null;
@@ -153,8 +148,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        //-----------------------------Seeker-----------------------------
-        #region
+        #region Seeker
         public static void Celeste_Seeker_ILHook(ILContext il) {
             ILCursor cursor = new(il);
             while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchNewobj("Celeste.DeathEffect"))) {
@@ -170,8 +164,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        //-----------------------------BadelineBoost-----------------------------
-        #region
+        #region BadelineBoost
         private static void EntityAddedHook(On.Monocle.Entity.orig_Added orig, Entity self, Scene scene) {
 
             // You can see... DJMapHelper and StrawberryJam's BadelineBoost works not as an BadelineBoost type... so let hooking here
