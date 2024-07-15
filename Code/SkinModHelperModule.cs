@@ -50,7 +50,7 @@ namespace Celeste.Mod.SkinModHelper {
 
         public override void Load() {
             SkinModHelperInterop.Load();
-            SkinsSystem.Load();
+            SkinModHelperInterop.Load();
 
             LoaderHook.Load();
             PlayerSkinSystem.Load();

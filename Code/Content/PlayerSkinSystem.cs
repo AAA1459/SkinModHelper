@@ -18,7 +18,7 @@ using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 
 namespace Celeste.Mod.SkinModHelper {
     public class PlayerSkinSystem {
-        #region
+        #region Hooks
         public static SkinModHelperSettings Settings => (SkinModHelperSettings)Instance._Settings;
         public static SkinModHelperSession Session => (SkinModHelperSession)Instance._Session;
 
@@ -35,6 +35,8 @@ namespace Celeste.Mod.SkinModHelper {
             IL.Celeste.Player.DashUpdate += PlayerDashUpdateIlHook;
 
             IL.Celeste.Player.Render += PlayerRenderIlHook_Color;
+            On.Celeste.PlayerHair.Render += PlayerHairRenderHook;
+            On.Celeste.PlayerSprite.Render += PlayerSpriteRenderHook;
 
             On.Celeste.PlayerHair.Render += PlayerHairRenderHook_ColorGrade;
             doneHooks.Add(new Hook(typeof(Sprite).GetMethod("Render", BindingFlags.Public | BindingFlags.Instance),
@@ -43,9 +45,8 @@ namespace Celeste.Mod.SkinModHelper {
             On.Celeste.Lookout.Update += LookoutUpdateHook_ColorGrade;
             On.Celeste.Payphone.Update += PayphoneUpdateHook_ColorGrade;
 
-            On.Celeste.PlayerHair.Render += PlayerHairRenderHook;
-            On.Celeste.PlayerSprite.Render += PlayerSpriteRenderHook;
             On.Celeste.PlayerHair.Update += PlayerHairUpdateHook;
+            On.Celeste.PlayerHair.AfterUpdate += on_PlayerHair_AfterUpdate;
 
             On.Celeste.PlayerHair.GetHairColor += PlayerHairGetHairColorHook;
             On.Celeste.PlayerHair.GetHairTexture += PlayerHairGetHairTextureHook;
@@ -80,17 +81,18 @@ namespace Celeste.Mod.SkinModHelper {
             IL.Celeste.Player.DashUpdate -= PlayerDashUpdateIlHook;
 
             IL.Celeste.Player.Render -= PlayerRenderIlHook_Color;
-
             On.Celeste.PlayerHair.Render -= PlayerHairRenderHook;
-            On.Celeste.PlayerSprite.Render -= PlayerSpriteRenderHook;
-            On.Celeste.PlayerHair.Update -= PlayerHairUpdateHook;
-
             On.Celeste.PlayerHair.Render -= PlayerHairRenderHook_ColorGrade;
+            On.Celeste.PlayerSprite.Render -= PlayerSpriteRenderHook;
+
+            On.Celeste.Lookout.Update -= LookoutUpdateHook_ColorGrade;
+            On.Celeste.Payphone.Update -= PayphoneUpdateHook_ColorGrade;
+
+            On.Celeste.PlayerHair.Update -= PlayerHairUpdateHook;
+            On.Celeste.PlayerHair.AfterUpdate -= on_PlayerHair_AfterUpdate;
 
             On.Celeste.PlayerHair.GetHairColor -= PlayerHairGetHairColorHook;
             On.Celeste.PlayerHair.GetHairTexture -= PlayerHairGetHairTextureHook;
-            On.Celeste.Lookout.Update -= LookoutUpdateHook_ColorGrade;
-            On.Celeste.Payphone.Update -= PayphoneUpdateHook_ColorGrade;
 
             IL.Celeste.Player.UpdateHair -= patch_SpriteMode_Badeline;
             IL.Celeste.Player.DashUpdate -= patch_SpriteMode_Badeline;
@@ -98,8 +100,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        //-----------------------------PlayerSprite-----------------------------
-        #region
+        #region PlayerSprite Ctor
         private static Sprite SpriteBankCreateOn(On.Monocle.SpriteBank.orig_CreateOn orig, SpriteBank self, Sprite sprite, string id) {
             // Prevent mode's non-vanilla value causing the game Error
             if (sprite is PlayerSprite && id == "") {
@@ -175,8 +176,7 @@ namespace Celeste.Mod.SkinModHelper {
 
         #endregion
 
-        //-----------------------------Player-----------------------------
-        #region
+        #region Player On
 
         private static void PlayerUpdateHook(On.Celeste.Player.orig_Update orig, Player self) {
             orig(self);
@@ -232,7 +232,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        #region
+        #region Player IL
         private static void ilPlayerOrig_Update(ILContext il) {
             ILCursor cursor = new ILCursor(il);
 
@@ -291,8 +291,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        //-----------------------------ColorGrade-----------------------------
-        #region
+        #region ColorGrade
         private static void PlayerHairRenderHook_ColorGrade(On.Celeste.PlayerHair.orig_Render orig, PlayerHair self) {
             DynamicData selfData = DynamicData.For(self.Sprite);
 
@@ -386,7 +385,8 @@ namespace Celeste.Mod.SkinModHelper {
             orig(self);
         }
         #endregion
-        #region
+
+        #region ColorGrade Other
         private static void LookoutUpdateHook_ColorGrade(On.Celeste.Lookout.orig_Update orig, Lookout self) {
             Player player = Engine.Scene?.Tracker.GetEntity<Player>();
             SkinModHelperInterop.CopyColorGrades(player?.Sprite, DynamicData.For(self).Get<Sprite>("sprite"));
@@ -400,8 +400,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        //-----------------------------PlayerSprite-----------------------------
-        #region
+        #region PlayerSprite Color
         private static void PlayerSpriteRenderHook(On.Celeste.PlayerSprite.orig_Render orig, PlayerSprite self) {
             if (self.Active)
                 if (self.Entity is not Player && DynamicData.For(self).Get("isGhost") == null && self.Entity is not PlayerDeadBody) {
@@ -420,16 +419,15 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        //-----------------------------PlayerHair-----------------------------
-        #region
-        private static void PlayerHairUpdateHook(On.Celeste.PlayerHair.orig_Update orig, PlayerHair self) {
-            DynamicData selfData = DynamicData.For(self);
-
-            selfData.Set("HairColorGrading", null);
-            if (selfData.TryGet("smh_HairLength", out int? length) && length != null) {
+        #region PlayerHair
+        private static void on_PlayerHair_AfterUpdate(On.Celeste.PlayerHair.orig_AfterUpdate orig, PlayerHair self) {
+            // Hair fills its nodes basen on HairCount at AfterUpdate instead of Render... For safety, modify HairCount here.
+            if (DynamicData.For(self).TryGet("smh_HairLength", out int? length) && length != null)
                 self.Sprite.HairCount = (int)length;
-            }
 
+            orig(self);
+        }
+        private static void PlayerHairUpdateHook(On.Celeste.PlayerHair.orig_Update orig, PlayerHair self) {
             if (self.Entity is Player player && player.StateMachine.State == 14) {
                 int? dashes = GetDashCount(player);
                 if (dashes != null && HairConfig.For(self).Safe_GetHairColor(100, (int)dashes, out Color color))
@@ -529,8 +527,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        //-----------------------------PlayerSpriteMode-----------------------------
-        #region
+        #region PlayerSpriteMode
         private static void SetPlayerSpriteMode(PlayerSpriteMode? mode) {
             if (Engine.Scene is Level level) {
                 Player player = level.Tracker.GetEntity<Player>();
@@ -574,7 +571,7 @@ namespace Celeste.Mod.SkinModHelper {
                 });
             }
         }
-        // ---JungleHelper---
+
         public static bool HasLantern(Func<PlayerSpriteMode, bool> orig, PlayerSpriteMode mode) {
             bool boolen = orig(mode);
             if (boolen) {
@@ -589,8 +586,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        //-----------------------------Method-----------------------------
-        #region
+        #region Method
         public static void RefreshPlayerSpriteMode(string SkinName = null, int dashCount = 1) {
             if (Engine.Scene is not Level) {
                 return;
