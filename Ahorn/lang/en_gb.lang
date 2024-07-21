@@ -9,3 +9,9 @@ placements.triggers.SkinModHelper/EntityReskinTrigger.tooltips.entityIndex= On t
 placements.triggers.SkinModHelper/EntityReskinTrigger.tooltips.entityFullName= Specify the Entity's TypeFullName to reskin them
 
 placements.triggers.SkinModHelper/EntityReskinTrigger.tooltips.newSpriteID= Give the entities a new ID from Sprites.xml to finish reskin.
+
+
+# Player Anim Prefix AddOn Trigger
+placements.triggers.SkinModHelper/PlayerAnimPrefixAddOnTrigger.tooltips.revertOnLeave=If checked, Player will lose the this skin when exiting the trigger.
+placements.triggers.SkinModHelper/PlayerAnimPrefixAddOnTrigger.tooltips.animPrefixAddOn= A string used as a prefix for player animations e.g. "idle" into "default_idle", just long an animation with prefix exist in "SkinModHelper_PlayerAnimFill" of sprites.xml of map.  
+

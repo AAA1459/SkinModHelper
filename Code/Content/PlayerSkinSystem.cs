@@ -25,6 +25,7 @@ namespace Celeste.Mod.SkinModHelper {
         public static void Load() {
             On.Monocle.SpriteBank.CreateOn += SpriteBankCreateOn;
             On.Celeste.PlayerSprite.ctor += on_PlayerSprite_ctor;
+            On.Celeste.PlayerSprite.CreateFramesMetadata += on_PlayerSprite_CreateFramesMetadata;
 
             using (new DetourContext() { After = { "*" } }) { // targeted at DJMapHelper's MaxDashesTrigger
                 On.Celeste.Player.Update += PlayerUpdateHook;
@@ -73,6 +74,7 @@ namespace Celeste.Mod.SkinModHelper {
         public static void Unload() {
             On.Monocle.SpriteBank.CreateOn -= SpriteBankCreateOn;
             On.Celeste.PlayerSprite.ctor -= on_PlayerSprite_ctor;
+            On.Celeste.PlayerSprite.CreateFramesMetadata -= on_PlayerSprite_CreateFramesMetadata;
 
             On.Celeste.Player.Update -= PlayerUpdateHook;
             On.Celeste.Player.UpdateHair -= PlayerUpdateHairHook;
@@ -174,12 +176,25 @@ namespace Celeste.Mod.SkinModHelper {
             }
         }
 
+        private static void on_PlayerSprite_CreateFramesMetadata(On.Celeste.PlayerSprite.orig_CreateFramesMetadata orig, string id) {
+            if (GFX.SpriteBank.SpriteData.TryGetValue("SkinModHelper_PlayerAnimFill", out var fills)) {
+                PatchSprite(fills.Sprite, GFX.SpriteBank.SpriteData[id].Sprite);
+                if (id == "player") {
+                    orig("SkinModHelper_PlayerAnimFill");
+                }
+            }
+            orig(id);
+        }
         #endregion
 
         #region Player On
 
         private static void PlayerUpdateHook(On.Celeste.Player.orig_Update orig, Player self) {
             orig(self);
+            if (self.Sprite != null) {
+                DynamicData.For(self.Sprite).Set("smh_AnimPrefix", smh_Session?.Player_animPrefixAddOn);
+            }
+
             // in there, DJMapHelper's MaxDashesTrigger setting OverrideHairColor for 0 dashes blue hair, let's reset it to skin's 0 dashes color.
             if (self.OverrideHairColor != Player.UsedHairColor) {
                 return;

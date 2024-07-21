@@ -154,52 +154,62 @@ namespace Celeste.Mod.SkinModHelper {
         #region Player Animations Extensions
         private static void PlayerSuperWallJumpHook(On.Celeste.Player.orig_SuperWallJump orig, Player self, int dir) {
             orig(self, dir);
-            if (!self.Sprite.CurrentAnimationID.Contains("dreamDashOut") && !SpriteExt_TryPlay(self.Sprite, "wallBounce")) {
-                SpriteExt_TryPlay(self.Sprite, "jumpCrazy");
+
+            if (!self.Sprite.CurrentAnimationID.Contains("dreamDashOut")) {
+                string id = "jumpCrazy";
+                SpriteExt_CrossHas(self.Sprite, ref id, DynamicData.For(self.Sprite).Get<string>("smh_AnimPrefix"), "wallBounce");
+                SpriteExt_TryPlay(self.Sprite, id);
             }
         }
         private static void PlayerSuperJumpHook(On.Celeste.Player.orig_SuperJump orig, Player self) {
             bool hyper = self.Ducking;
             orig(self);
-            if (!self.Sprite.CurrentAnimationID.Contains("dreamDashOut") && !SpriteExt_TryPlay(self.Sprite, hyper ? "jumpHyper" : "jumpSuper")) {
-                SpriteExt_TryPlay(self.Sprite, "jumpCrazy");
+
+            if (!self.Sprite.CurrentAnimationID.Contains("dreamDashOut")) {
+                string id = "jumpCrazy";
+                SpriteExt_CrossHas(self.Sprite, ref id, DynamicData.For(self.Sprite).Get<string>("smh_AnimPrefix"), hyper ? "jumpHyper" : "jumpSuper");
+                SpriteExt_TryPlay(self.Sprite, id);
             }
         }
 
         private static void PlayerSpritePlayHook(On.Monocle.Sprite.orig_Play orig, Sprite self, string id, bool restart = false, bool randomizeFrame = false) {
             string origID = id;
+            string animPrefix = DynamicData.For(self).Get<string>("smh_AnimPrefix");
 
             #region Animations Extensions
             if (self.Entity is Player player) {
 
                 if (!restart && self.LastAnimationID != null) {
                     bool SwimCheck = player.Collidable ? player.SwimCheck() : false;
-
+                    string newID = null;
                     switch (id) {
                         case "walk":
                             if (player.Holding != null)
                                 id = "runSlow_carry";
-                            break;
+                            goto default;
                         case "dash":
-                            if (SwimCheck && self.Has("swimDash"))
-                                id = "swimDash";
-                            break;
+                            if (SwimCheck)
+                                newID = "swimDash";
+                            goto default;
                         case "duck":
-                            if (player.DashAttacking == true)
-                                if (SwimCheck && self.Has("swimDashCrouch"))
-                                    id = "swimDashCrouch";
-                                else if (self.Has("dashCrouch"))
-                                    id = "dashCrouch";
-                            break;
-                        case "swimIdle":
+                            if (player.DashAttacking == true) {
+                                if (SwimCheck && SpriteExt_CrossHas(self, ref id, animPrefix, "swimDashCrouch")) 
+                                    break;
+                                newID = "dashCrouch";
+                            }
+                            goto default;
                         case "swimUp":
                         case "swimDown":
-                            if (self.Has("swimSide") && (player.Speed.X != 0 || player.moveX != 0) && Math.Abs(player.Speed.X) >= Math.Abs(player.Speed.Y)) {
-                                if (id == "swimIdle" || player.wallSpeedRetentionTimer <= 0f)
-                                    id = "swimSide";
+                            if (player.wallSpeedRetentionTimer <= 0f) 
+                                goto case "swimIdle";
+                            goto default;
+                        case "swimIdle":
+                            if ((player.Speed.X != 0 || player.moveX != 0) && Math.Abs(player.Speed.X) >= Math.Abs(player.Speed.Y)) {
+                                newID = "swimSide";
                             }
-                            break;
+                            goto default;
                         default:
+                            SpriteExt_CrossHas(self, ref id, animPrefix, newID);
                             break;
                     }
 
@@ -239,6 +249,16 @@ namespace Celeste.Mod.SkinModHelper {
                             return;
                         }
                     }
+                } else {
+                    SpriteExt_CrossHas(self, ref id, animPrefix, null);
+                    if (!restart && origID != id && self.LastAnimationID?.Contains(id) == true) {
+                        return;
+                    }
+                }
+            } else {
+                SpriteExt_CrossHas(self, ref id, animPrefix, null);
+                if (!restart && origID != id && self.LastAnimationID?.Contains(id) == true) {
+                    return;
                 }
             }
             #endregion
@@ -246,7 +266,7 @@ namespace Celeste.Mod.SkinModHelper {
             if (self.Entity is Player || self.Entity is PlayerDeadBody) {
                 if (!self.Has(id)) {
                     string spriteName = (self as PlayerSprite)?.spriteName;
-                    if (spriteName != null)
+                    if (spriteName != null && id == origID)
                         Logger.Log(LogLevel.Error, "SkinModHelper", $"'{spriteName}' missing animation: {id}");
 
                     if (GFX.SpriteBank.SpriteData["player"].Sprite.Animations.TryGetValue(id, out Sprite.Animation anim) ||
@@ -334,8 +354,10 @@ namespace Celeste.Mod.SkinModHelper {
                     float alpha = GetAlpha(sprite.Color);
                     if (alpha < 1f && self.Color.A == 1f) { self.Color = self.Color * alpha; }
 
-                    if (sprite.Has("deathExAnim")) {
-                        InsertDeathAnimation(self, sprite, "deathExAnim");
+                    string anim = "deathExAnim";
+                    SpriteExt_CrossHas(sprite, ref anim, DynamicData.For(sprite).Get<string>("smh_AnimPrefix"), null);
+                    if (sprite.Has(anim)) {
+                        InsertDeathAnimation(self, sprite, anim);
                     }
                     string scolor = CharacterConfig.For(sprite).DeathParticleColor;
 

@@ -17,5 +17,8 @@ namespace Celeste.Mod.SkinModHelper {
         public Dictionary<string, string> PortraitsSkin_record = new(StringComparer.OrdinalIgnoreCase);
 
         public Dictionary<string, string> OtherSkin_record = new(StringComparer.OrdinalIgnoreCase);
+
+
+        public string Player_animPrefixAddOn { get; set; }
     }
 }

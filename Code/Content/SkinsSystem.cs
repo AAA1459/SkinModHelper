@@ -614,6 +614,32 @@ namespace Celeste.Mod.SkinModHelper {
             }
             return false;
         }
+        /// <summary><para>
+        /// Check if the sprite has certain prefix-ext or specified animation, and set "id" as that have more-priority. </para><para>
+        /// The priority order: [1] pre + specifyId, [2] pre + id, [3] specifyId, 
+        /// </para></summary>
+        /// <returns> return true if the result of "id" is related to "specifyId" </returns>
+        public static bool SpriteExt_CrossHas(Sprite sprite, ref string id, string pre, string specifyId) {
+            if (pre != null) {
+                if (specifyId != null && sprite.Has(pre + specifyId)) {
+                    id = pre + specifyId;
+                    return true;
+                }
+                if (id.StartsWith(pre)) {
+                    return false;
+                }
+                if (sprite.Has(pre + id)) {
+                    id = pre + id;
+                    return false;
+                }
+            }
+            if (specifyId != null && sprite.Has(specifyId)) {
+                id = specifyId;
+                return true;
+            }
+            return false;
+        }
+
         public static Stopwatch stopwatch;
         public static void StartDelayTiming() {
             if (stopwatch == null)
