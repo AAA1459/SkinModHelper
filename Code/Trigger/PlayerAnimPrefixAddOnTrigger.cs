@@ -54,5 +54,11 @@ namespace Celeste.Mod.SkinModHelper {
                 lastAnimPrefixAddOn = null;
             }
         }
+        public override void SceneEnd(Scene scene) {
+            if (revertOnLeave && CollideCheck<Player>()) {
+                smh_Session.Player_animPrefixAddOn = lastAnimPrefixAddOn;
+            }
+            base.SceneEnd(scene);
+        }
     }
 }

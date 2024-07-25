@@ -1,5 +1,6 @@
 ﻿using Celeste.Mod.Entities;
 using Microsoft.Xna.Framework;
+using Monocle;
 
 using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
@@ -52,6 +53,12 @@ namespace Celeste.Mod.SkinModHelper {
 
                 PlayerSkinSystem.RefreshPlayerSpriteMode();
             }
+        }
+        public override void SceneEnd(Scene scene) {
+            if (revertOnLeave && CollideCheck<Player>()) {
+                Session.SelectedPlayerSkin = oldskinId;
+            }
+            base.SceneEnd(scene);
         }
     }
 }
