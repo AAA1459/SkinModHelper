@@ -17,7 +17,7 @@ using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 
 namespace Celeste.Mod.SkinModHelper {
-    public class PlayerSkinSystem {
+    public static class PlayerSkinSystem {
         #region Hooks
         public static SkinModHelperSettings Settings => (SkinModHelperSettings)Instance._Settings;
         public static SkinModHelperSession Session => (SkinModHelperSession)Instance._Session;
@@ -25,9 +25,13 @@ namespace Celeste.Mod.SkinModHelper {
         public static void Load() {
             On.Monocle.SpriteBank.CreateOn += SpriteBankCreateOn;
             On.Celeste.PlayerSprite.ctor += on_PlayerSprite_ctor;
-            On.Celeste.PlayerSprite.CreateFramesMetadata += on_PlayerSprite_CreateFramesMetadata;
 
-            using (new DetourContext() { After = { "*" } }) { // targeted at DJMapHelper's MaxDashesTrigger
+            On.Celeste.PlayerSprite.ClearFramesMetadata += on_PlayerSprite_ClearFramesMetadata;
+            using (new DetourContext() { Before = { "*" } }) {
+                On.Celeste.PlayerSprite.CreateFramesMetadata += on_PlayerSprite_CreateFramesMetadata;
+            }
+
+            using (new DetourContext() { After = { "*" } }) { // btw fixes silhouette color for DJMapHelper's MaxDashesTrigger
                 On.Celeste.Player.Update += PlayerUpdateHook;
             }
             On.Celeste.Player.UpdateHair += PlayerUpdateHairHook;
@@ -167,23 +171,25 @@ namespace Celeste.Mod.SkinModHelper {
             }
 
             if (isGhost && self.spriteName == "") {
-                Logger.Log(LogLevel.Info, "SkinModHelper", $"Someone in CelesteNet uses skin mod '{requestMode}' which you don't have");
+                Logger.Log(LogLevel.Debug, "SkinModHelper", $"Someone in CelesteNet uses skin mod '{requestMode}' which you don't have");
                 GFX.SpriteBank.CreateOn(self, self.spriteName = (level == null || level.Session.Inventory.Backpack ? "player" : "player_no_backpack"));
             } else if (isGhost) {
                 Logger.Log(LogLevel.Verbose, "SkinModHelper", $"GhostModeValue: {requestMode}");
             } else {
-                Logger.Log(LogLevel.Debug, "SkinModHelper", $"PlayerModeValue: {requestMode}");
+                Logger.Log(LogLevel.Verbose, "SkinModHelper", $"PlayerModeValue: {requestMode}");
             }
         }
 
+        private static void on_PlayerSprite_ClearFramesMetadata(On.Celeste.PlayerSprite.orig_ClearFramesMetadata orig) {
+            IDHasHairMetadate.Clear();
+            orig();
+        }
         private static void on_PlayerSprite_CreateFramesMetadata(On.Celeste.PlayerSprite.orig_CreateFramesMetadata orig, string id) {
+            orig(id);
+            IDHasHairMetadate.Add(id);
             if (GFX.SpriteBank.SpriteData.TryGetValue("SkinModHelper_PlayerAnimFill", out var fills)) {
                 PatchSprite(fills.Sprite, GFX.SpriteBank.SpriteData[id].Sprite);
-                if (id == "player") {
-                    orig("SkinModHelper_PlayerAnimFill");
-                }
             }
-            orig(id);
         }
         #endregion
 
@@ -487,27 +493,12 @@ namespace Celeste.Mod.SkinModHelper {
         private static MTexture PlayerHairGetHairTextureHook(On.Celeste.PlayerHair.orig_GetHairTexture orig, PlayerHair self, int index) {
 
             HairConfig config = HairConfig.For(self);
-            if (config.new_bangs != null) {
-                string detectPath = getAnimationRootPath(self.Sprite.Texture);
-                if (detectPath.Length > 17) {
-                    int i = detectPath.IndexOf('/', 17);
-                    if (i > 0) {
-                        switch (detectPath.Remove(i)) {
-                            case "characters/player":
-                            case "characters/badeline":
-                            case "characters/player_badeline":
-                            case "characters/player_playback":
-                            case "characters/player_no_backpack":
-                                if (!detectPath.StartsWith(config.SourcePath) && DynamicData.For(self).Get("SMH_DisposableLog_aPhggdddd") == null) {
-                                    Logger.Log(LogLevel.Info, "SkinModHelper", $"Avoid the {self.Sprite.spriteName}'s bangs texture work on vanilla characters texture...");
-                                    DynamicData.For(self).Set("SMH_DisposableLog_aPhggdddd", "");
-                                }
-                                return orig(self, index);
-                            default:
-                                break;
-                        }
-                    }
+            if (config.new_bangs != null && VanillaCharacterTextures.Contains($"{self.Sprite.Texture}")) {
+                if (DynamicData.For(self).Get("SMH_DisposableLog_aPhggdddd") == null) {
+                    Logger.Log(LogLevel.Debug, "SkinModHelper", $"Avoid the {self.Sprite.spriteName}'s bangs texture work on vanilla characters texture...");
+                    DynamicData.For(self).Set("SMH_DisposableLog_aPhggdddd", "");
                 }
+                return orig(self, index);
             }
 
             if (index == 0) {

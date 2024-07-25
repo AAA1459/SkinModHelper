@@ -18,9 +18,10 @@ using System.Diagnostics;
 using Celeste.Mod.Meta;
 
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
+using AsmResolver.PE.DotNet.Metadata;
 
 namespace Celeste.Mod.SkinModHelper {
-    public class SkinsSystem {
+    public static class SkinsSystem {
         #region Hooks
 
         public static SkinModHelperSettings Settings => (SkinModHelperSettings)Instance._Settings;
@@ -68,7 +69,6 @@ namespace Celeste.Mod.SkinModHelper {
         public static nonBankReskin OtherSpriteSkins = new("OtherExtra", "Other");
 
         public static Dictionary<string, SkinModHelperConfig> skinConfigs = new(StringComparer.OrdinalIgnoreCase);
-        public static Dictionary<int, string> skinname_hashcache = new();
 
         public static Dictionary<string, SkinModHelperConfig> OtherskinConfigs = new(StringComparer.OrdinalIgnoreCase);
         public static Dictionary<string, SkinModHelperOldConfig> OtherskinOldConfig = new(StringComparer.OrdinalIgnoreCase);
@@ -92,8 +92,6 @@ namespace Celeste.Mod.SkinModHelper {
         public static Regex RGB_Regex = new Regex(@"^[a-fA-F0-9]{6}$");
 
         public static bool build_warning = true;
-        public static List<string> FailedXml_record = new();
-        public static Dictionary<string, SpriteBank> Xml_records = new();
 
         /// <summary> Similar to GFX.FxColorGrading, But indexing new color on colorGrade only based the rgb color of the texture source. </summary>
         public static Effect FxColorGrading_SMH;
@@ -110,8 +108,19 @@ namespace Celeste.Mod.SkinModHelper {
 
         #endregion
 
+        #region Caches
+        public static HashSet<string> FailedXml_record = new();
+        public static Dictionary<string, SpriteBank> Xml_records = new();
+
+        public static Dictionary<int, string> skinname_hashcache = new();
+        private static Dictionary<Tuple<Type, string>, FieldInfo> fieldref_cache = new();
+        
+        public static HashSet<string> VanillaCharacterTextures = new();
+        public static HashSet<string> IDHasHairMetadate = new();
+        #endregion
+
         #region Config Initialize
-        private static void EverestContentUpdateHook(ModAsset oldAsset, ModAsset newAsset) {
+       private static void EverestContentUpdateHook(ModAsset oldAsset, ModAsset newAsset) {
             if (newAsset != null) {
                 if (newAsset.PathVirtual.StartsWith("SkinModHelperConfig")) {
                     ConfigInsert(newAsset);
@@ -290,11 +299,17 @@ namespace Celeste.Mod.SkinModHelper {
                 string newId = skinbank.GetCurrentSkin(id);
                 if (self.Has(newId))
                     id = newId;
-                if (sprite is PlayerSprite playerSprite)
+                if (sprite is PlayerSprite playerSprite) {
                     playerSprite.spriteName = id;
+                }
             }
-            DynamicData.For(sprite).Set("smh_spriteName", id);
-            DynamicData.For(sprite).Set("smh_spriteData", self.SpriteData[id]);
+            if (sprite is PlayerSprite && !IDHasHairMetadate.Contains(id)) {
+                Logger.Log(LogLevel.Debug, "SkinModHelper", $"The '{id}' create on PlayerSprite but it's not used in PlayerSprite.CreateFramesMetadata that having hooks to fill some animation, so let's do it");
+                PlayerSprite.CreateFramesMetadata(id);
+            }
+            DynamicData spriteData = DynamicData.For(sprite);
+            spriteData.Set("smh_spriteName", id);
+            spriteData.Set("smh_spriteData", self.SpriteData[id]);
             return orig(self, sprite, id);
         }
         #endregion
@@ -423,6 +438,16 @@ namespace Celeste.Mod.SkinModHelper {
                 if (!build_warning)
                     Logger.SetLogLevel("Atlas", LogLevel.Error);
 
+                ClearVanillaCharacterTextures();
+                RegisterVanillaCharacterTextures("player");
+                RegisterVanillaCharacterTextures("badeline");
+                RegisterVanillaCharacterTextures("player_badeline");
+                RegisterVanillaCharacterTextures("player_playback");
+                RegisterVanillaCharacterTextures("player_no_backpack");
+                if (GFX.SpriteBank.Has("SkinModHelper_PlayerAnimFill")) {
+                    PlayerSprite.CreateFramesMetadata("SkinModHelper_PlayerAnimFill");
+                }
+
                 Xml_records.Clear();
                 FailedXml_record.Clear();
                 RespriteBank_Reload();
@@ -432,6 +457,16 @@ namespace Celeste.Mod.SkinModHelper {
             }
             RefreshSkinValues(null, inGame);
             afterSkinRefresh?.Invoke(Xmls_refresh, inGame);
+        }
+        public static void RegisterVanillaCharacterTextures(string id) {
+            foreach (Sprite.Animation animation in GFX.SpriteBank.SpriteData[id].Sprite.animations.Values) {
+                for (int i = 0; i < animation.Frames.Length; i++) {
+                    VanillaCharacterTextures.Add(animation.Frames[i].ToString());
+                }
+            }
+        }
+        private static void ClearVanillaCharacterTextures() {
+            VanillaCharacterTextures.Clear();
         }
 
         private static void PlayerUpdateHook(On.Celeste.Player.orig_Update orig, Player self) {
@@ -581,13 +616,18 @@ namespace Celeste.Mod.SkinModHelper {
         #endregion
         #region Method #3
         public static FieldInfo GetFieldPlus(Type type, string name) {
-            FieldInfo field = null;
-            while (field == null && type != null) {
-                field = type.GetField(name, BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+            Tuple<Type, string> tuple = new(type, name);
+            if (fieldref_cache.TryGetValue(tuple, out FieldInfo field)) {
+                return field;
+            }
+            Type type2 = type;
+            while (field == null && type2 != null) {
+                field = type2.GetField(name, BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
 
                 // some mods entities works based on vanilla entities, but mods entity possible don't have theis own field.
-                type = type.BaseType;
+                type2 = type2.BaseType;
             }
+            fieldref_cache[tuple] = field;
             return field;
         }
         public static T GetFieldPlus<T>(object obj, string name) {

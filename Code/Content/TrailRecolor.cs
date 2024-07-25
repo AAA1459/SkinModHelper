@@ -19,7 +19,7 @@ using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 
 namespace Celeste.Mod.SkinModHelper {
-    public class TrailRecolor {
+    public static class TrailRecolor {
         #region Hooks
         public static void Load() {
             On.Celeste.TrailManager.Add_Vector2_Image_PlayerHair_Vector2_Color_int_float_bool_bool += onTrailManager_Add_V2IV2CIFBB;

@@ -18,16 +18,13 @@ using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 
 namespace Celeste.Mod.SkinModHelper {
-    public class SomePatches {
+    public static class SomePatches {
         #region Hooks
-        public static SkinModHelperSettings Settings => (SkinModHelperSettings)Instance._Settings;
-        public static SkinModHelperSession Session => (SkinModHelperSession)Instance._Session;
-
         public static void Load() {
             On.Celeste.DeathEffect.Render += DeathEffectRenderHook;
             On.Celeste.DeathEffect.Draw += DeathEffectDrawHook;
 
-            using (new DetourContext() { Before = { "*" } }) { // Give those hook lowest priority.
+            using (new DetourContext() { Before = { "*" } }) { // Give those hook lowest priority, prevents some things from interrupting custom animations of other mods
                 On.Monocle.Sprite.Play += PlayerSpritePlayHook;
                 On.Monocle.Sprite.SetAnimationFrame += SpriteSetAnimationFrameHook;
             }
@@ -178,47 +175,46 @@ namespace Celeste.Mod.SkinModHelper {
 
             #region Animations Extensions
             if (self.Entity is Player player) {
+                bool SwimCheck = player.Collidable ? player.SwimCheck() : false;
+                string newID = null;
+                switch (id) {
+                    case "walk":
+                        if (player.Holding != null)
+                            id = "runSlow_carry";
+                        goto default;
+                    case "dash":
+                        if (SwimCheck)
+                            newID = "swimDash";
+                        goto default;
+                    case "duck":
+                        if (player.DashAttacking == true) {
+                            if (SwimCheck && SpriteExt_CrossHas(self, ref id, animPrefix, "swimDashCrouch"))
+                                break;
+                            newID = "dashCrouch";
+                        }
+                        goto default;
+                    case "swimUp":
+                    case "swimDown":
+                        if (player.wallSpeedRetentionTimer <= 0f)
+                            goto case "swimIdle";
+                        goto default;
+                    case "swimIdle":
+                        if ((player.Speed.X != 0 || player.moveX != 0) && Math.Abs(player.Speed.X) >= Math.Abs(player.Speed.Y)) {
+                            newID = "swimSide";
+                        }
+                        goto default;
+                    default:
+                        SpriteExt_CrossHas(self, ref id, animPrefix, newID);
+                        break;
+                }
+
+                // Universal code... if you are theo smuggle enthusiast...
+                if (player.Holding != null && !id.EndsWith("_carry") && self.Has(id + "_carry")) {
+                    id = id + "_carry";
+                }
+
 
                 if (!restart && self.LastAnimationID != null) {
-                    bool SwimCheck = player.Collidable ? player.SwimCheck() : false;
-                    string newID = null;
-                    switch (id) {
-                        case "walk":
-                            if (player.Holding != null)
-                                id = "runSlow_carry";
-                            goto default;
-                        case "dash":
-                            if (SwimCheck)
-                                newID = "swimDash";
-                            goto default;
-                        case "duck":
-                            if (player.DashAttacking == true) {
-                                if (SwimCheck && SpriteExt_CrossHas(self, ref id, animPrefix, "swimDashCrouch")) 
-                                    break;
-                                newID = "dashCrouch";
-                            }
-                            goto default;
-                        case "swimUp":
-                        case "swimDown":
-                            if (player.wallSpeedRetentionTimer <= 0f) 
-                                goto case "swimIdle";
-                            goto default;
-                        case "swimIdle":
-                            if ((player.Speed.X != 0 || player.moveX != 0) && Math.Abs(player.Speed.X) >= Math.Abs(player.Speed.Y)) {
-                                newID = "swimSide";
-                            }
-                            goto default;
-                        default:
-                            SpriteExt_CrossHas(self, ref id, animPrefix, newID);
-                            break;
-                    }
-
-                    // Universal code... if you are theo smuggle enthusiast...
-                    if (player.Holding != null && !id.EndsWith("_carry") && self.Has($"{id}_carry")) {
-                        id = $"{id}_carry";
-                    }
-
-
                     if (origID == "dreamDashOut") {
                         // This requires some special fixes...
                         if (self.CurrentAnimationID.Contains(id)) {
@@ -249,11 +245,6 @@ namespace Celeste.Mod.SkinModHelper {
                             return;
                         }
                     }
-                } else {
-                    SpriteExt_CrossHas(self, ref id, animPrefix, null);
-                    if (!restart && origID != id && self.LastAnimationID?.Contains(id) == true) {
-                        return;
-                    }
                 }
             } else {
                 SpriteExt_CrossHas(self, ref id, animPrefix, null);
@@ -266,7 +257,7 @@ namespace Celeste.Mod.SkinModHelper {
             if (self.Entity is Player || self.Entity is PlayerDeadBody) {
                 if (!self.Has(id)) {
                     string spriteName = (self as PlayerSprite)?.spriteName;
-                    if (spriteName != null && id == origID)
+                    if (spriteName != null)
                         Logger.Log(LogLevel.Error, "SkinModHelper", $"'{spriteName}' missing animation: {id}");
 
                     if (GFX.SpriteBank.SpriteData["player"].Sprite.Animations.TryGetValue(id, out Sprite.Animation anim) ||
