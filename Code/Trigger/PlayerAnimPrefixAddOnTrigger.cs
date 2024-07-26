@@ -47,7 +47,7 @@ namespace Celeste.Mod.SkinModHelper {
                 smh_Session.Player_animPrefixAddOn = lastAnimPrefixAddOn;
 
                 // Make sure the player is leave, I mean... not is "leave"
-                if (SceneAs<Level>()?.Tracker?.GetEntity<PlayerDeadBody>() == null) {
+                if (!player.Dead) {
                     DynamicData.For(player.Sprite).Set("smh_AnimPrefix", lastAnimPrefixAddOn);
                     player.Sprite.Play("idle");
                 }
@@ -55,8 +55,9 @@ namespace Celeste.Mod.SkinModHelper {
             }
         }
         public override void SceneEnd(Scene scene) {
-            if (revertOnLeave && CollideCheck<Player>()) {
+            if (revertOnLeave && PlayerIsInside) {
                 smh_Session.Player_animPrefixAddOn = lastAnimPrefixAddOn;
+                lastAnimPrefixAddOn = null;
             }
             base.SceneEnd(scene);
         }

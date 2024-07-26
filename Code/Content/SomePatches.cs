@@ -24,7 +24,7 @@ namespace Celeste.Mod.SkinModHelper {
             On.Celeste.DeathEffect.Render += DeathEffectRenderHook;
             On.Celeste.DeathEffect.Draw += DeathEffectDrawHook;
 
-            using (new DetourContext() { Before = { "*" } }) { // Give those hook lowest priority, prevents some things from interrupting custom animations of other mods
+            using (new DetourContext() { Before = { "*" } }) { // Prevents some things from interrupting custom animations of other mods if we goes first.
                 On.Monocle.Sprite.Play += PlayerSpritePlayHook;
                 On.Monocle.Sprite.SetAnimationFrame += SpriteSetAnimationFrameHook;
             }

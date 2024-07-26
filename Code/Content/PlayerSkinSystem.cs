@@ -78,6 +78,7 @@ namespace Celeste.Mod.SkinModHelper {
         public static void Unload() {
             On.Monocle.SpriteBank.CreateOn -= SpriteBankCreateOn;
             On.Celeste.PlayerSprite.ctor -= on_PlayerSprite_ctor;
+            On.Celeste.PlayerSprite.ClearFramesMetadata -= on_PlayerSprite_ClearFramesMetadata;
             On.Celeste.PlayerSprite.CreateFramesMetadata -= on_PlayerSprite_CreateFramesMetadata;
 
             On.Celeste.Player.Update -= PlayerUpdateHook;

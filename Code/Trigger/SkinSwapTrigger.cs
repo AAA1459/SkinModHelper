@@ -55,7 +55,7 @@ namespace Celeste.Mod.SkinModHelper {
             }
         }
         public override void SceneEnd(Scene scene) {
-            if (revertOnLeave && CollideCheck<Player>()) {
+            if (revertOnLeave && PlayerIsInside) {
                 Session.SelectedPlayerSkin = oldskinId;
             }
             base.SceneEnd(scene);
