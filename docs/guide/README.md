@@ -59,7 +59,7 @@ so need to do more for it:
     <Anim id="lookUp" path="lookUp" delay="0.1" frames="2-7" goto="lookUp_End"/>
     <!--                    ↑<sprites name>             ↑<frame range>-->
 
-    <Loop id="lookUp_End" path="lookUp" delay="0.1" frames="6-7" goto="lookUp_End"/>
+    <Loop id="lookUp_End" path="lookUp" delay="0.1" frames="6-7"/>
 
     <!-- ↓←← where give sprites hair, and set the hair offset -->
     <Metadata> <!--          ↓<from frame 0 onwards, set the each frame's hair> -->
@@ -69,8 +69,8 @@ so need to do more for it:
 
 </Sprites>
 ```
-* * This template is work based on 'player' from `Celeste/Content/Graphics/Sprites.xml`, you can find it there to see how it makes everything works
-3. Make sure Sprites.xml there have your `Character_ID` or it is matched, otherwise the game will crash.
+3. This template is work based on 'player' from `Celeste/Content/Graphics/Sprites.xml`, you can find it there to see how it makes everything works
+4. Make sure Sprites.xml there have your `Character_ID` or it is matched, otherwise the game will crash.
 
 ---
 ### OtherSprite_Path
