@@ -53,23 +53,23 @@ so need to do more for it:
 <?xml version="1.0" encoding="utf-8" ?>
 
 <Sprites>
-  <!--  ↙<should be Character_ID you setted>   ↓<sprite directory under '[somemod]/Graphics/Atlases/Gameplay/' directory> -->
+  <!--  ↙<should be Character_ID you setted>  ↙<sprite directory under '[somemod]/Graphics/Atlases/Gameplay/' directory> -->
   <MySkin copy="player" path="characters/MySkin/">
-  <!--          ↑<an ID this inherit from>   -->
-    <!--      ↓<anim name>             ↓<anim speed> -->
-    <Anim id="dash" path="dash" delay="0.09" goto="dash" />
-    <!-- ↖               ↑<sprites name>          ↑<non-required, the next after this anim>
-        ↗<Anim/Loop like Off/On for whether loop playing>   -->
+    <!--      ↓<anim name>                 ↓<anim speed>           ↓<non-required, the next after this anim>-->
+    <Anim id="lookUp" path="lookUp" delay="0.1" frames="2-7" goto="lookUp_End"/>
+    <!--                    ↑<sprites name>             ↑<frame range>-->
 
-    <!-- ↓←← where set the hair offset -->
-    <Metadata> <!--  ↓<sprites name>         ↓<x,y:hair_frame> -->
-       <Frames path="dash" hair="2,0|2,0|2,0|2,1:0" />
-    </Metadata> <!--  sprite frame grouping ↑ -->
+    <Loop id="lookUp_End" path="lookUp" delay="0.1" frames="6-7" goto="lookUp_End"/>
+
+    <!-- ↓←← where give sprites hair, and set the hair offset -->
+    <Metadata> <!--          ↓<from frame 0 onwards, set the each frame's hair> -->
+       <Frames path="lookUp" hair="x|x|0,-2|0,-2|-1,-2:1|-1,-2:1|-1,-2:1|-1,-2:1|-1,-3:1"/>
+    </Metadata><!--  ↑<sprites name> ↑<disable hair on frame via 'x'>    ↑<[x],[y]:[hair_frame or default 0]> -->
   </MySkin>
 
 </Sprites>
 ```
-* * The `player` ID from `Celeste/Content/Graphics/Sprites.xml`, or you could copy that ID's everything instead of inherit it like this template
+* * This template is work based on 'player' from `Celeste/Content/Graphics/Sprites.xml`, you can find it there to see how it makes everything works
 3. Make sure Sprites.xml there have your `Character_ID` or it is matched, otherwise the game will crash.
 
 ---
