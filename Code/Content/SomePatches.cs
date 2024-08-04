@@ -175,38 +175,38 @@ namespace Celeste.Mod.SkinModHelper {
 
             #region Animations Extensions
             if (self.Entity is Player player) {
-                bool SwimCheck = player.Collidable ? player.SwimCheck() : false;
+                bool SwimCheck = player.Scene == null || !player.Collidable ? false : player.SwimCheck();
                 string newID = null;
                 switch (id) {
                     case "walk":
                         if (player.Holding != null)
                             id = "runSlow_carry";
-                        goto default;
+                        break;
                     case "dash":
                         if (SwimCheck)
                             newID = "swimDash";
-                        goto default;
+                        break;
                     case "duck":
                         if (player.DashAttacking == true) {
-                            if (SwimCheck && SpriteExt_CrossHas(self, ref id, animPrefix, "swimDashCrouch"))
-                                break;
-                            newID = "dashCrouch";
+                            if (SwimCheck && SpriteExt_CrossHas(self, ref id, animPrefix, "swimDashCrouch")) {
+                                newID = "swimDashCrouch";
+                            } else {
+                                newID = "dashCrouch";
+                            }
                         }
-                        goto default;
+                        break;
                     case "swimUp":
                     case "swimDown":
                         if (player.wallSpeedRetentionTimer <= 0f)
                             goto case "swimIdle";
-                        goto default;
+                        break;
                     case "swimIdle":
                         if ((player.Speed.X != 0 || player.moveX != 0) && Math.Abs(player.Speed.X) >= Math.Abs(player.Speed.Y)) {
                             newID = "swimSide";
                         }
-                        goto default;
-                    default:
-                        SpriteExt_CrossHas(self, ref id, animPrefix, newID);
                         break;
                 }
+                SpriteExt_CrossHas(self, ref id, animPrefix, newID);
 
                 // Universal code... if you are theo smuggle enthusiast...
                 if (player.Holding != null && !id.EndsWith("_carry") && self.Has(id + "_carry")) {
@@ -300,20 +300,19 @@ namespace Celeste.Mod.SkinModHelper {
 
                 cursor.Emit(OpCodes.Ldarg_0);
                 cursor.EmitDelegate<Func<string, Player, string>>((orig, self) => {
-
                     // This hook position runs only when player.Sprite.CurrentAnimationID are "startStarFly", So we can indexing the textures directly.
                     string spritePath = getAnimationRootPath(self.Sprite.Texture) + "startStarFlyWhite";
 
-                    if (self.Holding != null && GFX.Game.HasAtlasSubtexturesAt($"{spritePath}_carry", 0)) {
+                    if (self.Holding != null && GFX.Game.HasAtlasSubtextures($"{spritePath}_carry")) {
                         return $"{spritePath}_carry";
                     }
-                    if (GFX.Game.HasAtlasSubtexturesAt(spritePath, 0)) {
+                    if (GFX.Game.HasAtlasSubtextures(spritePath)) {
                         return spritePath;
                     }
                     DynamicData selfData = DynamicData.For(self);
                     if (!selfData.TryGet("SMH_DisposableLog_bsaofsdlk", out string ddd)) {
                         selfData.Set("SMH_DisposableLog_bsaofsdlk", "");
-                        Logger.Log(LogLevel.Warn, "SkinModHelper", $"Requested texture that does not exist: {spritePath}");
+                        GFX.Game.GetAtlasSubtextures(spritePath); // Triggering an atlas warning.
                     }
                     return orig;
                 });
@@ -402,10 +401,7 @@ namespace Celeste.Mod.SkinModHelper {
             Entity entity = new(self.Entity.Position);
 
             // Clone the animation, At least make sure it's playing speed doesn't different in some case.
-            object clone = new Sprite(null, null);
-            if (clone is not Sprite deathAnim) {
-                return;
-            }
+            Sprite deathAnim = new Sprite(null, null);
             SkinModHelperInterop.CopyColorGrades(sprite, deathAnim);
 
             deathAnim.ClearAnimations();
@@ -426,10 +422,11 @@ namespace Celeste.Mod.SkinModHelper {
 
             // Make sure animation playing for player pause retry.
             if (self.Entity is PlayerDeadBody || scene[Tags.PauseUpdate].Contains(self.Entity)) {
-                scene[Tags.PauseUpdate].Add(entity);
+                entity.AddTag(Tags.PauseUpdate);
             }
-
+            DynamicData deathAnim_data = DynamicData.For(deathAnim);
             deathAnim.Play(id);
+
             DynamicData data = DynamicData.For(self);
             data.Set("deathAnimating", true);
 
