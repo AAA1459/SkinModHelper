@@ -450,6 +450,8 @@ namespace Celeste.Mod.SkinModHelper {
             orig(self);
         }
         private static void PlayerHairUpdateHook(On.Celeste.PlayerHair.orig_Update orig, PlayerHair self) {
+            DynamicData.For(self).Set("HairColorGrading", null);
+
             if (self.Entity is Player player && player.StateMachine.State == 14) {
                 int? dashes = GetDashCount(player);
                 if (dashes != null && HairConfig.For(self).Safe_GetHairColor(100, (int)dashes, out Color color))
