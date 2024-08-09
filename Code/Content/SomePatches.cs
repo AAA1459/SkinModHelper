@@ -175,7 +175,7 @@ namespace Celeste.Mod.SkinModHelper {
 
             #region Animations Extensions
             if (self.Entity is Player player) {
-                bool SwimCheck = player.Scene == null || !player.Collidable ? false : player.SwimCheck();
+                bool SwimCheck = player.Scene != null && player.Collidable && player.SwimCheck();
                 string newID = null;
                 switch (id) {
                     case "walk":

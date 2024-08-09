@@ -209,9 +209,9 @@ namespace Celeste.Mod.SkinModHelper {
                             Atlas atlas = spriteData.Get<Atlas>("ColorGrade_Atlas") ?? GFX.Game;
                             string path = spriteData.Get<string>("ColorGrade_Path");
                             if (path != null && atlas.Has(path))
-                                Send($"The current colorgrade: {atlas.DataPath}/{path}");
+                                Send($"The current colorgrade: {atlas.RelativeDataPath}{path}");
                             else
-                                Send($"The current colorgrade: {atlas.DataPath}/{path}, but it doesn't exist");
+                                Send($"The current colorgrade: {atlas.RelativeDataPath}{path}, but it doesn't exist");
                             break;
                         case "id":
                             Send($"The player spriteID: {sprite.spriteName}");

@@ -210,9 +210,9 @@ namespace Celeste.Mod.SkinModHelper {
         #region Record / Combine
         public void AddSpriteInfo(string storageId, Atlas atlas, string orig_path, bool isStatic = true) {
             if (isStatic)
-                PathStaticSpriteId[atlas.DataPath + orig_path] = new(atlas, orig_path, storageId);
+                PathStaticSpriteId[atlas.RelativeDataPath + orig_path] = new(atlas, orig_path, storageId);
             else
-                PathSpriteId[atlas.DataPath + orig_path] = new(atlas, orig_path, storageId);
+                PathSpriteId[atlas.RelativeDataPath + orig_path] = new(atlas, orig_path, storageId);
         }
 
         public override void ClearRecord() {
@@ -289,7 +289,7 @@ namespace Celeste.Mod.SkinModHelper {
             if (atlas == null || !Active)
                 return orig_path;
 
-            if ((numberSet ? PathSpriteId : PathStaticSpriteId).TryGetValue(atlas.DataPath + orig_path, out var tuple)) {
+            if ((numberSet ? PathSpriteId : PathStaticSpriteId).TryGetValue(atlas.RelativeDataPath + orig_path, out var tuple)) {
 
                 string skinId = GetCurrentSkin(tuple.Item3);
                 if (SkinIdPath.TryGetValue(skinId, out string path2))

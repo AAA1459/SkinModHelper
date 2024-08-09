@@ -18,7 +18,7 @@ using System.Diagnostics;
 using Celeste.Mod.Meta;
 
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
-using AsmResolver.PE.DotNet.Metadata;
+using System.IO;
 
 namespace Celeste.Mod.SkinModHelper {
     public static class SkinsSystem {
@@ -409,7 +409,6 @@ namespace Celeste.Mod.SkinModHelper {
             if (self == OVR.Atlas && path == "loading/" && loadingTextures.Count > 0) {
                 return loadingTextures[new Random().Next() % loadingTextures.Count];
             }
-
             path = RedirectPathToBackpack(self, path);
             path = OtherSpriteSkins.GetSkinWithPath(self, path, true);
             return orig(self, path);
@@ -640,7 +639,7 @@ namespace Celeste.Mod.SkinModHelper {
 
         public static bool AssetExists<T>(string path, Atlas atlas = null) {
             if (atlas != null) {
-                path = atlas.DataPath + "/" + path;
+                path = atlas.RelativeDataPath + path;
             }
             if (path.LastIndexOf(".") >= 0) {
                 path = path.Remove(path.LastIndexOf("."));
@@ -706,23 +705,23 @@ namespace Celeste.Mod.SkinModHelper {
         public static bool GetTexturesOnSprite(Image sprite, string filename, out List<MTexture> textures) {
             textures = null;
             var data = DynamicData.For(sprite).Get<SpriteData>("smh_spriteData");
-            if (data == null) {
+            Atlas atlas = data?.Atlas ?? GFX.Game;
+
+            if (data?.Sources == null || data.Sources.Count == 0) {
                 string path = getAnimationRootPath(sprite) + filename;
-                if (GFX.Game.HasAtlasSubtextures(path)) {
-                    textures = GFX.Game.GetAtlasSubtextures(path);
+                if (atlas.HasAtlasSubtextures(path)) {
+                    textures = atlas.GetAtlasSubtextures(path);
                 }
                 return textures != null;
             }
-            if (data.Atlas == null || data.Sources == null) {
-                return false;
-            }
-            foreach (SpriteDataSource source in data.Sources) {
-                if (!string.IsNullOrEmpty(source.OverridePath) && data.Atlas.HasAtlasSubtextures(source.OverridePath + filename)) {
-                    textures = data.Atlas.GetAtlasSubtextures(source.OverridePath + filename);
+            for (int i = 0; i < data.Sources.Count; i++) {
+                SpriteDataSource source = data.Sources[i];
+                if (!string.IsNullOrEmpty(source.OverridePath) && atlas.HasAtlasSubtextures(source.OverridePath + filename)) {
+                    textures = atlas.GetAtlasSubtextures(source.OverridePath + filename);
                     return true;
                 }
-                if (data.Atlas.HasAtlasSubtextures(source.Path + filename)) {
-                    textures = data.Atlas.GetAtlasSubtextures(source.Path + filename);
+                if (atlas.HasAtlasSubtextures(source.Path + filename)) {
+                    textures = atlas.GetAtlasSubtextures(source.Path + filename);
                     return true;
                 }
             }
@@ -734,23 +733,23 @@ namespace Celeste.Mod.SkinModHelper {
         public static bool GetTextureOnSprite(Image sprite, string filename, out MTexture texture) {
             texture = null;
             var data = DynamicData.For(sprite).Get<SpriteData>("smh_spriteData");
-            if (data == null) {
+            Atlas atlas = data?.Atlas ?? GFX.Game;
+
+            if (data?.Sources == null || data.Sources.Count == 0) {
                 string path = getAnimationRootPath(sprite) + filename;
-                if (GFX.Game.Has(path)) {
-                    texture = GFX.Game[path];
+                if (atlas.Has(path)) {
+                    texture = atlas[path];
                 }
                 return texture != null;
             }
-            if (data.Atlas == null || data.Sources == null) {
-                return false;
-            }
-            foreach (SpriteDataSource source in data.Sources) {
-                if (!string.IsNullOrEmpty(source.OverridePath) && data.Atlas.Has(source.OverridePath + filename)) {
-                    texture = data.Atlas[source.OverridePath + filename];
+            for (int i = 0; i < data.Sources.Count; i++) {
+                SpriteDataSource source = data.Sources[i];
+                if (!string.IsNullOrEmpty(source.OverridePath) && atlas.Has(source.OverridePath + filename)) {
+                    texture = atlas[source.OverridePath + filename];
                     return true;
                 }
-                if (data.Atlas.Has(source.Path + filename)) {
-                    texture = data.Atlas[source.Path + filename];
+                if (atlas.Has(source.Path + filename)) {
+                    texture = atlas[source.Path + filename];
                     return true;
                 }
             }
@@ -761,17 +760,14 @@ namespace Celeste.Mod.SkinModHelper {
         /// </summary>
         public static ModAsset GetAssetOnSprite<T>(Image sprite, string filename) {
             var data = DynamicData.For(sprite).Get<SpriteData>("smh_spriteData");
-            if (data == null || data.Sources?.Count < 1) {
-                if (Everest.Content.TryGet(GFX.Game.DataPath + "/" + getAnimationRootPath(sprite) + filename, out var asset) && asset.Type == typeof(T))
+            if (data?.Sources == null || data.Sources.Count == 0) {
+                if (Everest.Content.TryGet((data?.Atlas ?? GFX.Game).RelativeDataPath + getAnimationRootPath(sprite) + filename, out var asset) && asset.Type == typeof(T))
                     return asset;
                 return null;
             }
-            if (data.Atlas == null || data.Sources == null) {
-                return null;
-            }
-            string path = data.Atlas.DataPath;
-            if (!string.IsNullOrEmpty(path)) { path += '/'; }
-            foreach (SpriteDataSource source in data.Sources) {
+            string path = (data.Atlas ?? GFX.Game).RelativeDataPath;
+            for (int i = 0; i < data.Sources.Count; i++) {
+                SpriteDataSource source = data.Sources[i];
                 if (!string.IsNullOrEmpty(source.OverridePath) && Everest.Content.TryGet(path + source.OverridePath + filename, out var asset2) && asset2.Type == typeof(T)) {
                     return asset2;
                 }
