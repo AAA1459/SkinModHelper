@@ -473,7 +473,7 @@ namespace Celeste.Mod.SkinModHelper {
                 self.Border = ColorBlend(self.Border, selfData.Get("HairColorGrading"));
 
                 int? get_dashCount = GetDashCount(self);
-                if (get_dashCount != null && (self.Color != Color.White || hairConfig.HairFlash == false) && hairConfig.Safe_GetHairColor(100, (int)get_dashCount, out Color color))
+                if (get_dashCount != null && (self.Entity is not Player || self.Color != Color.White || hairConfig.HairFlash == false) && hairConfig.Safe_GetHairColor(100, (int)get_dashCount, out Color color))
                     self.Color = color;
                 if (CharacterConfig.For(self.Sprite).SilhouetteMode == true)
                     self.Border = ColorBlend(self.Border, self.Color);
@@ -525,7 +525,7 @@ namespace Celeste.Mod.SkinModHelper {
             HairConfig hairConfig = HairConfig.For(self);
 
             int? dashes = GetDashCount(self);
-            if (hairConfig.ActualHairColors != null && dashes != null && (self.Color != Color.White || hairConfig.HairFlash == false)) {
+            if (hairConfig.ActualHairColors != null && dashes != null && (self.Entity is not Player || self.Color != Color.White || hairConfig.HairFlash == false)) {
                 int index2 = hairConfig.ActualHairColors.ContainsKey(index - self.Sprite.HairCount) ? index - self.Sprite.HairCount : index;
 
                 if (hairConfig.Safe_GetHairColor(index2, (int)dashes, out Color color)) {

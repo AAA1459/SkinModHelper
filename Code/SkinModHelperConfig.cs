@@ -87,19 +87,23 @@ namespace Celeste.Mod.SkinModHelper {
             string rootPath = getAnimationRootPath(target);
 
             if (config == null || config.SourcePath != rootPath) {
-                config = GetConfigOnSprite<CharacterConfig>(target, "skinConfig/CharacterConfig") ?? new();
+                ModAsset asset = GetAssetOnSprite<AssetTypeYaml>(target, "skinConfig/CharacterConfig");
+                config = AssetIntoConfig<CharacterConfig>(asset) ?? new();
+                config.Source = asset;
                 config.Target = target;
                 config.SourcePath = rootPath;
 
                 if (target is PlayerSprite playerSprite)
                     config.ModeInitialize(playerSprite.Mode);
 
+                selfData.Set("smh_characterConfig", config);
+            }
+            if (target.Entity != config.lastEntity) {
+                config.lastEntity = target.Entity;
                 if (config.EntityTweaks != null && target is Sprite)
                     // Avoid multiple EntityTweaks works, make sure this target is the first of its entity. 
                     if (target == target.Entity?.Get<Sprite>())
                         config.ValuesTweak(target.Entity, config.EntityTweaks, config.TweaksTEST);
-
-                selfData.Set("smh_characterConfig", config);
             }
             return config;
         }
@@ -125,7 +129,10 @@ namespace Celeste.Mod.SkinModHelper {
 
         #region Other Values 
         public Image Target;
+        public Entity lastEntity;
+        public ModAsset Source;
         public string SourcePath;
+
 
         public bool TweaksTEST;
         public List<Tweak> EntityTweaks { get; set; }
@@ -268,7 +275,9 @@ namespace Celeste.Mod.SkinModHelper {
                             config.Old_BuildHairColors();
                     }
                 } else {
-                    config = GetConfigOnSprite<HairConfig>(target.Sprite, "skinConfig/HairConfig") ?? new();
+                    ModAsset asset = GetAssetOnSprite<AssetTypeYaml>(target.Sprite, "skinConfig/HairConfig");
+                    config = AssetIntoConfig<HairConfig>(asset) ?? new();
+                    config.Source = asset;
                     config.Target = target;
                     config.SourcePath = rootPath;
 
@@ -277,14 +286,18 @@ namespace Celeste.Mod.SkinModHelper {
                     if (GetTexturesOnSprite(target.Sprite, "hair", out var textures2) && textures2[0].ToString() != "characters/player/hair00")
                         config.new_hairs = textures2;
 
-                    if (!(SkinsSystem.Settings.PlayerSkinHairColorsDisabled && target.Entity is Player))
-                        if (config.HairColors != null || config.HairFlash == false || AssetExists<AssetTypeDirectory>(getAnimationRootPath(target.Sprite, "idle") + "ColorGrading", GFX.Game))
-                            config.BuildHairColors();
-                    if (!(SkinsSystem.Settings.PlayerSkinHairLengthsDisabled && target.Entity is Player))
+                    if (!(SkinsSystem.Settings.PlayerSkinHairColorsDisabled && target.Entity is Player)) {
+                        bool ForceGenerated = config.HairFlash == false || AssetExists<AssetTypeDirectory>(getAnimationRootPath(target.Sprite, "idle") + "ColorGrading", GFX.Game);
+                        config.BuildHairColors(ForceGenerated);
+                    }
+                    if (!(SkinsSystem.Settings.PlayerSkinHairLengthsDisabled && target.Entity is Player)) {
                         config.BuildHairLengths();
+                    }
                 }
-
                 selfData.Set("smh_hairConfig", config);
+            }
+            if (target.Entity != config.lastEntity) {
+                config.lastEntity = target.Entity;
             }
             return config;
         }
@@ -296,10 +309,13 @@ namespace Celeste.Mod.SkinModHelper {
         public bool HairFlash { get; set; } = true;
         public int? HairFloatingDashCount { get; set; }
 
+        public string iHairColors { get; set; }
         public List<HairColor> HairColors { get; set; }
         public class HairColor {
             public int Dashes { get; set; }
             public string Color { get; set; }
+
+            public string iSegmentsColors { get; set; }
             public List<SegmentsColor> SegmentsColors { get; set; }
             public class SegmentsColor {
                 public int Segment { get; set; }
@@ -307,6 +323,7 @@ namespace Celeste.Mod.SkinModHelper {
             }
         }
 
+        public string iHairLengths { get; set; }
         public List<HairLength> HairLengths { get; set; }
         public class HairLength {
             public int Dashes { get; set; }
@@ -316,6 +333,8 @@ namespace Celeste.Mod.SkinModHelper {
 
         #region Other Values
         public PlayerHair Target;
+        public Entity lastEntity;
+        public ModAsset Source;
         public string SourcePath;
         public List<SkinModHelperOldConfig.HairColor> oldHairColors;
 
@@ -326,14 +345,28 @@ namespace Celeste.Mod.SkinModHelper {
         public Dictionary<int, int> ActualHairLengths;
         #endregion
 
-        #region Build Hair Colors / Lengths
-        public void BuildHairColors() {
+        #region Build Hair Colors
+        public void BuildHairColors(bool ForceGenerated) {
             Dictionary<int, Color> changed = new();
 
             int maxCount = 2;
-            if (this.HairColors != null) {
-                foreach (HairColor hairColor in this.HairColors) {
-                    if (hairColor.Dashes >= 0 && RGB_Regex.IsMatch(hairColor.Color)) {
+            if (iHairColors != null) {
+                string[] colors = iHairColors.Split('|', StringSplitOptions.TrimEntries);
+                for (int i = 0; i < colors.Length; i++) {
+                    if (colors[i] == "x")
+                        continue;
+                    if (RGB_Regex.IsMatch(colors[i])) {
+                        changed[i] = Calc.HexToColor(colors[i]);
+                    }
+                }
+                maxCount = Math.Max(colors.Length - 1, 2);
+            } else if (HairColors == null && !ForceGenerated) {
+                return;
+            }
+            if (HairColors != null) {
+                for (int i = 0; i < HairColors.Count; i++) {
+                    HairColor hairColor = HairColors[i];
+                    if (hairColor.Dashes >= 0 && hairColor.Color != null && RGB_Regex.IsMatch(hairColor.Color)) {
                         changed[hairColor.Dashes] = Calc.HexToColor(hairColor.Color);
                         if (maxCount < hairColor.Dashes)
                             maxCount = hairColor.Dashes;
@@ -353,25 +386,43 @@ namespace Celeste.Mod.SkinModHelper {
 
             // 0~99 as specify-segment Hair's color.
             // -100~-1 as reverse-order of hair.
-            Dictionary<int, List<Color>> HairColors = new() {
+            Dictionary<int, List<Color>> hairColors = new() {
                 [100] = GeneratedHairColors // 100 as each-segment Hair's Default color, or as Player's Dash Color and Silhouette color.
             };
-            if (this.HairColors != null) {
-                foreach (HairColor hairColor in this.HairColors) {
-                    if (hairColor.SegmentsColors != null && changed.ContainsKey(hairColor.Dashes)) {
-                        foreach (HairColor.SegmentsColor SegmentColor in hairColor.SegmentsColors) {
-
-                            if (SegmentColor.Segment <= MAX_HAIRLENGTH && RGB_Regex.IsMatch(SegmentColor.Color)) {
-                                if (!HairColors.ContainsKey(SegmentColor.Segment)) {
-                                    HairColors[SegmentColor.Segment] = new(GeneratedHairColors); // i never knew this work like a the variable or entity of static,  clone it.
+            if (HairColors != null) {
+                for (int i = 0; i < HairColors.Count; i++) {
+                    if (!changed.ContainsKey(HairColors[i].Dashes)) {
+                        continue;
+                    }
+                    HairColor hairColor = HairColors[i];
+                    if (hairColor.iSegmentsColors != null) {
+                        string[] colors = hairColor.iSegmentsColors.Split('|', StringSplitOptions.TrimEntries);
+                        for (int j = 0; j < colors.Length && j < MAX_HAIRLENGTH; j++) {
+                            if (colors[j] == "x")
+                                continue;
+                            if (RGB_Regex.IsMatch(colors[j])) {
+                                if (!hairColors.ContainsKey(j)) {
+                                    hairColors[j] = new(GeneratedHairColors);
                                 }
-                                HairColors[SegmentColor.Segment][hairColor.Dashes] = Calc.HexToColor(SegmentColor.Color);
+                                hairColors[j][hairColor.Dashes] = Calc.HexToColor(colors[j]);
+                            }
+                        }
+                    }
+                    if (hairColor.SegmentsColors != null) {
+                        for (int j = 0; j < hairColor.SegmentsColors.Count; j++) {
+                            HairColor.SegmentsColor SegmentColor = hairColor.SegmentsColors[j];
+                            if (SegmentColor.Segment <= MAX_HAIRLENGTH && SegmentColor.Color != null && RGB_Regex.IsMatch(SegmentColor.Color)) {
+
+                                if (!hairColors.ContainsKey(SegmentColor.Segment)) {
+                                    hairColors[SegmentColor.Segment] = new(GeneratedHairColors); // i never knew this work like a the variable or entity of static,  clone it.
+                                }
+                                hairColors[SegmentColor.Segment][hairColor.Dashes] = Calc.HexToColor(SegmentColor.Color);
                             }
                         }
                     }
                 }
             }
-            foreach (List<Color> hairColor in HairColors.Values) {
+            foreach (List<Color> hairColor in hairColors.Values) {
                 // Fill upper dash range with the last customized dash color
                 for (int i = 3; i < hairColor.Count; i++) {
                     if (!changed.ContainsKey(i)) {
@@ -379,20 +430,32 @@ namespace Celeste.Mod.SkinModHelper {
                     }
                 }
             }
-            ActualHairColors = HairColors;
+            ActualHairColors = hairColors;
         }
-
+        #endregion 
+        #region Build Hair Lengths
         public void BuildHairLengths() {
-            if (this.HairLengths == null) {
+            Dictionary<int, int> hairLengths = new();
+            if (iHairLengths != null) {
+                string[] lengths = iHairLengths.Split('|', StringSplitOptions.TrimEntries);
+                for (int i = 0; i < lengths.Length; i++) {
+                    if (lengths[i] == "x")
+                        continue;
+                    if (int.TryParse(lengths[i], out int length)) {
+                        hairLengths[i] = Calc.Clamp(length, 1, MAX_HAIRLENGTH);
+                    }
+                }
+            }
+            if (HairLengths != null) {
+                for (int i = 0; i < HairLengths.Count; i++) {
+                    HairLength hairLength = HairLengths[i];
+                    hairLengths[hairLength.Dashes] = Calc.Clamp(hairLength.Length, 1, MAX_HAIRLENGTH);
+                }
+            }
+            if (hairLengths.Count < 1) {
                 return;
             }
-            Dictionary<int, int> HairLengths = new();
-
-            foreach (HairLength hairLength in this.HairLengths) {
-                HairLengths[hairLength.Dashes] = Calc.Clamp(hairLength.Length, 1, MAX_HAIRLENGTH);
-            }
-
-            ActualHairLengths = HairLengths;
+            ActualHairLengths = hairLengths;
         }
         #endregion
 

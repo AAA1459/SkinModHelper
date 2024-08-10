@@ -19,6 +19,7 @@ using Celeste.Mod.Meta;
 
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 using System.IO;
+using static Celeste.Flagline;
 
 namespace Celeste.Mod.SkinModHelper {
     public static class SkinsSystem {
@@ -777,8 +778,7 @@ namespace Celeste.Mod.SkinModHelper {
             }
             return null;
         }
-        public static T GetConfigOnSprite<T>(Image sprite, string filename) {
-            ModAsset asset = GetAssetOnSprite<AssetTypeYaml>(sprite, filename);
+        public static T AssetIntoConfig<T>(ModAsset asset) {
             if (asset != null) {
                 return asset.Deserialize<T>();
             }

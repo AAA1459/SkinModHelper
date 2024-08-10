@@ -257,8 +257,7 @@ namespace Celeste.Mod.SkinModHelper {
             if (self.Entity is Player || self.Entity is PlayerDeadBody) {
                 if (!self.Has(id)) {
                     string spriteName = (self as PlayerSprite)?.spriteName;
-                    if (spriteName != null)
-                        Logger.Log(LogLevel.Error, "SkinModHelper", $"'{spriteName}' missing animation: {id}");
+                    Logger.Log(LogLevel.Error, "SkinModHelper", $"'{spriteName}' missing animation: {id}");
 
                     if (GFX.SpriteBank.SpriteData["player"].Sprite.Animations.TryGetValue(id, out Sprite.Animation anim) ||
                         GFX.SpriteBank.SpriteData["player_no_backpack"].Sprite.Animations.TryGetValue(id, out anim)) {

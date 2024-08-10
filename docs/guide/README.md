@@ -48,35 +48,24 @@ If you want your skin to be a unique player skin, so set this:
 This becomes the ID that you modify in the sprites.xml instead of the normal `<player>`, 
 so need to do more for it:
 1. Open or create a file named "Sprites.xml" within your mod's "Graphics" folder.
-2. write these in that `Sprites.xml`, as a simplest template:
+2. write these in that `Sprites.xml`:
 ```xml
 <?xml version="1.0" encoding="utf-8" ?>
 
 <Sprites>
-  <!--  ↙<should be Character_ID you setted>  ↙<sprite directory under '[somemod]/Graphics/Atlases/Gameplay/' directory> -->
+  <!-- assume id "MySkin" is Character_ID you setted -->
   <MySkin copy="player" path="characters/MySkin/">
-    <!--      ↓<anim name>                 ↓<anim speed>           ↓<non-required, the next after this anim>-->
-    <Anim id="lookUp" path="lookUp" delay="0.1" frames="2-7" goto="lookUp_End"/>
-    <!--                    ↑<sprites name>             ↑<frame range>-->
-
-    <Loop id="lookUp_End" path="lookUp" delay="0.1" frames="6-7"/>
-
-    <!-- ↓←← where give sprites hair, and set the hair offset -->
-    <Metadata> <!--          ↓<from frame 0 onwards, set the each frame's hair> -->
-       <Frames path="lookUp" hair="x|x|0,-2|0,-2|-1,-2:1|-1,-2:1|-1,-2:1|-1,-2:1|-1,-3:1"/>
-    </Metadata><!--  ↑<sprites name> ↑<disable hair on frame via 'x'>    ↑<[x],[y]:[hair_frame or default 0]> -->
+    <!-- shortened -->
   </MySkin>
-
 </Sprites>
 ```
-3. This template is work based on 'player' from `Celeste/Content/Graphics/Sprites.xml`, you can find it there to see how it makes everything works
-4. Make sure Sprites.xml there have your `Character_ID` or it is matched, otherwise the game will crash.
+3. Make sure Sprites.xml there have your `Character_ID` or it is matched, otherwise the game will crash.
 
 ---
 ### OtherSprite_Path
 SMH+ uses xml files to edit other sprites if you noticed. Visit [everest's wiki](https://github.com/EverestAPI/Resources/wiki/Reskinning-Entities#reskinning-entities-through-spritesxml) for a more comprehensive guide on xml files.
 
-here is used to set the directory of `Sprites.xml` or `Portraits.xml` their smh+ supports. it take works when the skin is activated.
+here is used to set the directory of Sprites.xml, or Portraits.xml. it take works when the skin is activated.
 ```
   OtherSprite_Path: [the directory of xmls]     # The starting point of below path: "...Graphics/"
 ```
