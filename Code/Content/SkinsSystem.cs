@@ -680,16 +680,18 @@ namespace Celeste.Mod.SkinModHelper {
             return false;
         }
 
+        public static string last_stopwatch_tag;
         public static Stopwatch stopwatch;
-        public static void StartDelayTiming() {
+        public static void StartDelayTiming(string givenTag = null) {
             if (stopwatch == null)
                 stopwatch = Stopwatch.StartNew();
             else
                 stopwatch.Restart();
+            last_stopwatch_tag = givenTag;
         }
         public static void OutputDelayTiming() {
             stopwatch.Stop();
-            Logger.Log(LogLevel.Info, "SkinModHelper", $"delay: {stopwatch.ElapsedTicks} ticks");
+            Logger.Log(LogLevel.Info, "SkinModHelper", $"{last_stopwatch_tag} delay: {stopwatch.ElapsedTicks} ticks");
         }
 
         public static string GetNumberFormat(int number, int ofDigits = 2) {

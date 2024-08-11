@@ -273,7 +273,7 @@ namespace Celeste.Mod.SkinModHelper {
         #endregion
         #region Method #3
         public static void Logging(string str) {
-            Log(LogLevel.Info, str);
+            Logging(LogLevel.Info, str);
         }
         public static void Logging(LogLevel logLevel, string str) {
             Logger.Log(logLevel, "SkinModHelper", str);

@@ -13,6 +13,8 @@ using System.Reflection;
 using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.PlayerSkinSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
+using AsmResolver.IO;
+using static Celeste.Mod.SkinModHelper.CharacterConfig;
 
 namespace Celeste.Mod.SkinModHelper {
     #region SkinModHelperConfig
@@ -159,18 +161,20 @@ namespace Celeste.Mod.SkinModHelper {
                 string log = $"{SourcePath}skinConfig/CharacterConfig TEST on {type}:";
                 Type type2 = type;
                 while (type2 != null) {
-                    var fs = type2.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).ToList() ?? new();
-                    foreach (var f in fs)
-                        if (f.FieldType.IsEnum)
-                            log = log + "\n" + "IsEnum " + f;
-                        else
-                            log = log + "\n" + f;
+                    FieldInfo[] fs = type2.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                    if (fs != null) {
+                        for (int i = 0; i < fs.Length; i++) {
+                            FieldInfo f = fs[i];
+                            log = log + "\n" + (f.FieldType.IsEnum ? "IsEnum " : "") + f;
+                        }
+                    }
                     type2 = type2.BaseType;
                 }
                 Logger.Log(LogLevel.Info, "SkinModHelper", log);
             }
 
-            foreach (Tweak t in tweaks) {
+            for (int i = 0; i < tweaks.Count; i++) {
+                Tweak t = tweaks[i];
                 if (t.LimitOnType != null) {
                     bool match = true;
                     Type type2 = type;
@@ -465,7 +469,8 @@ namespace Celeste.Mod.SkinModHelper {
 
             int maxCount = 2;
             if (oldHairColors != null) {
-                foreach (SkinModHelperOldConfig.HairColor hairColor in oldHairColors) {
+                for (int i = 0; i < oldHairColors.Count; i++) {
+                    SkinModHelperOldConfig.HairColor hairColor = oldHairColors[i];
                     if (hairColor.Dashes >= 0 && RGB_Regex.IsMatch(hairColor.Color)) {
                         changed[hairColor.Dashes] = Calc.HexToColor(hairColor.Color);
                         if (maxCount < hairColor.Dashes)
