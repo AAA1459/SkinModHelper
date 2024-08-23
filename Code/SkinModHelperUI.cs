@@ -120,7 +120,7 @@ namespace Celeste.Mod.SkinModHelper
                 TextMenu.Option<string> option = new(Dialog.Clean("SkinModHelper_Settings_PlayerSkinVariants"));
                 options.Add(option);
 
-                List<Tuple<string, TextMenuExt.EaseInSubHeaderExt>> descriptions = new();
+                List<(string, TextMenuExt.EaseInSubHeaderExt)> descriptions = new();
                 foreach (var config in configs.Value) {
                     if (!config.Player_List)
                         continue;
@@ -143,7 +143,7 @@ namespace Celeste.Mod.SkinModHelper
                         option.OnLeave += delegate {
                             _text4.FadeVisible = false;
                         };
-                        descriptions.Add(new(config.SkinName, _text4));
+                        descriptions.Add((config.SkinName, _text4));
                         options.Add(_text4);
                     }
                 }
@@ -209,7 +209,7 @@ namespace Celeste.Mod.SkinModHelper
             TextMenu.Option<string> option = new(Dialog.Clean("SkinModHelper_Settings_PlayerSkinVariants_P"));
             options.Add(option);
 
-            List<Tuple<string, TextMenuExt.EaseInSubHeaderExt>> descriptions = new();
+            List<(string, TextMenuExt.EaseInSubHeaderExt)> descriptions = new();
             foreach (var config in configs) {
                 if (!config.Silhouette_List)
                     continue;
@@ -229,7 +229,7 @@ namespace Celeste.Mod.SkinModHelper
                     option.OnLeave += delegate {
                         _text2.FadeVisible = false;
                     };
-                    descriptions.Add(new(config.SkinName, _text2));
+                    descriptions.Add((config.SkinName, _text2));
                     options.Add(_text2);
                 }
             }
@@ -315,7 +315,7 @@ namespace Celeste.Mod.SkinModHelper
                 TextMenu.Option<string> option = new(Dialog.Clean("SkinModHelper_Settings_PlayerSkinVariants"));
                 options.Add(option);
 
-                List<Tuple<string, TextMenuExt.EaseInSubHeaderExt>> descriptions = new();
+                List<(string, TextMenuExt.EaseInSubHeaderExt)> descriptions = new();
                 foreach (var config in configs.Value) {
                     if (!config.Silhouette_List)
                         continue;
@@ -338,7 +338,7 @@ namespace Celeste.Mod.SkinModHelper
                         option.OnLeave += delegate {
                             _text4.FadeVisible = false;
                         };
-                        descriptions.Add(new(config.SkinName, _text4));
+                        descriptions.Add((config.SkinName, _text4));
                         options.Add(_text4);
                     }
                 }

@@ -201,8 +201,8 @@ namespace Celeste.Mod.SkinModHelper {
         }
         public override Dictionary<string, string> Settings { get => smh_Settings.FreeCollocations_OtherExtra; }
 
-        public Dictionary<string, Tuple<Atlas, string, string>> PathSpriteId = new();
-        public Dictionary<string, Tuple<Atlas, string, string>> PathStaticSpriteId = new();
+        public Dictionary<string, (Atlas, string, string)> PathSpriteId = new();
+        public Dictionary<string, (Atlas, string, string)> PathStaticSpriteId = new();
 
         public Dictionary<string, string> SkinIdPath = new(StringComparer.OrdinalIgnoreCase);
         #endregion

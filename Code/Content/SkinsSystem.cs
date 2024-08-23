@@ -114,7 +114,7 @@ namespace Celeste.Mod.SkinModHelper {
         public static Dictionary<string, SpriteBank> Xml_records = new();
 
         public static Dictionary<int, string> skinname_hashcache = new();
-        private static Dictionary<Tuple<Type, string>, FieldInfo> fieldref_cache = new();
+        private static Dictionary<(Type, string), FieldInfo> fieldref_cache = new();
         
         public static HashSet<string> VanillaCharacterTextures = new();
         public static HashSet<string> IDHasHairMetadate = new();
@@ -616,8 +616,7 @@ namespace Celeste.Mod.SkinModHelper {
         #endregion
         #region Method #3
         public static FieldInfo GetFieldPlus(Type type, string name) {
-            Tuple<Type, string> tuple = new(type, name);
-            if (fieldref_cache.TryGetValue(tuple, out FieldInfo field)) {
+            if (fieldref_cache.TryGetValue((type, name), out FieldInfo field)) {
                 return field;
             }
             Type type2 = type;
@@ -627,7 +626,7 @@ namespace Celeste.Mod.SkinModHelper {
                 // some mods entities works based on vanilla entities, but mods entity possible don't have theis own field.
                 type2 = type2.BaseType;
             }
-            fieldref_cache[tuple] = field;
+            fieldref_cache[(type, name)] = field;
             return field;
         }
         public static T GetFieldPlus<T>(object obj, string name) {
