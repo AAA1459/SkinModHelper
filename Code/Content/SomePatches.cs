@@ -1,3 +1,4 @@
+
 using FMOD.Studio;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -174,7 +175,7 @@ namespace Celeste.Mod.SkinModHelper {
             string animPrefix = DynamicData.For(self).Get<string>("smh_AnimPrefix");
 
             #region Animations Extensions
-            if (self.Entity is Player player) {
+            if (self is PlayerSprite && self.Entity is Player player) {
                 bool SwimCheck = player.Scene != null && player.Collidable && player.SwimCheck();
                 string newID = null;
                 switch (id) {
@@ -254,17 +255,19 @@ namespace Celeste.Mod.SkinModHelper {
             }
             #endregion
 
-            if (self.Entity is Player || self.Entity is PlayerDeadBody) {
+            if (self is PlayerSprite && self.Entity is Player || self.Entity is PlayerDeadBody) {
                 if (!self.Has(id)) {
-                    string spriteName = (self as PlayerSprite)?.spriteName;
+                    Sprite sprite;
+                    string spriteName = (self as PlayerSprite).spriteName ?? "";
                     Logger.Log(LogLevel.Error, "SkinModHelper", $"'{spriteName}' missing animation: {id}");
 
-                    if (GFX.SpriteBank.SpriteData["player"].Sprite.Animations.TryGetValue(id, out Sprite.Animation anim) ||
-                        GFX.SpriteBank.SpriteData["player_no_backpack"].Sprite.Animations.TryGetValue(id, out anim)) {
-
+                    if ((sprite = GFX.SpriteBank.SpriteData["player"].Sprite).Animations.TryGetValue(id, out Sprite.Animation anim) ||
+                        (sprite = GFX.SpriteBank.SpriteData["player_no_backpack"].Sprite).Animations.TryGetValue(id, out anim)) {
                         self.Animations[id] = anim;
-                        if (spriteName != null && GFX.SpriteBank.Has(spriteName))
-                            GFX.SpriteBank.SpriteData[spriteName].Sprite.Animations[id] = anim;
+                        PatchSpritewithLogs(sprite, self);
+
+                        if (GFX.SpriteBank.Has(spriteName))
+                            PatchSprite(sprite, GFX.SpriteBank.SpriteData[spriteName].Sprite);
                     } else {
                         return;
                     }
@@ -276,7 +279,6 @@ namespace Celeste.Mod.SkinModHelper {
             }
             orig(self, id, restart, randomizeFrame);
         }
-
         #endregion
 
         #region Player
@@ -442,10 +444,11 @@ namespace Celeste.Mod.SkinModHelper {
         // Although in "DeathEffectRenderHook", we blocked the original method. but only Player will still run this...
         private static void DeathEffectDrawHook(On.Celeste.DeathEffect.orig_Draw orig, Vector2 position, Color color, float ease) {
             Entity entity = null;
-            foreach (Player player in (Engine.Scene as Level)?.Tracker?.GetEntities<Player>()) {
-                if (player.Center + player.deadOffset == position) {
-                    entity = player;
-                    break;
+            if (Engine.Scene != null) {
+                foreach (Player player in Engine.Scene.Tracker.GetEntities<Player>()) {
+                    if (player.Center + player.deadOffset == position) {
+                        entity = player; break;
+                    }
                 }
             }
             MTexture texture = null;

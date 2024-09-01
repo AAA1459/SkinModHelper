@@ -536,6 +536,21 @@ namespace Celeste.Mod.SkinModHelper {
                 }
             }
         }
+        public static void PatchSpritewithLogs(Sprite origSprite, Sprite newSprite) {
+            Dictionary<string, Sprite.Animation> newAnims = newSprite.Animations;
+
+            Dictionary<string, Sprite.Animation> oldAnims = new(origSprite.Animations);
+            foreach (KeyValuePair<string, Sprite.Animation> animEntry in oldAnims) {
+                string origAnimId = animEntry.Key;
+                Sprite.Animation origAnim = animEntry.Value;
+                if (!newAnims.ContainsKey(origAnimId)) {
+                    string newSpriteName = newSprite is PlayerSprite player ? player.spriteName : getAnimationRootPath(newSprite);
+                    Logger.Log(LogLevel.Error, "SkinModHelper", $"'{newSpriteName}' missing animation: {origAnimId}");
+
+                    newAnims[origAnimId] = origAnim;
+                }
+            }
+        }
 
         public static bool LoadConfigFile<T>(ModAsset skinConfigYaml, out T t) {
             return skinConfigYaml.TryDeserialize(out t);
