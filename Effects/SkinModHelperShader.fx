@@ -16,26 +16,22 @@ float4 PS_Colorgrade(float4 inPosition : SV_Position, float4 spriteColor : COLOR
     // get sprite color
     float4 pixel = SAMPLE_TEXTURE(sprite, uv);
     
-	float4 color = float4(0,0,0,0);
-	if (pixel.a > 0.0) {
-	   // unmultiply the alpha before the colorgrade, which is the whole damn reason this shader exists.
-	   color = pixel * (1.0 / pixel.a);
+	// unmultiply the alpha before the colorgrade, which is the whole damn reason this shader exists.
+	float4 color = pixel * (1.0 / max(pixel.a, 1/256.0));
 	   
-	   // Combine int conversion and +0.5 for rounding.
-	   int x = color.r * 15.0 + 0.5;
-	   int z = color.b * 15.0 + 0.5;
-	   int y = color.g * 15.0 + 0.5;
+	// Combine int conversion and +0.5 for rounding.
+	int x = color.r * 15.0 + 0.5;
+	int z = color.b * 15.0 + 0.5;
+	int y = color.g * 15.0 + 0.5;
 	   
-	   // extract the coordinates and lock them with +0.5, make sure it doesn't mix with adjacent colors.
-	   float Y = (y + 0.5) / 16.0;
-	   float XZ = (x + (z * 16) + 0.5) / 256.0;
+	// extract the coordinates and lock them with +0.5, make sure it doesn't mix with adjacent colors.
+	float Y = (y + 0.5) / 16.0;
+	float XZ = (x + (z * 16) + 0.5) / 256.0;
 	   
-	   color = SAMPLE_TEXTURE(colorgrade, float2(XZ, Y));
+	color = SAMPLE_TEXTURE(colorgrade, float2(XZ, Y));
 	   
-	   // don't forgot to multiply back in the alpha
-	   color = color * pixel.a * spriteColor;
-	}
-	return color;
+	// don't forgot to multiply back in the alpha
+	return color * pixel.a * spriteColor;
 }
 
 //-----------------------------------------------------------------------------
