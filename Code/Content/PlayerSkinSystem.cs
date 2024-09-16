@@ -345,6 +345,9 @@ namespace Celeste.Mod.SkinModHelper {
                     get_dashCount = 1;
                 else
                     get_dashCount = Math.Max(player.lastDashes, 0);
+            } else if (selfData.Get("isGhost") != null && GetFieldPlus(self.Entity, "Dashes", out int dashes)){
+                get_dashCount = dashes;
+                Logging(LogLevel.Verbose, $"Got the dashes {dashes} of ghost for colorgrade");
             } else {
                 get_dashCount = GetDashCount(self);
             }

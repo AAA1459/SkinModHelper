@@ -651,6 +651,15 @@ namespace Celeste.Mod.SkinModHelper {
             }
             return default;
         }
+        public static bool GetFieldPlus<T>(object obj, string name, out T value) {
+            FieldInfo field = GetFieldPlus(obj.GetType(), name);
+            if (field != null && field.FieldType == typeof(T)) {
+                value = (T)field.GetValue(obj);
+                return true;
+            }
+            value = default;
+            return false;
+        }
 
         public static bool AssetExists<T>(string path, Atlas atlas = null) {
             if (atlas != null) {

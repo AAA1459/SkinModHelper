@@ -19,7 +19,7 @@ using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 namespace Celeste.Mod.SkinModHelper {
     public static class DebugCommands {
 
-        public const string HelpInfo = "SubCommands list: player, spriteidpath(sip), loglevel, settings";
+        public const string HelpInfo = "SubCommands list: player(p), spriteidpath(sip), loglevel, settings(s)";
 
         [Command("skinmodhelper", HelpInfo)]
         #region Process
@@ -38,7 +38,7 @@ namespace Celeste.Mod.SkinModHelper {
             #region // command == "settings"
             if (command == "settings") {
                 if (help2) {
-                    Send("Quick changes SkinModHelper setting. and available subcommands are backpack, closehaircolor, closehairlength, playerskinxmlgreatestpriority(psgp)");
+                    Send("Quick changes SkinModHelper setting. and available subcommands are \n  backpack, disablehaircolor(dhc), disablehairlength(dhl), playerskinxmlgreatestpriority(psgp)");
                     return;
                 }
                 switch (name) {
@@ -72,8 +72,9 @@ namespace Celeste.Mod.SkinModHelper {
                         Send($"Changed SkinModHelper's backpack setting to '{smh_Settings.Backpack}'");
                         break;
                     #endregion
-                    #region // subcommand == "closehaircolor"
-                    case "closehaircolor":
+                    #region // subcommand == "disablehaircolor"
+                    case "disablehaircolor":
+                    case "dhc":
                     case "pshcd":
                     case "playerskinhaircolorsdisabled":
                         if (help3) {
@@ -83,8 +84,10 @@ namespace Celeste.Mod.SkinModHelper {
                         switch (subname) {
                             case "on":
                             case "true":
+                            case "1":
                                 smh_Settings.PlayerSkinHairColorsDisabled = true;
                                 break;
+                            case "0":
                             case "off":
                             case "false":
                                 smh_Settings.PlayerSkinHairColorsDisabled = false;
@@ -96,8 +99,9 @@ namespace Celeste.Mod.SkinModHelper {
                         Send($"Changed SkinModHelper's PlayerSkinHairColorsDisabled setting to '{smh_Settings.PlayerSkinHairColorsDisabled}'");
                         break;
                     #endregion
-                    #region // subcommand == "closehairlength"
-                    case "closehairlength":
+                    #region // subcommand == "disablehairlength"
+                    case "disablehairlength":
+                    case "dhl":
                     case "pshld":
                     case "playerskinhairlengthsdisabled":
                         if (help3) {
