@@ -154,8 +154,7 @@ And, there is also a test skin under the banana-page of skinmodhelperplus, that 
 ---
 ## _More Miscellaneous_
 1. SkinModHelper have some introduce of special textures, and collected various sources of IDs animation.
-   * [Special texture setting/reskin](https://github.com/AAA1459/SkinModHelper/wiki/Textures-list-of-Various-Type#special-texture-settingreskin)
-   * [of about OtherSprite_Path](https://github.com/AAA1459/SkinModHelper/wiki/Textures-list-of-Various-Type#of-about-othersprite_path)
+   * [Textures list of Various Type](https://github.com/AAA1459/SkinModHelper/wiki/Textures-list-of-Various-Type)
 
 2. more complicated things
    * [Setting ColorGrade for skin](/docs/guide//skinconfig/ColorGrade.md)
