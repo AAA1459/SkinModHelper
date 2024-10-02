@@ -167,22 +167,26 @@ If your skin is not be registered (or does not appear in the menu):
 * Make sure your configuration file is named correctly and in the right place
 * Check your log to see your skin report anything when trying to register
 
-If your sprites/portraits are not appearing in-game:
+
+**If your sprites/portraits are not appearing in-game:**
 * Make sure your XML is valid. You can compare to the vanilla files or use an [online syntax checker](https://www.xmlvalidation.com/)
 * Make sure the "path" fields to your sprites/portraits are correct and the files are in the right place
 * Make sure the "start" field references an animation you have reskinned.
 
-If you get missing textures or unexpected vanilla textures:
+
+**If you get missing textures or unexpected vanilla textures:**
 * Check your log to see what textures are missing -- these messages can point you in the right direction
 * Make sure the number of images matches the number of animation "frames"
 
-If skins is always works or not, not affected by options:
+
+**If skins is always works or not, not affected by options:**
 * Check if the sprite path is consistent with vanilla or maps, please avoid it.
 * Check smh's "Precisely skin choose" menu, check if there is the IDs setted always or never enabled when it related to your skin.
 
-If some textures are misaligned, even xml-undefined:
-1. In the same folder as that texture, create a .meta.yaml file with the name of that texture
-   * If the texture is "madeline.png", So create "madeline.meta.yaml" flie
+
+**If some textures are misaligned, even xml-undefined:**
+1. In the same folder as that texture, create a `.meta.yaml` file with the name of that texture
+   * If the texture is `madeline.png`, So create `madeline.meta.yaml` flie
 2. Write that texture information to the .meta.yaml file you create
 ```
 X: [X offset value of texture in game]
@@ -192,13 +196,15 @@ Height: [pixel Height of texture]
 Premultiplied: [true/false]    # about this i don't know.
 ```
 3. Restart the game to make it work or reload
+<br>_`This method does not come from SkinModHelper, just included as useful.`_
 
-If you get crashes:
+
+**If you get crashes:**
 * Check your log to see if it's a missing texture
 * Make sure you don't have any "Metadata" sections for missing animations in Sprites.xml
 * Contact me!
 
-If you want to find all vanilla textures (png format):
+**If you want to find all vanilla textures (png format):**
 * You can find it here: [Celeste Graphics Dump v1400](https://drive.google.com/file/d/1ITwCI2uJ7YflAG0OwBR4uOUEJBjwTCet/view)
 
 This process can be pretty involved, especially if you are porting over an existing skin mod,
