@@ -1,12 +1,42 @@
 ﻿using MonoMod.ModInterop;
+using FMOD.Studio;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Mono.Cecil;
+using Monocle;
+using MonoMod.Cil;
+using MonoMod.RuntimeDetour;
+using MonoMod.Utils;
+using System;
+using System.Reflection;
+using Mono.Cecil.Cil;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
 
-namespace Celeste.Mod.SkinModHelper {
+using static Celeste.Mod.SkinModHelper.SkinsSystem;
+using static Celeste.Mod.SkinModHelper.PlayerSkinSystem;
+using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
+
+namespace Celeste.Mod.SkinModHelper.Interop {
+
     [ModExportName("SkinModHelperPlus")]
     public static class SkinModHelperInterop {
         internal static void Load() {
             typeof(SkinModHelperInterop).ModInterop();
         }
+        
+        public static void SetColorGrade(Sprite to, MTexture mTexture) {
+            DynamicData spriteData = DynamicData.For(to);
 
+            spriteData.Set("ColorGrade_Path", mTexture?.AtlasPath);
+            spriteData.Set("ColorGrade_Atlas", mTexture?.Atlas);
+        }
+        public static void CopyColorGrades(Sprite from, Sprite to) {
+            SyncColorGrade(to, from);
+        }
+
+        #region Legacy
         public static void SessionSet_PlayerSkin(string newSkinId) {
             SkinModHelperModule.SessionSet_PlayerSkin(newSkinId);
         }
@@ -16,26 +46,6 @@ namespace Celeste.Mod.SkinModHelper {
         public static void SessionSet_GeneralSkin(string newSkinId, bool? OnOff) {
             SkinModHelperModule.SessionSet_GeneralSkin(newSkinId, OnOff);
         }
-
-        /// <summary> 
-        /// <para> Copy the ColorGrades of source to target. </para>
-        /// <para> if tracking is true, so send an delegate to doing this when source's frame change.</para>
-        /// </summary>
-        public static void CopyColorGrades(Monocle.Sprite source, Monocle.Sprite target, bool tracking = false) {
-            if (source == null || target == null)
-                return;
-            MonoMod.Utils.DynamicData sourceData = MonoMod.Utils.DynamicData.For(source);
-            MonoMod.Utils.DynamicData targetData = MonoMod.Utils.DynamicData.For(target);
-
-            targetData.Set("ColorGrade_Path", sourceData.Get<string>("ColorGrade_Path"));
-            targetData.Set("ColorGrade_Atlas", sourceData.Get<Monocle.Atlas>("ColorGrade_Atlas"));
-
-            if (tracking) {
-                source.OnFrameChange += frame => {
-                    targetData.Set("ColorGrade_Path", sourceData.Get<string>("ColorGrade_Path"));
-                    targetData.Set("ColorGrade_Atlas", sourceData.Get<Monocle.Atlas>("ColorGrade_Atlas"));
-                };
-            }
-        }
+        #endregion
     }
 }

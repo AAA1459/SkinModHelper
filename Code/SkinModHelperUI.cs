@@ -34,7 +34,6 @@ namespace Celeste.Mod.SkinModHelper
                 BuildPlayerSkinSelectMenu(menu, inGame);
                 if (Settings.SilhouetteVariantsWithOwnMenu)
                     BuildSilhouetteSkinSelectMenu(menu, inGame);
-
                 BuildExSkinsMenu(menu, inGame);
 
                 menu.Add(BuildMoreOptionsMenu(menu, inGame, includeCategorySubmenus, submenuBackAction));

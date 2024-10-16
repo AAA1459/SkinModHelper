@@ -13,8 +13,6 @@ using System.Reflection;
 using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.PlayerSkinSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
-using AsmResolver.IO;
-using static Celeste.Mod.SkinModHelper.CharacterConfig;
 
 namespace Celeste.Mod.SkinModHelper {
     #region SkinModHelperConfig
@@ -275,7 +273,7 @@ namespace Celeste.Mod.SkinModHelper {
                     if (target.Entity is Player) {
                         config.oldHairColors = OtherskinOldConfig[isOld].HairColors ?? new();
                         config.HairFlash = false;
-                        if (!SkinsSystem.Settings.PlayerSkinHairColorsDisabled)
+                        if (!smh_Settings.PlayerSkinHairColorsDisabled)
                             config.Old_BuildHairColors();
                     }
                 } else {
@@ -290,11 +288,11 @@ namespace Celeste.Mod.SkinModHelper {
                     if (GetTexturesOnSprite(target.Sprite, "hair", out var textures2) && textures2[0].ToString() != "characters/player/hair00")
                         config.new_hairs = textures2;
 
-                    if (!(SkinsSystem.Settings.PlayerSkinHairColorsDisabled && target.Entity is Player)) {
+                    if (!(smh_Settings.PlayerSkinHairColorsDisabled && target.Entity is Player)) {
                         bool ForceGenerated = config.HairFlash == false || AssetExists<AssetTypeDirectory>(getAnimationRootPath(target.Sprite, "idle") + "ColorGrading", GFX.Game);
                         config.BuildHairColors(ForceGenerated);
                     }
-                    if (!(SkinsSystem.Settings.PlayerSkinHairLengthsDisabled && target.Entity is Player)) {
+                    if (!(smh_Settings.PlayerSkinHairLengthsDisabled && target.Entity is Player)) {
                         config.BuildHairLengths();
                     }
                 }

@@ -51,18 +51,34 @@ namespace Celeste.Mod.SkinModHelper {
 
 
         [SettingIgnore]
-        public Dictionary<string, bool> ExtraXmlList { get; set; } = new();
+        public Dictionary<string, bool> ExtraXmlList {
+            get => _ExtraXmlList;
+            // When reading the save it loses the comparator... so create the new with the comparator.
+            set => _ExtraXmlList = new(value, StringComparer.OrdinalIgnoreCase);
+        }
+        private Dictionary<string, bool> _ExtraXmlList = new(StringComparer.OrdinalIgnoreCase);
 
 
         [SettingIgnore]
         public bool FreeCollocations_OffOn { get; set; }
 
         [SettingIgnore]
-        public Dictionary<string, string> FreeCollocations_Sprites { get; set; } = new();
+        public Dictionary<string, string> FreeCollocations_Sprites {
+            get => _FreeCollocations_Sprites; set => _FreeCollocations_Sprites = new(value, StringComparer.OrdinalIgnoreCase);
+        }
+        private Dictionary<string, string> _FreeCollocations_Sprites = new(StringComparer.OrdinalIgnoreCase);
+
         [SettingIgnore]
-        public Dictionary<string, string> FreeCollocations_Portraits { get; set; } = new();
+        public Dictionary<string, string> FreeCollocations_Portraits {
+            get => _FreeCollocations_Portraits; set => _FreeCollocations_Portraits = new(value, StringComparer.OrdinalIgnoreCase);
+        }
+        private Dictionary<string, string> _FreeCollocations_Portraits = new(StringComparer.OrdinalIgnoreCase);
+
         [SettingIgnore]
-        public Dictionary<string, string> FreeCollocations_OtherExtra { get; set; } = new();
+        public Dictionary<string, string> FreeCollocations_OtherExtra {
+            get => _FreeCollocations_OtherExtra; set => _FreeCollocations_OtherExtra = new(value, StringComparer.OrdinalIgnoreCase);
+        }
+        private Dictionary<string, string> _FreeCollocations_OtherExtra = new(StringComparer.OrdinalIgnoreCase);
 
 
 

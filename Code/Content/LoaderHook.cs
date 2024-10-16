@@ -18,16 +18,13 @@ using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 namespace Celeste.Mod.SkinModHelper {
     public static class LoaderHook {
         #region Hooks
-        public static SkinModHelperSettings Settings => (SkinModHelperSettings)Instance._Settings;
-        public static SkinModHelperSession Session => (SkinModHelperSession)Instance._Session;
 
 
         public static void Load() {
             On.Celeste.GameLoader.Begin += GameLoaderBeginHook;
             On.Celeste.OverworldLoader.LoadThread += OverworldLoaderLoadThreadHook;
             
-            doneHooks.Add(new Hook(typeof(LevelLoader).GetMethod("orig_ctor", BindingFlags.Public | BindingFlags.Instance),
-                                   typeof(LoaderHook).GetMethod("on_LevelLoader_origctor", BindingFlags.NonPublic | BindingFlags.Static)));
+            On.Celeste.LevelLoader.StartLevel += on_LevelLoader_StartLevel;
 
             On.Celeste.OuiFileSelectSlot.Setup += OuiFileSelectSlotSetupHook;
             doneILHooks.Add(new ILHook(typeof(OuiFileSelect).GetMethod("Enter", BindingFlags.Public | BindingFlags.Instance).GetStateMachineTarget(), OuiFileSelectEnterILHook));
@@ -57,27 +54,24 @@ namespace Celeste.Mod.SkinModHelper {
             orig(self);
             // Placing the method under orig will result in multi-threaded parallelism here.
         }
-
         // loading if enter the maps.
-        private static void on_LevelLoader_origctor(Action<LevelLoader, Session, Vector2?> orig, LevelLoader self, Session session, Vector2? startPosition) {
-            if (session != null) {
-                backpackOn = backpackSetting == 3 || (backpackSetting == 0 && session.Inventory.Backpack) || (backpackSetting == 1 && !session.Inventory.Backpack);
-            }
-            Player_Skinid_verify = 0;
+        private static void on_LevelLoader_StartLevel(On.Celeste.LevelLoader.orig_StartLevel orig, LevelLoader self) {
+            bool vanillaBackpack = self.Level.Session.Inventory.Backpack;
+            backpackOn = backpackSetting == 3 || (backpackSetting == 0 && vanillaBackpack) || (backpackSetting == 1 && !vanillaBackpack);
 
+            Player_Skinid_verify = 0;
             string hash_object = GetPlayerSkin();
             if (hash_object != null) {
                 Player_Skinid_verify = skinConfigs[!backpackOn ? GetPlayerSkin("_NB", hash_object) : hash_object].hashValues;
             }
             RefreshSkins(true);
-            orig(self, session, startPosition);
-            // Placing the method under orig will result in multi-threaded parallelism here.
+            orig(self);
         }
 
 
         // loading if overworld loads or exit maps.
         private static void OverworldLoaderLoadThreadHook(On.Celeste.OverworldLoader.orig_LoadThread orig, OverworldLoader self) {
-            RefreshSkins(true, false);
+            RefreshSkins(true);
             orig(self);
         }
         #endregion
@@ -86,7 +80,7 @@ namespace Celeste.Mod.SkinModHelper {
         // loading if save file menu be first time enter when before overworld reloaded.
         private static void OuiFileSelectSlotSetupHook(On.Celeste.OuiFileSelectSlot.orig_Setup orig, OuiFileSelectSlot self) {
             if (self.FileSlot == 0) {
-                RefreshSkins(true, false);
+                RefreshSkins(true);
 
                 if (SaveFilePortraits) {
                     Logger.Log("SkinModHelper", $"SaveFilePortraits reload start");

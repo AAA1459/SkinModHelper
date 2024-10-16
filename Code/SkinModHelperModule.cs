@@ -16,6 +16,9 @@ using System.Xml;
 using System.Linq;
 
 using static Celeste.Mod.SkinModHelper.SkinsSystem;
+using Celeste.Mod.SkinModHelper.Interop;
+using System.Xml.Linq;
+using YamlDotNet.Core.Tokens;
 
 namespace Celeste.Mod.SkinModHelper {
     public class SkinModHelperModule : EverestModule {
@@ -23,8 +26,13 @@ namespace Celeste.Mod.SkinModHelper {
         public static SkinModHelperModule Instance;
         public override Type SettingsType => typeof(SkinModHelperSettings);
         public override Type SessionType => typeof(SkinModHelperSession);
+
+        public static SkinModHelperSettings smh_Settings => Settings;
         public static SkinModHelperSettings Settings => (SkinModHelperSettings)Instance._Settings;
+
+        public static SkinModHelperSession smh_Session => Session;
         public static SkinModHelperSession Session => (SkinModHelperSession)Instance._Session;
+
 
         public static SkinModHelperUI InstanceUI;
 
@@ -48,7 +56,6 @@ namespace Celeste.Mod.SkinModHelper {
         }
 
         public override void Load() {
-            SkinModHelperInterop.Load();
             SkinsSystem.Load();
 
             LoaderHook.Load();
@@ -56,6 +63,8 @@ namespace Celeste.Mod.SkinModHelper {
             ObjectsHook.Load();
             SomePatches.Load();
             TrailRecolor.Load();
+
+            SkinModHelperInterop.Load();
         }
         public override void Initialize() {
             base.Initialize();
@@ -116,79 +125,83 @@ namespace Celeste.Mod.SkinModHelper {
 
         #region Setting Update
         public static void UpdatePlayerSkin(string newSkinId, bool inGame) {
-            if (Session != null) {
+            if (smh_Session != null) {
                 SessionSet_PlayerSkin(null);
             }
             Settings.SelectedPlayerSkin = newSkinId;
-            if (inGame) {
-                PlayerSkinSystem.RefreshPlayerSpriteMode();
-            } else {
-                RefreshSkins(false, inGame);
-            }
+            RefreshSkins(false);
         }
         public static void UpdateSilhouetteSkin(string newSkinId, bool inGame) {
-            if (Session != null) {
-                SessionSet_SilhouetteSkin(null);
+            if (smh_Session != null) {
+                smh_Session.SelectedSilhouetteSkin = null;
             }
             Settings.SelectedSilhouetteSkin = newSkinId;
+            RefreshSkins(false);
         }
         public static void UpdateGeneralSkin(string SkinId, bool OnOff, bool inGame) {
             if (Session != null) {
-                SessionSet_GeneralSkin(SkinId, null);
+                smh_Session.ExtraXmlList.Remove(SkinId);
             }
             Settings.ExtraXmlList[SkinId] = OnOff;
-            RefreshSkins(false, inGame);
+            RefreshSkins(false);
         }
         #endregion
 
         #region Session Update
         public static void SessionSet_PlayerSkin(string newSkinId) {
-            if (Session == null) {
-                Logger.Log(LogLevel.Warn, "SkinModHelper", $"The player is not in the level, cannot setting session!");
+            if (smh_Session == null) {
+                Logger.Log(LogLevel.Warn, "SkinModHelper", $"Cannot set session because it is null");
                 return;
-            } else if (newSkinId != null && GetPlayerSkin(null, newSkinId) == null) {
+            } 
+            if (newSkinId != null && GetPlayerSkin(null, newSkinId) == null) {
                 Logger.Log(LogLevel.Warn, "SkinModHelper", $"PlayerSkin '{newSkinId}' does not exist!");
-                return;
             }
-            Session.SelectedPlayerSkin = newSkinId;
-            PlayerSkinSystem.RefreshPlayerSpriteMode();
+            smh_Session.SelectedPlayerSkin = newSkinId;
+            RefreshSkins(false);
         }
         public static void SessionSet_SilhouetteSkin(string newSkinId) {
-            if (Session == null) {
-                Logger.Log(LogLevel.Warn, "SkinModHelper", $"The player is not in the level, cannot setting session!");
-                return;
-            } else if (newSkinId != null && GetPlayerSkin(null, newSkinId) == null) {
-                Logger.Log(LogLevel.Warn, "SkinModHelper", $"PlayerSkin '{newSkinId}' does not exist!");
+            if (smh_Session == null) {
+                Logger.Log(LogLevel.Warn, "SkinModHelper", $"Cannot set session because it is null");
                 return;
             }
-            Session.SelectedSilhouetteSkin = newSkinId;
+            if (newSkinId != null && GetPlayerSkin(null, newSkinId) == null) {
+                Logger.Log(LogLevel.Warn, "SkinModHelper", $"PlayerSkin '{newSkinId}' does not exist!");
+            }
+            smh_Session.SelectedSilhouetteSkin = newSkinId;
+            RefreshSkins(false);
         }
         public static void SessionSet_GeneralSkin(string newSkin, bool? OnOff) {
-            if (Session == null) {
+            if (smh_Session == null) {
                 Logger.Log(LogLevel.Warn, "SkinModHelper", $"The player is not in the level, cannot setting session!");
                 return;
-            } else if (GetGeneralSkin(newSkin) == null) {
+            } 
+            if (GetGeneralSkin(newSkin) == null) {
                 Logger.Log(LogLevel.Warn, "SkinModHelper", $"GeneralSkin '{newSkin}' does not exist!");
-                return;
             }
 
-            if (OnOff == null && Session.ExtraXmlList.ContainsKey(newSkin)) {
-                Session.ExtraXmlList.Remove(newSkin);
-            } else if (OnOff != null){
-                Session.ExtraXmlList[newSkin] = OnOff == true;
+            if (OnOff == null) {
+                smh_Session.ExtraXmlList.Remove(newSkin);
+            } else if (OnOff != null) {
+                smh_Session.ExtraXmlList[newSkin] = OnOff.Value;
             }
+            RefreshSkins(false);
         }
         #endregion
 
         #region Skins Refresh
+        /// <summary> 
+        /// Used cache for EnabledGeneralSkins. just set this value to <c>GetEnabledGeneralSkins()</c>, and remember to clear it later
+        /// </summary>
+        public static List<SkinModHelperConfig> _enabledGeneralSkins;
         public static void RefreshSkinValues(bool? Setting, bool inGame) {
             if (Setting != null) {
                 Settings.FreeCollocations_OffOn = (bool)Setting;
             }
-
+            _enabledGeneralSkins = GetEnabledGeneralSkins();
             foreach (var respriteBank in RespriteBankModule.InstanceList) {
                 respriteBank.DoRefresh(inGame);
             }
+            _enabledGeneralSkins = null;
             UpdateParticles();
         }
         #endregion
@@ -200,7 +213,7 @@ namespace Celeste.Mod.SkinModHelper {
         /// </returns>
         public static string GetPlayerSkin(string skin_suffix = null, string skinName = null) {
             if (skinName == null) {
-                skinName = Session?.SelectedPlayerSkin ?? Settings.SelectedPlayerSkin ?? "";
+                skinName = smh_Session?.SelectedPlayerSkin ?? Settings.SelectedPlayerSkin ?? "";
             }
 
             if (skinConfigs.ContainsKey(skinName + skin_suffix)) {
@@ -225,16 +238,13 @@ namespace Celeste.Mod.SkinModHelper {
         /// Return the enabled status of an GeneralSkin, return null if it does not exist.
         /// </returns>
         public static bool? GetGeneralSkin(string skinName) {
-            if (!OtherskinConfigs.ContainsKey(skinName)) {
+            if (!OtherskinConfigs.ContainsKey(skinName)) 
                 return null;
-            }
-            if (Session?.ExtraXmlList.ContainsKey(skinName) == true) {
-                return Session.ExtraXmlList[skinName];
-            }
-            if (Settings.ExtraXmlList.ContainsKey(skinName)) {
-                return Settings.ExtraXmlList[skinName];
-            }
-            
+
+            if (Session != null && Session.ExtraXmlList.TryGetValue(skinName, out bool boolen))
+                return boolen;
+            if (Settings.ExtraXmlList.TryGetValue(skinName, out boolen))
+                return boolen;
             return false;
         }
 
@@ -242,7 +252,23 @@ namespace Celeste.Mod.SkinModHelper {
         #region Method #2
         public static List<SkinModHelperConfig> GetEnabledGeneralSkins() {
             if (OtherskinConfigs.Count > 0) {
-                return OtherskinConfigs.Values.Where(config => GetGeneralSkin(config.SkinName) == true).ToList();
+                List<SkinModHelperConfig> configs = new();
+                List<SkinModHelperConfig> delayToAdd = new();
+
+                foreach (var config in OtherskinConfigs.Values) {
+                    Log($"config: {config.SkinName}");
+                    if (Session != null && Session.ExtraXmlList.TryGetValue(config.SkinName, out bool boolen)) {
+                        Log($"ExtraXmlList has {config.SkinName} is {boolen}");
+                        if (boolen)
+                            delayToAdd.Add(config);
+                    } else if (Settings.ExtraXmlList.TryGetValue(config.SkinName, out boolen) && boolen) {
+                        configs.Add(config);
+                    }
+                }
+                foreach (var config in delayToAdd) {
+                    configs.Add(config);
+                }
+                return configs;
             }
             return new();
         }
@@ -270,14 +296,6 @@ namespace Celeste.Mod.SkinModHelper {
                     paths.Add(config.OtherSprite_ExPath);
             return paths;
         }
-        #endregion
-        #region Method #3
-        public static void Logging(string str) {
-            Logging(LogLevel.Info, str);
-        }
-        public static void Logging(LogLevel logLevel, string str) {
-            Logger.Log(logLevel, "SkinModHelper", str);
-        }
-        #endregion
+        #endregion    
     }
 }

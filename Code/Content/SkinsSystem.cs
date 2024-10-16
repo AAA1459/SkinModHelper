@@ -18,17 +18,11 @@ using System.Diagnostics;
 using Celeste.Mod.Meta;
 
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
-using System.IO;
-using static Celeste.Flagline;
+using System.Xml.Linq;
 
 namespace Celeste.Mod.SkinModHelper {
     public static class SkinsSystem {
         #region Hooks
-
-        public static SkinModHelperSettings Settings => (SkinModHelperSettings)Instance._Settings;
-        public static SkinModHelperSession Session => (SkinModHelperSession)Instance._Session;
-        public static SkinModHelperSettings smh_Settings => Settings;
-        public static SkinModHelperSession smh_Session => Session;
 
         public static void Load() {
             Everest.Content.OnUpdate += EverestContentUpdateHook;
@@ -84,6 +78,7 @@ namespace Celeste.Mod.SkinModHelper {
         public static readonly MethodInfo CloneMethod = typeof(object).GetMethod("MemberwiseClone", BindingFlags.NonPublic | BindingFlags.Instance);
 
         public static int Player_Skinid_verify;
+        public static Player _Player => Engine.Scene?.Tracker?.GetEntity<Player>();
 
         public static bool? actualBackpack;
         public static bool backpackOn = true;
@@ -115,13 +110,13 @@ namespace Celeste.Mod.SkinModHelper {
 
         public static Dictionary<int, string> skinname_hashcache = new();
         private static Dictionary<(Type, string), FieldInfo> fieldref_cache = new();
-        
+
         public static HashSet<string> VanillaCharacterTextures = new();
         public static HashSet<string> IDHasHairMetadate = new();
         #endregion
 
         #region Config Initialize
-       private static void EverestContentUpdateHook(ModAsset oldAsset, ModAsset newAsset) {
+        private static void EverestContentUpdateHook(ModAsset oldAsset, ModAsset newAsset) {
             if (newAsset != null) {
                 if (newAsset.PathVirtual.StartsWith("SkinModHelperConfig")) {
                     ConfigInsert(newAsset);
@@ -143,11 +138,11 @@ namespace Celeste.Mod.SkinModHelper {
                     ConfigInsert(configAsset);
                 }
             }
-            if (Settings.SelectedPlayerSkin == null) {
-                Settings.SelectedPlayerSkin = DEFAULT;
+            if (smh_Settings.SelectedPlayerSkin == null) {
+                smh_Settings.SelectedPlayerSkin = DEFAULT;
             }
-            if (Settings.SelectedSilhouetteSkin == null) {
-                Settings.SelectedSilhouetteSkin = DEFAULT;
+            if (smh_Settings.SelectedSilhouetteSkin == null) {
+                smh_Settings.SelectedSilhouetteSkin = DEFAULT;
             }
         }
         public static void ConfigInsert(ModAsset asset) {
@@ -422,17 +417,13 @@ namespace Celeste.Mod.SkinModHelper {
         #endregion
 
         #region Skins Refresh
-        public static void RefreshSkins(bool Xmls_refresh, bool inGame = true) {
+        private static bool DelayRefreshForPlayer;
+        public static void RefreshSkins(bool Xmls_refresh, bool callByPlayer = false) {
+            DelayRefreshForPlayer = !callByPlayer;
+            _RefreshSkins(Xmls_refresh, _Player != null);
+        }
+        private static void _RefreshSkins(bool Xmls_refresh, bool inGame) {
             beforeSkinRefresh?.Invoke(Xmls_refresh, inGame);
-            if (!inGame) {
-                Player_Skinid_verify = 0;
-
-                string skinName = GetPlayerSkin();
-                if (skinName != null) {
-                    Player_Skinid_verify = skinConfigs[skinName].hashValues;
-                }
-            }
-
             if (Xmls_refresh) {
                 LogLevel logLevel = Logger.GetLogLevel("Atlas");
                 if (!build_warning)
@@ -455,9 +446,22 @@ namespace Celeste.Mod.SkinModHelper {
                 build_warning = false;
                 Logger.SetLogLevel("Atlas", logLevel);
             }
-            RefreshSkinValues(null, inGame);
+            if (DelayRefreshForPlayer && inGame) {
+                Player_Skinid_verify = -1;
+                PlayerSkinSystem.RefreshPlayerSpriteMode();
+            } else {
+                if (!inGame) {
+                    Player_Skinid_verify = 0;
+                    string skinName = GetPlayerSkin();
+                    if (skinName != null)
+                        Player_Skinid_verify = skinConfigs[skinName].hashValues;
+                }
+                RefreshSkinValues(null, inGame);
+            }
             afterSkinRefresh?.Invoke(Xmls_refresh, inGame);
+            DelayRefreshForPlayer = false;
         }
+
         public static void RegisterVanillaCharacterTextures(string id) {
             foreach (Sprite.Animation animation in GFX.SpriteBank.SpriteData[id].Sprite.animations.Values) {
                 for (int i = 0; i < animation.Frames.Length; i++) {
@@ -470,22 +474,20 @@ namespace Celeste.Mod.SkinModHelper {
         }
 
         private static void PlayerUpdateHook(On.Celeste.Player.orig_Update orig, Player self) {
-            orig(self);
-
             // PandorasBox have an function that can generate the second player entity, we don't want to detect it.
-            if (Engine.Scene?.Tracker.GetEntity<Player>() != self) {
-                return;
-            }
+            if (_Player == self) {
+                int player_skinid_verify = 0;
 
-            int player_skinid_verify = 0;
-            if (GetPlayerSkinName((int)self.Sprite.Mode) != null) {
-                player_skinid_verify = (int)self.Sprite.Mode;
-            }
+                if (GetPlayerSkinName((int)self.Sprite.Mode) != null) {
+                    player_skinid_verify = (int)self.Sprite.Mode;
+                }
 
-            if (Player_Skinid_verify != player_skinid_verify) {
-                Player_Skinid_verify = player_skinid_verify;
-                RefreshSkins(false);
+                if (Player_Skinid_verify != player_skinid_verify) {
+                    Player_Skinid_verify = player_skinid_verify;
+                    RefreshSkins(false, true);
+                }
             }
+            orig(self);
         }
 
         #endregion
@@ -614,7 +616,7 @@ namespace Celeste.Mod.SkinModHelper {
             } else if (type is Image image) {
                 type = image.Texture.ToString();
             } else {
-                type = type.ToString();
+                type = $"{type}";
             }
 
             if (type is string path && path != null && path.LastIndexOf("/") >= 0) {
@@ -808,6 +810,34 @@ namespace Celeste.Mod.SkinModHelper {
                 return asset.Deserialize<T>();
             }
             return default(T);
+        }
+        #endregion
+
+        #region ColorGrade
+        public static void SyncColorGrade(Sprite to, Sprite from) {
+            if (to == null)
+                return;
+            DynamicData toData = DynamicData.For(to);
+            if (from != null) {
+                DynamicData fromData = DynamicData.For(from);
+                toData.Set("ColorGrade_Path", fromData.Get<string>("ColorGrade_Path"));
+                toData.Set("ColorGrade_Atlas", fromData.Get<Atlas>("ColorGrade_Atlas"));
+            } else {
+                toData.Set("ColorGrade_Path", null);
+                toData.Set("ColorGrade_Atlas", null);
+            }
+        }
+        #endregion
+
+        #region Log Method
+        public static void Log(string log) {
+            Logger.Log(LogLevel.Info, "SkinModHelper", log);
+        }
+        public static void Log(LogLevel logLevel, string log) {
+            Logger.Log(logLevel, "SkinModHelper", log);
+        }
+        public static void Log(this string log, LogLevel logLevel = LogLevel.Info) {
+            Logger.Log(logLevel, "SkinModHelper", log);
         }
         #endregion
     }

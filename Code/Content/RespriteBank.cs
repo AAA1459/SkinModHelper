@@ -17,6 +17,9 @@ using System.Linq;
 
 using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
+using YamlDotNet.Core.Tokens;
+using System.Xml.Linq;
+using static MonoMod.InlineRT.MonoModRule;
 
 namespace Celeste.Mod.SkinModHelper {
     public class RespriteBankModule {
@@ -103,24 +106,30 @@ namespace Celeste.Mod.SkinModHelper {
                         newSpriteData.Sources.Add(source);
                     Basebank.SpriteData[newSpriteId] = newSpriteData;
 
-                    OnCombine(newSpriteId, newSpriteData);
+                    OnCombine?.Invoke(newSpriteId, newSpriteData);
                 }
             }
         }
-        public virtual void OnCombine(string n_name, SpriteData n_data) { }
+        public Action<string, SpriteData> OnCombine;
 
         public virtual void DoRefresh(bool inGame) {
+            bool wasNotCache = _enabledGeneralSkins == null;
+            if (wasNotCache)
+                _enabledGeneralSkins = GetEnabledGeneralSkins();
             foreach (string spriteId in SkinsRecords.Keys) {
                 SetCurrentSkin(spriteId, SettingsActive && Settings.TryGetValue(spriteId, out var value) ? value ?? DEFAULT : DEFAULT);
             }
+            if (wasNotCache)
+                _enabledGeneralSkins = null;
         }
 
         public virtual string SetSettings(string spriteId, string skinID) {
             if (Settings == null)
                 return null;
             Settings[spriteId] = skinID;
-            if (SettingsActive)
+            if (SettingsActive) {
                 return SetCurrentSkin(spriteId, skinID);
+            }
             return skinID;
         }
         #endregion
@@ -147,6 +156,7 @@ namespace Celeste.Mod.SkinModHelper {
 
             return CurrentSkins[SpriteID] = SkinID;
         }
+
         public virtual string GetDefaultSkin(string SpriteID, string cipher) {
             string SkinID = null;
             string playerSkinName = GetPlayerSkinName(Player_Skinid_verify);
@@ -158,9 +168,13 @@ namespace Celeste.Mod.SkinModHelper {
             }
             if (cipher == LockedToPlayer)
                 return SkinID;
-            foreach (SkinModHelperConfig config in GetEnabledGeneralSkins())
-                if (Basebank.Has(SpriteID + config.SkinName))
-                    SkinID = config.SkinName;
+            List<SkinModHelperConfig> configs = _enabledGeneralSkins ?? GetEnabledGeneralSkins();
+            int i = configs.Count;
+            while (i > 0) {
+                i--;
+                if (Basebank.Has(SpriteID + configs[i].SkinName))
+                    return configs[i].SkinName;
+            }
             return SkinID;
         }
         #endregion
@@ -170,14 +184,14 @@ namespace Celeste.Mod.SkinModHelper {
         public RespriteBank(string xml_name, string menu_name, string prefix) : base(xml_name, true) {
             O_SubMenuName = menu_name;
             O_DescriptionPrefix = prefix;
+
+            OnCombine = (n_name, n_data) => {
+                if (n_data.Sources[0].XML["Metadata"] != null)
+                    PlayerSprite.CreateFramesMetadata(n_name);
+            };
         }
         public override SpriteBank Basebank { get => GFX.SpriteBank; }
         public override Dictionary<string, string> Settings { get => smh_Settings.FreeCollocations_Sprites; }
-        public override void OnCombine(string n_name, SpriteData n_data) {
-
-            if (n_data.Sources[0].XML["Metadata"] != null)
-                PlayerSprite.CreateFramesMetadata(n_name);  // Check if skin have metadata... no matter what skin it is.
-        }
     }
     #endregion
 
@@ -280,9 +294,13 @@ namespace Celeste.Mod.SkinModHelper {
             }
             if (cipher == LockedToPlayer)
                 return SkinID;
-            foreach (SkinModHelperConfig config in GetEnabledGeneralSkins())
-                if (value.Contains(config.SkinName))
-                    SkinID = config.SkinName;
+            List<SkinModHelperConfig> configs = _enabledGeneralSkins ?? GetEnabledGeneralSkins();
+            int i = configs.Count;
+            while (i > 0) {
+                i--;
+                if (value.Contains(configs[i].SkinName))
+                    return configs[i].SkinName;
+            }
             return SkinID;
         }
         public string GetSkinWithPath(Atlas atlas, string orig_path, bool numberSet = false) {

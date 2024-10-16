@@ -18,8 +18,6 @@ using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 namespace Celeste.Mod.SkinModHelper {
     public static class ObjectsHook {
         #region Hooks
-        public static SkinModHelperSettings Settings => (SkinModHelperSettings)Instance._Settings;
-        public static SkinModHelperSession Session => (SkinModHelperSession)Instance._Session;
 
 
         public static void Load() {

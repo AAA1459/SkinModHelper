@@ -403,7 +403,7 @@ namespace Celeste.Mod.SkinModHelper {
 
             // Clone the animation, At least make sure it's playing speed doesn't different in some case.
             Sprite deathAnim = new Sprite(null, null);
-            SkinModHelperInterop.CopyColorGrades(sprite, deathAnim);
+            SyncColorGrade(deathAnim, sprite);
 
             deathAnim.ClearAnimations();
             PatchSprite(sprite, deathAnim);
