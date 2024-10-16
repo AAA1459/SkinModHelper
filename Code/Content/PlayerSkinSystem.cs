@@ -425,7 +425,7 @@ namespace Celeste.Mod.SkinModHelper {
 
         #region PlayerSprite Color
         private static void PlayerSpriteRenderHook(On.Celeste.PlayerSprite.orig_Render orig, PlayerSprite self) {
-            if (self.Entity is not Player && DynamicData.For(self).Get("isGhost") == null && self.Entity is not PlayerDeadBody) {
+            if (self.Entity is not (Player or PlayerDeadBody) && DynamicData.For(self).Get("isGhost") == null) {
 
                 PlayerHair hair = self.Entity?.Get<PlayerHair>();
                 if (hair?.Sprite == self) {

@@ -17,9 +17,6 @@ using System.Linq;
 
 using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
-using YamlDotNet.Core.Tokens;
-using System.Xml.Linq;
-using static MonoMod.InlineRT.MonoModRule;
 
 namespace Celeste.Mod.SkinModHelper {
     public class RespriteBankModule {

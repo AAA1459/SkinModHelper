@@ -14,6 +14,7 @@ using Microsoft.Xna.Framework.Input;
 
 using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
+using System.Net.WebSockets;
 
 namespace Celeste.Mod.SkinModHelper
 {
@@ -23,6 +24,8 @@ namespace Celeste.Mod.SkinModHelper
         public static SkinModHelperSession Session => (SkinModHelperSession)Instance._Session;
 
         public NewMenuCategory Category;
+        private Dictionary<string, TextMenuExt.EaseInSubHeaderExt> GlobalDecs = new();
+        public bool OptionsDisabled;
         public enum NewMenuCategory {
             SkinFreeConfig, None
         }
@@ -30,15 +33,20 @@ namespace Celeste.Mod.SkinModHelper
             Action submenuBackAction, TextMenu menu, bool inGame, bool forceEnabled) {
 
             Category = category;
-            if (category == NewMenuCategory.None) {
-                BuildPlayerSkinSelectMenu(menu, inGame);
-                if (Settings.SilhouetteVariantsWithOwnMenu)
-                    BuildSilhouetteSkinSelectMenu(menu, inGame);
-                BuildExSkinsMenu(menu, inGame);
+            OptionsDisabled = Disabled(inGame);
 
+            if (category == NewMenuCategory.None) {
+                if (OptionsDisabled) {
+                    menu.Add(CreateDescription(menu, "SkinModHelper_OptionsDisabled", GetColor(3), 0f, true));
+                }
+                BuildPlayerSkinSelectMenu(menu, inGame);
+                if (Settings.SilhouetteVariantsWithOwnMenu) {
+                    BuildSilhouetteSkinSelectMenu(menu, inGame);
+                }
+                BuildExSkinsMenu(menu, inGame);
                 menu.Add(BuildMoreOptionsMenu(menu, inGame, includeCategorySubmenus, submenuBackAction));
-            }
-            if (category == NewMenuCategory.SkinFreeConfig) {
+
+            } else if (category == NewMenuCategory.SkinFreeConfig) {
                 Build_SkinFreeConfig_NewMenu(menu, inGame);
             }
 
@@ -54,9 +62,6 @@ namespace Celeste.Mod.SkinModHelper
                 SearchUI.ShowSearchUI = false;
             }
         }
-        private TextMenu.SubHeader buildHeading(TextMenu menu, string headingNameResource) {
-            return new TextMenu.SubHeader(Dialog.Clean($"SkinModHelper_NewSubMenu_{headingNameResource}"));
-        }
         #endregion
 
         #region // Player Skins Options
@@ -66,42 +71,43 @@ namespace Celeste.Mod.SkinModHelper
             string selected = Settings.SelectedPlayerSkin;
             TextMenuExt.OptionSubMenu options_lists = new(Dialog.Clean("SkinModHelper_Settings_PlayerSkin")) { ItemIndent = 25f };
 
-            TextMenuExt.EaseInSubHeaderExt _text = new(Dialog.Clean("SkinModHelper_Settings_PlayerSkinConfirmed"), false, menu) {
-                TextColor = Color.Goldenrod,
-                HeightExtra = 0f
-            };
-            TextMenuExt.EaseInSubHeaderExt _text2 = new(Dialog.Clean("SkinModHelper_Settings_VanillaConfirmed"), false, menu) {
-                TextColor = Color.Goldenrod,
-                HeightExtra = 0f
-            };
-            TextMenuExt.EaseInSubHeaderExt _text3 = new(Dialog.Clean("SkinModHelper_Settings_NeedConfirm"), false, menu) {
-                TextColor = Color.OrangeRed,
-                HeightExtra = 0f
-            };
+            var player_conf = GlobalDecs["player_conf"] = CreateDescription(menu, "SkinModHelper_PlayerSkinConfirmed", Color.Goldenrod);
+            TextMenuExt.EaseInSubHeaderExt conf_v = CreateDescription(menu, "SkinModHelper_VanillaConfirmed", Color.Goldenrod);
+            TextMenuExt.EaseInSubHeaderExt conf_req = CreateDescription(menu, "SkinModHelper_NeedConfirm", Color.OrangeRed);
+
+            bool doSessionHint = Engine.Scene is Level && (smh_Session?.SelectedPlayerSkin != null || (!Settings.SilhouetteVariantsWithOwnMenu && smh_Session?.SelectedSilhouetteSkin != null));
+            TextMenuExt.EaseInSubHeaderExt sessionHint = CreateDescription(menu, "SkinModHelper_SessionHint", Color.SteelBlue, 0f, doSessionHint);
+
             options_lists.Add(Dialog.Clean("SkinModHelper_Settings_DefaultPlayer"), new());
             options_lists.OnValueChange += (index2) => {
                 // everest will call the OnEnter of first-option of currentmenu before entering there... i hate it.
                 foreach (var item in options_lists.CurrentMenu)
                     if (item is TextMenuExt.EaseInSubHeaderExt item2)
                         item2.FadeVisible = false;
-                _text2.FadeVisible = _text.FadeVisible = false;
-                _text3.FadeVisible = index != index2;
+                conf_v.FadeVisible = player_conf.FadeVisible = false;
+                conf_req.FadeVisible = index != index2;
             };
             options_lists.OnPressed += () => {
                 index = options_lists.MenuIndex;
                 if (index == 0) {
                     UpdatePlayerSkin(selected = DEFAULT, inGame);
-                    _text2.FadeVisible = true;
-                    _text3.FadeVisible = false;
+                    conf_v.FadeVisible = true;
                 } else {
                     var _option = options_lists.CurrentMenu[0] as TextMenu.Option<string>;
                     string skin = _option.Values.Count > 0 ? _option.Values[_option.Index].Item2 : DEFAULT;
                     if (selected != skin) {
                         UpdatePlayerSkin(selected = skin, inGame);
-                        _text.FadeVisible = true;
+                        player_conf.FadeVisible = true;
                     }
-                    _text3.FadeVisible = false;
                     _option.OnEnter?.Invoke();
+                }
+                conf_req.FadeVisible = false;
+                if (doSessionHint) {
+                    SessionSet_PlayerSkin(null);
+                    if (!Settings.SilhouetteVariantsWithOwnMenu) {
+                        SessionSet_SilhouetteSkin(null);
+                    }
+                    sessionHint.FadeVisible = false;
                 }
             };
 
@@ -132,32 +138,30 @@ namespace Celeste.Mod.SkinModHelper
                     option.Add(Text, config.SkinName, config.SkinName == selected);
 
                     if (Dialog.Has(DialogID + "__Description")) {
-                        TextMenuExt.EaseInSubHeaderExt _text4 = new TextMenuExt.EaseInSubHeaderExt(Dialog.Clean(DialogID + "__Description"), false, menu) {
-                            TextColor = Color.Gray,
-                            HeightExtra = 0f
-                        };
+                        var _desc = CreateDescription(menu, DialogID + "__Description", Color.Gray);
                         option.OnEnter += delegate {
-                            _text4.FadeVisible = selected == config.SkinName;
+                            _desc.FadeVisible = selected == config.SkinName;
                         };
                         option.OnLeave += delegate {
-                            _text4.FadeVisible = false;
+                            _desc.FadeVisible = false;
                         };
-                        descriptions.Add((config.SkinName, _text4));
-                        options.Add(_text4);
+                        descriptions.Add((config.SkinName, _desc));
+                        options.Add(_desc);
                     }
                 }
                 ChangeUnselectedColor(option, 3);
                 option.Change(skinId => {
                     UpdatePlayerSkin(selected = skinId, inGame);
-                    _text.FadeVisible = true;
+                    player_conf.FadeVisible = true;
                     foreach (var d in descriptions)
                         d.Item2.FadeVisible = selected == d.Item1;
                 });
                 option.OnLeave += () => {
-                    _text.FadeVisible = false;
+                    player_conf.FadeVisible = false;
                 };
-                if (!Settings.SilhouetteVariantsWithOwnMenu)
-                    playback_option.Add(InsertSilhouetteVariant(configs.Value, menu, options_lists, options, _text, inGame));
+                if (!Settings.SilhouetteVariantsWithOwnMenu) {
+                    playback_option.Add(InsertSilhouetteVariant(configs.Value, menu, options_lists, options, inGame));
+                }
 
                 string key = configs.Key;
                 if (Dialog.Has(configs.Key))
@@ -169,19 +173,20 @@ namespace Celeste.Mod.SkinModHelper
             menu.Add(options_lists);
             index = options_lists.MenuIndex;
             options_lists.OnLeave += () => {
-                _text2.FadeVisible = _text.FadeVisible = false;
+                conf_v.FadeVisible = player_conf.FadeVisible = false;
             };
             int index2 = menu.IndexOf(options_lists) + 1;
-            menu.Insert(index2, _text);
-            menu.Insert(index2, _text2);
-            menu.Insert(index2, _text3);
+            menu.Insert(index2, player_conf);
+            menu.Insert(index2, conf_v);
+            menu.Insert(index2, sessionHint);
+            menu.Insert(index2, conf_req);
 
-            if (Disabled(inGame))
+            if (OptionsDisabled)
                 options_lists.Disabled = true;
             if (index == 0) {
                 if (selected != DEFAULT || (!Settings.SilhouetteVariantsWithOwnMenu && Settings.SelectedSilhouetteSkin != DEFAULT)) {
                     index = -1;
-                    _text3.FadeVisible = true;
+                    conf_req.FadeVisible = true;
                 }
             } else if (playback_option.Count > 0) {
                 bool boolen = false;
@@ -194,15 +199,15 @@ namespace Celeste.Mod.SkinModHelper
                 }
                 if (!boolen) {
                     index = -1;
-                    _text3.FadeVisible = true;
+                    conf_req.FadeVisible = true;
                 }
             }
         }
         #endregion
 
         #region // Silhouette Skins Options
-        private TextMenu.Option<string> InsertSilhouetteVariant(List<SkinModHelperConfig> configs, TextMenu menu, 
-            TextMenuExt.OptionSubMenu options_lists, List<TextMenu.Item> options, TextMenuExt.EaseInSubHeaderExt _text, bool inGame) {
+        private TextMenu.Option<string> InsertSilhouetteVariant(List<SkinModHelperConfig> configs, 
+            TextMenu menu, TextMenuExt.OptionSubMenu options_lists, List<TextMenu.Item> options, bool inGame) {
 
             string selected = Settings.SelectedSilhouetteSkin;
             TextMenu.Option<string> option = new(Dialog.Clean("SkinModHelper_Settings_PlayerSkinVariants_P"));
@@ -218,29 +223,28 @@ namespace Celeste.Mod.SkinModHelper
                 option.Add(Text, config.SkinName, config.SkinName == selected);
 
                 if (Dialog.Has(DialogID + "__Description")) {
-                    TextMenuExt.EaseInSubHeaderExt _text2 = new TextMenuExt.EaseInSubHeaderExt(Dialog.Clean(DialogID + "__Description"), false, menu) {
-                        TextColor = Color.Gray,
-                        HeightExtra = 0f
-                    };
+                    TextMenuExt.EaseInSubHeaderExt _desc = CreateDescription(menu, DialogID + "__Description", Color.Gray);
                     option.OnEnter += delegate {
-                        _text2.FadeVisible = selected == config.SkinName;
+                        _desc.FadeVisible = selected == config.SkinName;
                     };
                     option.OnLeave += delegate {
-                        _text2.FadeVisible = false;
+                        _desc.FadeVisible = false;
                     };
-                    descriptions.Add((config.SkinName, _text2));
-                    options.Add(_text2);
+                    descriptions.Add((config.SkinName, _desc));
+                    options.Add(_desc);
                 }
             }
             ChangeUnselectedColor(option, 3);
+
+            var player_conf = GlobalDecs["player_conf"];
             option.Change(skinId => {
                 UpdateSilhouetteSkin(selected = skinId, inGame);
-                _text.FadeVisible = true;
+                player_conf.FadeVisible = true;
                 foreach (var d in descriptions)
                     d.Item2.FadeVisible = selected == d.Item1;
             });
             option.OnLeave += () => {
-                _text.FadeVisible = false;
+                player_conf.FadeVisible = false;
             };
             options_lists.OnPressed += () => {
                 if (options_lists.MenuIndex == 0) {
@@ -249,7 +253,7 @@ namespace Celeste.Mod.SkinModHelper
                     string skin = option.Values.Count > 0 ? option.Values[option.Index].Item2 : DEFAULT;
                     if (selected != skin) {
                         UpdateSilhouetteSkin(selected = skin, inGame);
-                        _text.FadeVisible = true;
+                        player_conf.FadeVisible = true;
                     }
                 }
             };
@@ -261,42 +265,41 @@ namespace Celeste.Mod.SkinModHelper
             string selected = Settings.SelectedSilhouetteSkin;
             TextMenuExt.OptionSubMenu options_lists = new(Dialog.Clean("SkinModHelper_Settings_SilhouetteSkin")) { ItemIndent = 25f };
 
-            TextMenuExt.EaseInSubHeaderExt _text = new(Dialog.Clean("SkinModHelper_Settings_PlayerSkinConfirmed"), false, menu) {
-                TextColor = Color.Goldenrod,
-                HeightExtra = 0f
-            };
-            TextMenuExt.EaseInSubHeaderExt _text2 = new(Dialog.Clean("SkinModHelper_Settings_VanillaConfirmed"), false, menu) {
-                TextColor = Color.Goldenrod,
-                HeightExtra = 0f
-            };
-            TextMenuExt.EaseInSubHeaderExt _text3 = new(Dialog.Clean("SkinModHelper_Settings_NeedConfirm"), false, menu) {
-                TextColor = Color.OrangeRed,
-                HeightExtra = 0f
-            };
+            TextMenuExt.EaseInSubHeaderExt conf = CreateDescription(menu, "SkinModHelper_PlayerSkinConfirmed", Color.Goldenrod);
+            TextMenuExt.EaseInSubHeaderExt conf_v = CreateDescription(menu, "SkinModHelper_VanillaConfirmed", Color.Goldenrod);
+            TextMenuExt.EaseInSubHeaderExt conf_req = CreateDescription(menu, "SkinModHelper_NeedConfirm", Color.OrangeRed);
+
+            bool doSessionHint = Engine.Scene is Level && smh_Session?.SelectedSilhouetteSkin != null;
+            TextMenuExt.EaseInSubHeaderExt sessionHint = CreateDescription(menu, "SkinModHelper_SessionHint", Color.SteelBlue, 0f, doSessionHint);
+
             options_lists.Add(Dialog.Clean("SkinModHelper_Settings_DefaultSilhouette"), new());
             options_lists.OnValueChange += (index2) => {
                 // everest will call the OnEnter of first-option of currentmenu before entering there... i hate it.
                 foreach (var item in options_lists.CurrentMenu)
                     if (item is TextMenuExt.EaseInSubHeaderExt item2)
                         item2.FadeVisible = false;
-                _text2.FadeVisible = _text.FadeVisible = false;
-                _text3.FadeVisible = index != index2;
+                conf_v.FadeVisible = conf.FadeVisible = false;
+                conf_req.FadeVisible = index != index2;
             };
             options_lists.OnPressed += () => {
                 index = options_lists.MenuIndex;
                 if (index == 0) {
                     UpdateSilhouetteSkin(selected = DEFAULT, inGame);
-                    _text2.FadeVisible = true;
-                    _text3.FadeVisible = false;
+                    conf_v.FadeVisible = true;
+                    conf_req.FadeVisible = false;
                 } else {
                     var _option = options_lists.CurrentMenu[0] as TextMenu.Option<string>;
                     string skin = _option.Values.Count > 0 ? _option.Values[_option.Index].Item2 : DEFAULT;
                     if (selected != skin) {
                         UpdateSilhouetteSkin(selected = skin, inGame);
-                        _text.FadeVisible = true;
+                        conf.FadeVisible = true;
                     }
-                    _text3.FadeVisible = false;
+                    conf_req.FadeVisible = false;
                     _option.OnEnter?.Invoke();
+                }
+                if (doSessionHint) {
+                    SessionSet_SilhouetteSkin(null);
+                    sessionHint.FadeVisible = false;
                 }
             };
 
@@ -327,29 +330,26 @@ namespace Celeste.Mod.SkinModHelper
                     option.Add(Text, config.SkinName, config.SkinName == selected);
 
                     if (Dialog.Has(DialogID + "__Description")) {
-                        TextMenuExt.EaseInSubHeaderExt _text4 = new TextMenuExt.EaseInSubHeaderExt(Dialog.Clean(DialogID + "__Description"), false, menu) {
-                            TextColor = Color.Gray,
-                            HeightExtra = 0f
-                        };
+                        TextMenuExt.EaseInSubHeaderExt _desc = CreateDescription(menu, DialogID + "__Description", Color.Gray, 0f);
                         option.OnEnter += delegate {
-                            _text4.FadeVisible = selected == config.SkinName;
+                            _desc.FadeVisible = selected == config.SkinName;
                         };
                         option.OnLeave += delegate {
-                            _text4.FadeVisible = false;
+                            _desc.FadeVisible = false;
                         };
-                        descriptions.Add((config.SkinName, _text4));
-                        options.Add(_text4);
+                        descriptions.Add((config.SkinName, _desc));
+                        options.Add(_desc);
                     }
                 }
                 ChangeUnselectedColor(option, 3);
                 option.Change(skinId => {
                     UpdateSilhouetteSkin(selected = skinId, inGame);
-                    _text.FadeVisible = true;
+                    conf.FadeVisible = true;
                     foreach (var d in descriptions)
                         d.Item2.FadeVisible = selected == d.Item1;
                 });
                 option.OnLeave += () => {
-                    _text.FadeVisible = false;
+                    conf.FadeVisible = false;
                 };
                 string key = configs.Key;
                 if (Dialog.Has(configs.Key))
@@ -362,18 +362,19 @@ namespace Celeste.Mod.SkinModHelper
             index = options_lists.MenuIndex;
 
             options_lists.OnLeave += () => {
-                _text2.FadeVisible = _text.FadeVisible = false;
+                conf_v.FadeVisible = conf.FadeVisible = false;
             };
             int index2 = menu.IndexOf(options_lists) + 1;
-            menu.Insert(index2, _text);
-            menu.Insert(index2, _text2);
-            menu.Insert(index2, _text3);
+            menu.Insert(index2, conf);
+            menu.Insert(index2, conf_v);
+            menu.Insert(index2, sessionHint);
+            menu.Insert(index2, conf_req);
 
-            if (Disabled(inGame))
+            if (OptionsDisabled) 
                 options_lists.Disabled = true;
             if (index == 0)
                 if (selected != DEFAULT) {
-                    _text3.FadeVisible = true;
+                    conf_req.FadeVisible = true;
                     index = -1;
                 }
         }
@@ -384,6 +385,12 @@ namespace Celeste.Mod.SkinModHelper
             TextMenuExt.OptionSubMenu options_lists = new(Dialog.Clean("SkinModHelper_Settings_Otherskin")) { ItemIndent = 25f };
             options_lists.Add(Dialog.Clean("SkinModHelper_Settings_Otherskin_null"), new());
 
+            if (OptionsDisabled) {
+                options_lists.Disabled = true;
+                menu.Add(options_lists);
+                return;
+            }
+
             Dictionary<string, List<SkinModHelperConfig>> mods = new();
             foreach (var config in OtherskinConfigs.Values) {
                 if (config.General_List == false)
@@ -392,7 +399,6 @@ namespace Celeste.Mod.SkinModHelper
                     mods.Add(config.Mod, new());
                 mods[config.Mod].Add(config);
             }
-
             foreach (var configs in mods) {
                 List<TextMenu.Item> options = new();
 
@@ -408,14 +414,16 @@ namespace Celeste.Mod.SkinModHelper
                         OnOff = Settings.ExtraXmlList[config.SkinName];
 
                     TextMenu.OnOff option = new TextMenu.OnOff(Text, OnOff);
-                    options.Add(option);
-                    option.Change(OnOff => UpdateGeneralSkin(config.SkinName, OnOff, inGame));
+                    bool doSessionHint = Engine.Scene is Level && smh_Session != null && smh_Session.ExtraXmlList.ContainsKey(config.SkinName);
+                    var sessionHint = CreateDescription(menu, "SkinModHelper_SessionHint_Alt", Color.SteelBlue, 0f, doSessionHint);
 
+                    options.Add(option);
+                    option.Change(OnOff => {
+                        UpdateGeneralSkin(config.SkinName, OnOff, inGame);
+                        sessionHint.FadeVisible = false;
+                    });
                     if (Dialog.Has(DialogID + "__Description")) {
-                        TextMenuExt.EaseInSubHeaderExt _text = new TextMenuExt.EaseInSubHeaderExt(Dialog.Clean(DialogID + "__Description"), false, menu) {
-                            TextColor = Color.Gray,
-                            HeightExtra = 0f
-                        };
+                        TextMenuExt.EaseInSubHeaderExt _text = CreateDescription(menu, DialogID + "__Description", Color.Gray, 0f);
                         option.OnEnter += delegate {
                             _text.FadeVisible = true;
                         };
@@ -424,6 +432,7 @@ namespace Celeste.Mod.SkinModHelper
                         };
                         options.Add(_text);
                     }
+                    options.Add(sessionHint);
                     ChangeUnselectedColor(option, 3);
                 }
                 options_lists.Add(Dialog.Has(configs.Key) ? Dialog.Clean(configs.Key) : configs.Key, options);
@@ -432,17 +441,18 @@ namespace Celeste.Mod.SkinModHelper
             options_lists.OnValueChange += delegate {
                 // everest will call the OnEnter of first-option of currentmenu before entering there... i hate it.
                 foreach (var item in options_lists.CurrentMenu)
-                    if (item is TextMenuExt.EaseInSubHeaderExt item2)
-                        item2.FadeVisible = false;
+                    item.OnLeave?.Invoke();
             };
-            if (Disabled(inGame))
-                options_lists.Disabled = true;
         }
         #endregion
 
         #region // Advanced Options Menu
         public TextMenuExt.SubMenu BuildMoreOptionsMenu(TextMenu menu, bool inGame, bool includeCategorySubmenus, Action submenuBackAction) {
             return new TextMenuExt.SubMenu(Dialog.Clean("SkinModHelper_MORE_OPTIONS"), false).Apply(subMenu => {
+                if (OptionsDisabled) {
+                    subMenu.Disabled = true;
+                    return;
+                }
                 TextMenuButtonExt SpriteSubmenu;
                 subMenu.Add(SpriteSubmenu = AbstractSubmenu.BuildOpenMenuButton<OuiCategorySubmenu>(menu, inGame, submenuBackAction, new object[] { NewMenuCategory.SkinFreeConfig }));
 
@@ -450,10 +460,7 @@ namespace Celeste.Mod.SkinModHelper
                 svwm.Change(OnOff => {
                     Settings.SilhouetteVariantsWithOwnMenu = OnOff;
                 });
-                TextMenuExt.EaseInSubHeaderExt svwm_text = new TextMenuExt.EaseInSubHeaderExt(Dialog.Clean("SkinModHelper_Settings_NeedReloadMenu"), false, menu) {
-                    TextColor = Color.OrangeRed,
-                    HeightExtra = 0f
-                };
+                TextMenuExt.EaseInSubHeaderExt svwm_text = CreateDescription(menu, "SkinModHelper_NeedReloadMenu", Color.OrangeRed);
                 subMenu.Add(svwm);
                 subMenu.Add(svwm_text);
                 svwm.OnEnter += delegate {
@@ -477,11 +484,8 @@ namespace Celeste.Mod.SkinModHelper
                     options.Disabled = !OnOff;
                 }
             });
-
-            if (Disabled(inGame)) {
-                SkinFreeConfig_OnOff.Disabled = true;
-            }
             menu.Add(SkinFreeConfig_OnOff);
+            menu.Add(CreateDescription(menu, "SkinModHelper_SessionWarning", Color.Gray, 0f, true));
 
             Action startSearching = AddSearchBox(menu);
             menu.OnUpdate = () => {
@@ -573,6 +577,7 @@ namespace Celeste.Mod.SkinModHelper
         #endregion
 
         #region Method
+
         public static bool Disabled(bool inGame) {
             if (inGame) {
                 Player player = Engine.Scene?.Tracker.GetEntity<Player>();
@@ -583,15 +588,22 @@ namespace Celeste.Mod.SkinModHelper
             return false;
         }
         /// <summary> 0 - White(default) / 1 - DimGray(false setting) / 2 - Goldenrod(special settings) / 3 - DarkGray(blocking skins/sub options)</summary>
-        public static void ChangeUnselectedColor<T>(TextMenu.Option<T> options, int index) {
-            Color color = Color.White;
-            if (index == 1)
-                color = Color.DimGray;
-            else if (index == 2)
-                color = Color.Goldenrod;
-            else if (index == 3)
-                color = Color.DarkGray;
-            options.UnselectedColor = color;
+        private static void ChangeUnselectedColor<T>(TextMenu.Option<T> options, int index) {
+            options.UnselectedColor = GetColor(index);
+        }
+        /// <returns> 0 - White / 1 - DimGray / 2 - Goldenrod / 3 - DarkGray / 4 - SteelBlue</returns>
+        private static Color GetColor(int index) {
+            switch (index) {
+                case 1:
+                    return Color.DimGray;
+                case 2:
+                    return Color.Goldenrod;
+                case 3:
+                    return Color.DarkGray;
+                case 4:
+                    return Color.SteelBlue;
+            }
+            return Color.White;
         }
 
         public static Dictionary<string, T> DictionarySort<T>(Dictionary<string, T> dict) {
@@ -602,6 +614,16 @@ namespace Celeste.Mod.SkinModHelper
                 dict[index.Key] = index.Value;
             }
             return dict;
+        }
+        private TextMenuExt.EaseInSubHeaderExt CreateDescription(TextMenu menu, string dialog, Color textColor, float heightExtra = 0f, bool initVisible = false) {
+            return new(Dialog.Clean(dialog), initVisible, menu) {
+                TextColor = textColor,
+                HeightExtra = heightExtra
+            };
+        }
+
+        private TextMenu.SubHeader buildHeading(TextMenu menu, string headingNameResource) {
+            return new TextMenu.SubHeader(Dialog.Clean($"SkinModHelper_NewSubMenu_{headingNameResource}"));
         }
         #endregion
 

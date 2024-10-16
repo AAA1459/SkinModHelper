@@ -139,7 +139,7 @@ namespace Celeste.Mod.SkinModHelper {
             RefreshSkins(false);
         }
         public static void UpdateGeneralSkin(string SkinId, bool OnOff, bool inGame) {
-            if (Session != null) {
+            if (smh_Session != null) {
                 smh_Session.ExtraXmlList.Remove(SkinId);
             }
             Settings.ExtraXmlList[SkinId] = OnOff;
@@ -213,7 +213,10 @@ namespace Celeste.Mod.SkinModHelper {
         /// </returns>
         public static string GetPlayerSkin(string skin_suffix = null, string skinName = null) {
             if (skinName == null) {
-                skinName = smh_Session?.SelectedPlayerSkin ?? Settings.SelectedPlayerSkin ?? "";
+                skinName = Settings.SelectedPlayerSkin ?? "";
+                if (Engine.Scene is Level or LevelLoader && smh_Session?.SelectedPlayerSkin != null) {
+                    skinName = smh_Session.SelectedPlayerSkin;
+                }
             }
 
             if (skinConfigs.ContainsKey(skinName + skin_suffix)) {
@@ -229,7 +232,10 @@ namespace Celeste.Mod.SkinModHelper {
         /// Return SilhouetteSkin of settings if it exist, or with suffix.
         /// </returns>
         public static string GetSilhouetteSkin(string skin_suffix = null) {
-            string skinName = Session?.SelectedSilhouetteSkin ?? Settings.SelectedSilhouetteSkin ?? "";
+            string skinName = Settings.SelectedSilhouetteSkin ?? "";
+            if (Engine.Scene is Level or LevelLoader && smh_Session?.SelectedPlayerSkin != null) {
+                skinName = smh_Session.SelectedPlayerSkin;
+            }
 
             return GetPlayerSkin(skin_suffix, skinName);
         }
@@ -241,8 +247,9 @@ namespace Celeste.Mod.SkinModHelper {
             if (!OtherskinConfigs.ContainsKey(skinName)) 
                 return null;
 
-            if (Session != null && Session.ExtraXmlList.TryGetValue(skinName, out bool boolen))
+            if (Engine.Scene is Level or LevelLoader && Session != null && Session.ExtraXmlList.TryGetValue(skinName, out bool boolen)) {
                 return boolen;
+            }
             if (Settings.ExtraXmlList.TryGetValue(skinName, out boolen))
                 return boolen;
             return false;
@@ -256,9 +263,7 @@ namespace Celeste.Mod.SkinModHelper {
                 List<SkinModHelperConfig> delayToAdd = new();
 
                 foreach (var config in OtherskinConfigs.Values) {
-                    Log($"config: {config.SkinName}");
-                    if (Session != null && Session.ExtraXmlList.TryGetValue(config.SkinName, out bool boolen)) {
-                        Log($"ExtraXmlList has {config.SkinName} is {boolen}");
+                    if (Engine.Scene is Level or LevelLoader && Session != null && Session.ExtraXmlList.TryGetValue(config.SkinName, out bool boolen)) {
                         if (boolen)
                             delayToAdd.Add(config);
                     } else if (Settings.ExtraXmlList.TryGetValue(config.SkinName, out boolen) && boolen) {

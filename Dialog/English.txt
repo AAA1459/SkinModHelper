@@ -2,6 +2,7 @@
 modname_SkinModHelperPlus= Skin Mod Helper
 SKIN_MOD_HELPER_SETTINGS_TITLE= Skin Mod Helper
 
+##---Options---
 
 SkinModHelper_options_Backpack= Backpack
 
@@ -20,10 +21,6 @@ SkinModHelper_Settings_DefaultSilhouette= Default
 SkinModHelper_Settings_PlayerSkinVariants= Variant
 SkinModHelper_Settings_PlayerSkinVariants_P= Silhouette Variant
 
-SkinModHelper_Settings_NeedConfirm= If you want to switch to current skin, press confirm!
-SkinModHelper_Settings_VanillaConfirmed= Switched to vanilla.
-SkinModHelper_Settings_PlayerSkinConfirmed= Switched to current skin.
-
 
 SkinModHelper_Settings_Otherskin= General Skins
 SkinModHelper_Settings_Otherskin_null= No Grouping
@@ -31,14 +28,8 @@ SkinModHelper_Settings_Otherskin_null= No Grouping
 SkinModHelper_MORE_OPTIONS= Advanced Options
 SkinModHelper_Settings_SilhouetteVariantsWithOwnMenu= Silhouette variants with own sub-menu
 
-SkinModHelper_Settings_NeedReloadMenu= Request reopen menu to take a refresh
 
-
-
-
-
-
-
+##---Precisely skin choose---
 
 SkinModHelper_NewMenu_SkinFreeConfig=:SMH_SubMenu:Detailed & Precisely - skin choose
 SkinModHelper_NewMenu_SkinFreeConfig_opened= Precisely skin choose
@@ -53,7 +44,6 @@ SkinModHelper_anyXmls_Original= " Original "
 SkinModHelper_anyXmls_Default= " Default / Current "
 SkinModHelper_anyXmls_LockedToPlayer= " Locked to Player Skin "
 
-
 SkinModHelper_Other__death_particle= Particles when player dies
 SkinModHelper_Other__dreamblock_particles= Particles inside DreamBlock
 SkinModHelper_Other__feather_particles= Particles when get flyFeather
@@ -62,6 +52,20 @@ SkinModHelper_Other__Interact_icons= Interact icons
 
 
 
+##---Description---
+
+SkinModHelper_OptionsDisabled= Unable to switch skins during Wakeup cutscene
+
+SkinModHelper_NeedConfirm= If you want to switch to current skin, press confirm!
+SkinModHelper_VanillaConfirmed= Switched to vanilla.
+SkinModHelper_PlayerSkinConfirmed= Switched to current skin.
+
+SkinModHelper_SessionHint= The session covered the current skin, press confirm to force cancel it.
+SkinModHelper_SessionHint_Alt= The session covered this skin, toggle switch to force cancel it.
+
+SkinModHelper_SessionWarning= Note: the session may conflict when this is enabled.
+
+SkinModHelper_NeedReloadMenu= Request reopen menu to take a refresh
 
 
 
