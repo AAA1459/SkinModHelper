@@ -20,7 +20,7 @@ using System.ComponentModel.Design;
 namespace Celeste.Mod.SkinModHelper {
     public static class DebugCommands {
 
-        public const string HelpInfo = "SubCommands list: player(p), spriteidpath(sip), loglevel, settings(s)";
+        public const string HelpInfo = "SubCommands list: player(p), spriteidpath(sip), loglevel, settings, session";
         private const string Error = "Error";
 
         [Command("skinmodhelper", HelpInfo)]

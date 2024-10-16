@@ -233,8 +233,8 @@ namespace Celeste.Mod.SkinModHelper {
         /// </returns>
         public static string GetSilhouetteSkin(string skin_suffix = null) {
             string skinName = Settings.SelectedSilhouetteSkin ?? "";
-            if (Engine.Scene is Level or LevelLoader && smh_Session?.SelectedPlayerSkin != null) {
-                skinName = smh_Session.SelectedPlayerSkin;
+            if (Engine.Scene is Level or LevelLoader && smh_Session?.SelectedSilhouetteSkin != null) {
+                skinName = smh_Session.SelectedSilhouetteSkin;
             }
 
             return GetPlayerSkin(skin_suffix, skinName);
