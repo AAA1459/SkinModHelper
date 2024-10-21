@@ -82,7 +82,7 @@ namespace Celeste.Mod.SkinModHelper
             options_lists.OnValueChange += (index2) => {
                 // everest will call the OnEnter of first-option of currentmenu before entering there... i hate it.
                 foreach (var item in options_lists.CurrentMenu)
-                    if (item is TextMenuExt.EaseInSubHeaderExt item2)
+                    if (item is TextMenuExt.EaseInSubHeaderExt item2 && item2.TextColor == Color.Gray)
                         item2.FadeVisible = false;
                 conf_v.FadeVisible = player_conf.FadeVisible = false;
                 conf_req.FadeVisible = index != index2;
@@ -138,7 +138,7 @@ namespace Celeste.Mod.SkinModHelper
                     option.Add(Text, config.SkinName, config.SkinName == selected);
 
                     if (Dialog.Has(DialogID + "__Description")) {
-                        var _desc = CreateDescription(menu, DialogID + "__Description", Color.Gray);
+                        var _desc = CreateDescription(menu, DialogID + "__Description");
                         option.OnEnter += delegate {
                             _desc.FadeVisible = selected == config.SkinName;
                         };
@@ -223,7 +223,7 @@ namespace Celeste.Mod.SkinModHelper
                 option.Add(Text, config.SkinName, config.SkinName == selected);
 
                 if (Dialog.Has(DialogID + "__Description")) {
-                    TextMenuExt.EaseInSubHeaderExt _desc = CreateDescription(menu, DialogID + "__Description", Color.Gray);
+                    TextMenuExt.EaseInSubHeaderExt _desc = CreateDescription(menu, DialogID + "__Description");
                     option.OnEnter += delegate {
                         _desc.FadeVisible = selected == config.SkinName;
                     };
@@ -276,7 +276,7 @@ namespace Celeste.Mod.SkinModHelper
             options_lists.OnValueChange += (index2) => {
                 // everest will call the OnEnter of first-option of currentmenu before entering there... i hate it.
                 foreach (var item in options_lists.CurrentMenu)
-                    if (item is TextMenuExt.EaseInSubHeaderExt item2)
+                    if (item is TextMenuExt.EaseInSubHeaderExt item2 && item2.TextColor == Color.Gray)
                         item2.FadeVisible = false;
                 conf_v.FadeVisible = conf.FadeVisible = false;
                 conf_req.FadeVisible = index != index2;
@@ -330,7 +330,7 @@ namespace Celeste.Mod.SkinModHelper
                     option.Add(Text, config.SkinName, config.SkinName == selected);
 
                     if (Dialog.Has(DialogID + "__Description")) {
-                        TextMenuExt.EaseInSubHeaderExt _desc = CreateDescription(menu, DialogID + "__Description", Color.Gray, 0f);
+                        TextMenuExt.EaseInSubHeaderExt _desc = CreateDescription(menu, DialogID + "__Description");
                         option.OnEnter += delegate {
                             _desc.FadeVisible = selected == config.SkinName;
                         };
@@ -417,13 +417,27 @@ namespace Celeste.Mod.SkinModHelper
                     bool doSessionHint = Engine.Scene is Level && smh_Session != null && smh_Session.ExtraXmlList.ContainsKey(config.SkinName);
                     var sessionHint = CreateDescription(menu, "SkinModHelper_SessionHint_Alt", Color.SteelBlue, 0f, doSessionHint);
 
+                    var conf_on = CreateDescription(menu, "SkinModHelper_GeneralSkin_TurnedIntoOn", Color.Goldenrod);
+                    var conf_off = CreateDescription(menu, "SkinModHelper_GeneralSkin_TurnedIntoOff", Color.Goldenrod);
+                    option.OnLeave += delegate {
+                        conf_on.FadeVisible = false;
+                        conf_off.FadeVisible = false;
+                    };
+
                     options.Add(option);
+
+                    options.Add(sessionHint);
+                    options.Add(conf_off);
+                    options.Add(conf_on);
+
                     option.Change(OnOff => {
                         UpdateGeneralSkin(config.SkinName, OnOff, inGame);
                         sessionHint.FadeVisible = false;
+                        conf_on.FadeVisible = OnOff;
+                        conf_off.FadeVisible = !OnOff;
                     });
                     if (Dialog.Has(DialogID + "__Description")) {
-                        TextMenuExt.EaseInSubHeaderExt _text = CreateDescription(menu, DialogID + "__Description", Color.Gray, 0f);
+                        TextMenuExt.EaseInSubHeaderExt _text = CreateDescription(menu, DialogID + "__Description");
                         option.OnEnter += delegate {
                             _text.FadeVisible = true;
                         };
@@ -432,7 +446,6 @@ namespace Celeste.Mod.SkinModHelper
                         };
                         options.Add(_text);
                     }
-                    options.Add(sessionHint);
                     ChangeUnselectedColor(option, 3);
                 }
                 options_lists.Add(Dialog.Has(configs.Key) ? Dialog.Clean(configs.Key) : configs.Key, options);
@@ -441,7 +454,8 @@ namespace Celeste.Mod.SkinModHelper
             options_lists.OnValueChange += delegate {
                 // everest will call the OnEnter of first-option of currentmenu before entering there... i hate it.
                 foreach (var item in options_lists.CurrentMenu)
-                    item.OnLeave?.Invoke();
+                    if (item is TextMenuExt.EaseInSubHeaderExt item2 && item2.TextColor == Color.Gray)
+                        item2.FadeVisible = false;
             };
         }
         #endregion
@@ -615,9 +629,12 @@ namespace Celeste.Mod.SkinModHelper
             }
             return dict;
         }
-        private TextMenuExt.EaseInSubHeaderExt CreateDescription(TextMenu menu, string dialog, Color textColor, float heightExtra = 0f, bool initVisible = false) {
+        private TextMenuExt.EaseInSubHeaderExt CreateDescription(TextMenu menu, string dialog, Color? textColor = null, float heightExtra = 0f, bool initVisible = false) {
+            if (textColor == null) {
+                textColor = Color.Gray;
+            }
             return new(Dialog.Clean(dialog), initVisible, menu) {
-                TextColor = textColor,
+                TextColor = textColor.Value,
                 HeightExtra = heightExtra
             };
         }

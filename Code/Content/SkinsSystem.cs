@@ -420,10 +420,9 @@ namespace Celeste.Mod.SkinModHelper {
         private static bool DelayRefreshForPlayer;
         public static void RefreshSkins(bool Xmls_refresh, bool callByPlayer = false) {
             DelayRefreshForPlayer = !callByPlayer;
-            _RefreshSkins(Xmls_refresh, _Player != null);
+            _RefreshSkins(Xmls_refresh, Engine.Scene is Level);
         }
         private static void _RefreshSkins(bool Xmls_refresh, bool inGame) {
-            beforeSkinRefresh?.Invoke(Xmls_refresh, inGame);
             if (Xmls_refresh) {
                 LogLevel logLevel = Logger.GetLogLevel("Atlas");
                 if (!build_warning)
@@ -446,10 +445,11 @@ namespace Celeste.Mod.SkinModHelper {
                 build_warning = false;
                 Logger.SetLogLevel("Atlas", logLevel);
             }
-            if (DelayRefreshForPlayer && inGame) {
+            if (DelayRefreshForPlayer && _Player != null) {
                 Player_Skinid_verify = -1;
                 PlayerSkinSystem.RefreshPlayerSpriteMode();
             } else {
+                beforeSkinRefresh?.Invoke(Xmls_refresh, inGame);
                 if (!inGame) {
                     Player_Skinid_verify = 0;
                     string skinName = GetPlayerSkin();
@@ -457,9 +457,9 @@ namespace Celeste.Mod.SkinModHelper {
                         Player_Skinid_verify = skinConfigs[skinName].hashValues;
                 }
                 RefreshSkinValues(null, inGame);
+                afterSkinRefresh?.Invoke(Xmls_refresh, inGame);
+                DelayRefreshForPlayer = false;
             }
-            afterSkinRefresh?.Invoke(Xmls_refresh, inGame);
-            DelayRefreshForPlayer = false;
         }
 
         public static void RegisterVanillaCharacterTextures(string id) {

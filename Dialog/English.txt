@@ -59,8 +59,10 @@ SkinModHelper_OptionsDisabled= Unable to switch skins during Wakeup cutscene
 SkinModHelper_NeedConfirm= If you want to switch to current skin, press confirm!
 SkinModHelper_VanillaConfirmed= Switched to vanilla.
 SkinModHelper_PlayerSkinConfirmed= Switched to current skin.
-
 SkinModHelper_SessionHint= The session covered the current skin, press confirm to force cancel it.
+
+SkinModHelper_GeneralSkin_TurnedIntoOn= Turned this skin into on.
+SkinModHelper_GeneralSkin_TurnedIntoOff= Turned this skin into off.
 SkinModHelper_SessionHint_Alt= The session covered this skin, toggle switch to force cancel it.
 
 SkinModHelper_SessionWarning= Note: the session may conflict when this is enabled.
