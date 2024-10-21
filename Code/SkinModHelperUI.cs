@@ -629,13 +629,15 @@ namespace Celeste.Mod.SkinModHelper
             }
             return dict;
         }
-        private TextMenuExt.EaseInSubHeaderExt CreateDescription(TextMenu menu, string dialog, Color? textColor = null, float heightExtra = 0f, bool initVisible = false) {
+        private TextMenuExt.EaseInSubHeaderExt CreateDescription(TextMenu menu, string dialog,
+            Color? textColor = null, float heightExtra = 0f, bool initVisible = false) {
             if (textColor == null) {
                 textColor = Color.Gray;
             }
             return new(Dialog.Clean(dialog), initVisible, menu) {
                 TextColor = textColor.Value,
-                HeightExtra = heightExtra
+                HeightExtra = heightExtra,
+                IncludeWidthInMeasurement = false,
             };
         }
 
