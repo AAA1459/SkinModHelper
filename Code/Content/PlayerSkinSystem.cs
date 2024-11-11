@@ -24,7 +24,6 @@ namespace Celeste.Mod.SkinModHelper {
             On.Monocle.SpriteBank.CreateOn += SpriteBankCreateOn;
             On.Celeste.PlayerSprite.ctor += on_PlayerSprite_ctor;
 
-            On.Celeste.PlayerSprite.ClearFramesMetadata += on_PlayerSprite_ClearFramesMetadata;
             using (new DetourContext() { Before = { "*" } }) {
                 On.Celeste.PlayerSprite.CreateFramesMetadata += on_PlayerSprite_CreateFramesMetadata;
             }
@@ -76,7 +75,6 @@ namespace Celeste.Mod.SkinModHelper {
         public static void Unload() {
             On.Monocle.SpriteBank.CreateOn -= SpriteBankCreateOn;
             On.Celeste.PlayerSprite.ctor -= on_PlayerSprite_ctor;
-            On.Celeste.PlayerSprite.ClearFramesMetadata -= on_PlayerSprite_ClearFramesMetadata;
             On.Celeste.PlayerSprite.CreateFramesMetadata -= on_PlayerSprite_CreateFramesMetadata;
 
             On.Celeste.Player.Update -= PlayerUpdateHook;
@@ -179,12 +177,11 @@ namespace Celeste.Mod.SkinModHelper {
             }
         }
 
-        private static void on_PlayerSprite_ClearFramesMetadata(On.Celeste.PlayerSprite.orig_ClearFramesMetadata orig) {
-            IDHasHairMetadate.Clear();
-            orig();
-        }
         private static void on_PlayerSprite_CreateFramesMetadata(On.Celeste.PlayerSprite.orig_CreateFramesMetadata orig, string id) {
             orig(id);
+            if (id == "player") {
+                IDHasHairMetadate.Clear();
+            }
             IDHasHairMetadate.Add(id);
             if (GFX.SpriteBank.SpriteData.TryGetValue("SkinModHelper_PlayerAnimFill", out var fills)) {
                 PatchSprite(fills.Sprite, GFX.SpriteBank.SpriteData[id].Sprite);
