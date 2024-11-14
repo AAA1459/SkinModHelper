@@ -41,8 +41,7 @@ namespace Celeste.Mod.SkinModHelper {
             On.Celeste.PlayerSprite.Render += PlayerSpriteRenderHook;
 
             On.Celeste.PlayerHair.Render += PlayerHairRenderHook_ColorGrade;
-            doneHooks.Add(new Hook(typeof(Sprite).GetMethod("Render", BindingFlags.Public | BindingFlags.Instance),
-                       typeof(PlayerSkinSystem).GetMethod("SpriteRenderHook_ColorGrade", BindingFlags.NonPublic | BindingFlags.Static)));
+            doneHooks.Add(new Hook(typeof(Sprite).GetMethod("Render", BindingFlags.Public | BindingFlags.Instance), SpriteRenderHook_ColorGrade));
 
             On.Celeste.Lookout.Update += LookoutUpdateHook_ColorGrade;
             On.Celeste.Payphone.Update += PayphoneUpdateHook_ColorGrade;
@@ -309,6 +308,7 @@ namespace Celeste.Mod.SkinModHelper {
         #endregion
 
         #region ColorGrade
+        private static Dictionary<string, int> _ColorGradeMaxNum = new();
         private static void PlayerHairRenderHook_ColorGrade(On.Celeste.PlayerHair.orig_Render orig, PlayerHair self) {
             DynamicData selfData = DynamicData.For(self.Sprite);
 
@@ -322,15 +322,31 @@ namespace Celeste.Mod.SkinModHelper {
             #region
             if (!selfData.TryGet("ColorGrade_Path", out colorGrade_Path)) {
                 colorGrade_Path = getAnimationRootPath(self.Sprite, "idle") + "ColorGrading/";
-                
+
                 //Check if config from v0.7 Before---
                 if (self.Entity is Player && OldConfigCheck(self.Sprite, out string isOld)) {
                     atlas = GFX.ColorGrades;
                     colorGrade_Path = OtherskinConfigs[isOld].OtherSprite_ExPath + '/';
                 }
                 //---
+
+                selfData.Set("ColorGrade_Atlas", atlas);
                 selfData.Set("ColorGrade_Path", colorGrade_Path);
             }
+
+            string dir = getAnimationRootPath(colorGrade_Path);
+            string fullDir = atlas.RelativeDataPath + dir;
+            if (!_ColorGradeMaxNum.TryGetValue(fullDir, out int maxNum)) {
+                if (AssetExists<AssetTypeDirectory>(fullDir, out ModAsset dir2)) {
+                    foreach (ModAsset child in dir2.Children) {
+                        if (child.Type == typeof(Texture2D) && child.PathVirtual.StartsWith(fullDir + "dash") && int.TryParse(child.PathVirtual.Substring(fullDir.Length + 4), out int i) && i > maxNum)
+                            maxNum = i;
+                    }
+                }
+                _ColorGradeMaxNum[fullDir] = maxNum;
+            }
+            if (maxNum == 0)
+                goto goto_one;
 
             int? get_dashCount;
             if (self.Entity is Player player) {
@@ -347,19 +363,16 @@ namespace Celeste.Mod.SkinModHelper {
                 get_dashCount = GetDashCount(self.Entity, self.Sprite);
             }
 
-            if (self.Color == Color.White && atlas.Has(getAnimationRootPath(colorGrade_Path, out string value) + "flash")) {
-                selfData.Set("ColorGrade_Atlas", atlas);
-                selfData.Set("ColorGrade_Path", colorGrade_Path = value + "flash");
+            if (self.Color == Color.White && atlas.Has(dir + "flash")) {
+                selfData.Set("ColorGrade_Path", colorGrade_Path = dir + "flash");
 
             } else if (get_dashCount != null) {
-                colorGrade_Path = getAnimationRootPath(colorGrade_Path) + "dash";
-
-                int dashCount = Math.Max((int)get_dashCount, 0);
+                colorGrade_Path = dir + "dash";
+                int dashCount = Calc.Clamp(get_dashCount.Value, 0, maxNum);
                 while (dashCount > 2 && !atlas.Has(colorGrade_Path + dashCount)) {
                     dashCount--;
                 }
-                selfData.Set("ColorGrade_Atlas", atlas);
-                selfData.Set("ColorGrade_Path", colorGrade_Path = colorGrade_Path + dashCount);
+                selfData.Set("ColorGrade_Path", colorGrade_Path += dashCount);
             }
         #endregion
             goto_one:

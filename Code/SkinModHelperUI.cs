@@ -56,11 +56,8 @@ namespace Celeste.Mod.SkinModHelper
                 SearchUI = new InputSearchUI(overworld);
             }
             Engine.Scene.Add(SearchUI);
-            if (category == NewMenuCategory.SkinFreeConfig) {
-                SearchUI.ShowSearchUI = true;
-            } else {
-                SearchUI.ShowSearchUI = false;
-            }
+            SearchUI.ShowSearchUI = category == NewMenuCategory.SkinFreeConfig;
+            menu.OnClose += () => SearchUI.ShowSearchUI = false;
         }
         #endregion
 
@@ -907,8 +904,6 @@ namespace Celeste.Mod.SkinModHelper
 
                         Instance.SaveSettings();
                         thisMenu.Close();
-                        if (InputSearchUI.Instance != null)
-                            InputSearchUI.Instance.ShowSearchUI = false;
 
                         // and open the parent menu back (this should work, right? we only removed it from the scene earlier, but it still exists and is intact)
                         // "what could possibly go wrong?" ~ famous last words
@@ -924,8 +919,6 @@ namespace Celeste.Mod.SkinModHelper
 
                         Instance.SaveSettings();
                         thisMenu.Close();
-                        if (InputSearchUI.Instance != null)
-                            InputSearchUI.Instance.ShowSearchUI = false;
 
                         level.Paused = false;
                         Engine.FreezeTimer = 0.15f;

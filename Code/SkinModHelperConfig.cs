@@ -289,7 +289,7 @@ namespace Celeste.Mod.SkinModHelper {
                         config.new_hairs = textures2;
 
                     if (!(smh_Settings.PlayerSkinHairColorsDisabled && target.Entity is Player)) {
-                        bool ForceGenerated = config.HairFlash == false || AssetExists<AssetTypeDirectory>(getAnimationRootPath(target.Sprite, "idle") + "ColorGrading", GFX.Game);
+                        bool ForceGenerated = config.HairFlash == false || AssetExists<AssetTypeDirectory>(GFX.Game.RelativeDataPath + getAnimationRootPath(target.Sprite, "idle") + "ColorGrading");
                         config.BuildHairColors(ForceGenerated);
                     }
                     if (!(smh_Settings.PlayerSkinHairLengthsDisabled && target.Entity is Player)) {
@@ -344,6 +344,8 @@ namespace Celeste.Mod.SkinModHelper {
         public List<MTexture> new_hairs;
 
         public Dictionary<int, List<Color>> ActualHairColors;
+
+        private int _HairLengthsMaxNum = 0;
         public Dictionary<int, int> ActualHairLengths;
         #endregion
 
@@ -440,18 +442,22 @@ namespace Celeste.Mod.SkinModHelper {
             Dictionary<int, int> hairLengths = new();
             if (iHairLengths != null) {
                 string[] lengths = iHairLengths.Split('|', StringSplitOptions.TrimEntries);
-                for (int i = 0; i < lengths.Length; i++) {
+                for (int i = _HairLengthsMaxNum = lengths.Length; i > 0;) {
+                    i--;
                     if (lengths[i] == "x")
                         continue;
                     if (int.TryParse(lengths[i], out int length)) {
                         hairLengths[i] = Calc.Clamp(length, 1, MAX_HAIRLENGTH);
                     }
                 }
+                _HairLengthsMaxNum = lengths.Length;
             }
             if (HairLengths != null) {
                 for (int i = 0; i < HairLengths.Count; i++) {
                     HairLength hairLength = HairLengths[i];
                     hairLengths[hairLength.Dashes] = Calc.Clamp(hairLength.Length, 1, MAX_HAIRLENGTH);
+                    if (hairLength.Dashes > _HairLengthsMaxNum)
+                        _HairLengthsMaxNum = hairLength.Dashes;
                 }
             }
             if (hairLengths.Count < 1) {
@@ -519,7 +525,7 @@ namespace Celeste.Mod.SkinModHelper {
                 return null;
             }
             // dashes is -1 for when player into flyFeathers state.
-            int dashes = get_dashes ?? 0;
+            int dashes = Math.Min(_HairLengthsMaxNum, get_dashes.Value);
             while (dashes > 2 && !ActualHairLengths.ContainsKey(dashes)) {
                 dashes--;
             }

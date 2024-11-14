@@ -663,15 +663,19 @@ namespace Celeste.Mod.SkinModHelper {
             return false;
         }
 
-        public static bool AssetExists<T>(string path, Atlas atlas = null) {
-            if (atlas != null) {
-                path = atlas.RelativeDataPath + path;
-            }
+        public static bool AssetExists<T>(string path) {
             if (path.LastIndexOf(".") >= 0) {
                 path = path.Remove(path.LastIndexOf("."));
             }
             return Everest.Content.TryGet<T>(path, out ModAsset asset);
         }
+        public static bool AssetExists<T>(string path, out ModAsset asset) {
+            if (path.LastIndexOf(".") >= 0) {
+                path = path.Remove(path.LastIndexOf("."));
+            }
+            return Everest.Content.TryGet<T>(path, out asset);
+        }
+
         public static bool SpriteExt_TryPlay(Sprite sprite, string id, bool restart = false) {
             if (sprite.Has(id)) {
                 sprite.Play(id, restart);
