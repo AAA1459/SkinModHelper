@@ -55,9 +55,17 @@ namespace Celeste.Mod.SkinModHelper
             if (SearchUI == null || SearchUI.Overworld != overworld) {
                 SearchUI = new InputSearchUI(overworld);
             }
-            Engine.Scene.Add(SearchUI);
             SearchUI.ShowSearchUI = category == NewMenuCategory.SkinFreeConfig;
-            menu.OnClose += () => SearchUI.ShowSearchUI = false;
+            if (SearchUI.ShowSearchUI) {
+                Engine.Scene.Add(SearchUI);
+                Action startSearching = AddSearchBox(menu);
+                menu.OnUpdate += () => {
+                    if (SearchUI.Key.Pressed) {
+                        startSearching.Invoke();
+                    }
+                };
+                menu.OnClose += () => SearchUI.ShowSearchUI = false;
+            }
         }
         #endregion
 
@@ -497,13 +505,6 @@ namespace Celeste.Mod.SkinModHelper
             });
             menu.Add(SkinFreeConfig_OnOff);
             menu.Add(CreateDescription(menu, "SkinModHelper_SessionWarning", Color.Gray, 0f, true));
-
-            Action startSearching = AddSearchBox(menu);
-            menu.OnUpdate = () => {
-                if (InputSearchUI.Instance?.Key.Pressed == true) {
-                    startSearching.Invoke();
-                }
-            };
 
             #region
             foreach (var respriteBank in RespriteBankModule.ManagedInstance()) {

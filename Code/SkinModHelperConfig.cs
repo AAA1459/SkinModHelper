@@ -345,7 +345,7 @@ namespace Celeste.Mod.SkinModHelper {
 
         public Dictionary<int, List<Color>> ActualHairColors;
 
-        private int _HairLengthsMaxNum = 0;
+        private int _HairLengthsMaxNum = 2;
         public Dictionary<int, int> ActualHairLengths;
         #endregion
 
@@ -442,7 +442,7 @@ namespace Celeste.Mod.SkinModHelper {
             Dictionary<int, int> hairLengths = new();
             if (iHairLengths != null) {
                 string[] lengths = iHairLengths.Split('|', StringSplitOptions.TrimEntries);
-                for (int i = _HairLengthsMaxNum = lengths.Length; i > 0;) {
+                for (int i = lengths.Length; i > 0;) {
                     i--;
                     if (lengths[i] == "x")
                         continue;
@@ -450,7 +450,7 @@ namespace Celeste.Mod.SkinModHelper {
                         hairLengths[i] = Calc.Clamp(length, 1, MAX_HAIRLENGTH);
                     }
                 }
-                _HairLengthsMaxNum = lengths.Length;
+                _HairLengthsMaxNum = Math.Min(lengths.Length, 2);
             }
             if (HairLengths != null) {
                 for (int i = 0; i < HairLengths.Count; i++) {

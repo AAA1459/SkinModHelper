@@ -338,6 +338,7 @@ namespace Celeste.Mod.SkinModHelper {
             string fullDir = atlas.RelativeDataPath + dir;
             if (!_ColorGradeMaxNum.TryGetValue(fullDir, out int maxNum)) {
                 if (AssetExists<AssetTypeDirectory>(fullDir, out ModAsset dir2)) {
+                    maxNum = 2;
                     foreach (ModAsset child in dir2.Children) {
                         if (child.Type == typeof(Texture2D) && child.PathVirtual.StartsWith(fullDir + "dash") && int.TryParse(child.PathVirtual.Substring(fullDir.Length + 4), out int i) && i > maxNum)
                             maxNum = i;
