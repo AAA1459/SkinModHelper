@@ -450,7 +450,7 @@ namespace Celeste.Mod.SkinModHelper {
                         hairLengths[i] = Calc.Clamp(length, 1, MAX_HAIRLENGTH);
                     }
                 }
-                _HairLengthsMaxNum = Math.Min(lengths.Length, 2);
+                _HairLengthsMaxNum = Math.Max(lengths.Length, 2);
             }
             if (HairLengths != null) {
                 for (int i = 0; i < HairLengths.Count; i++) {
