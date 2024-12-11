@@ -50,22 +50,7 @@ namespace Celeste.Mod.SkinModHelper
                 Build_SkinFreeConfig_NewMenu(menu, inGame);
             }
 
-            Overworld overworld = inGame ? null : OuiModOptions.Instance.Overworld;
-            InputSearchUI SearchUI = InputSearchUI.Instance;
-            if (SearchUI == null || SearchUI.Overworld != overworld) {
-                SearchUI = new InputSearchUI(overworld);
-            }
-            SearchUI.ShowSearchUI = category == NewMenuCategory.SkinFreeConfig;
-            if (SearchUI.ShowSearchUI) {
-                Engine.Scene.Add(SearchUI);
-                Action startSearching = AddSearchBox(menu);
-                menu.OnUpdate += () => {
-                    if (SearchUI.Key.Pressed) {
-                        startSearching.Invoke();
-                    }
-                };
-                menu.OnClose += () => SearchUI.ShowSearchUI = false;
-            }
+            InputSearchUI.RegisterMenuEvents(menu, showSearchUI: category == NewMenuCategory.SkinFreeConfig);
         }
         #endregion
 
@@ -996,44 +981,63 @@ namespace Celeste.Mod.SkinModHelper
 
     #region Search Button UI
     public class InputSearchUI : Entity {
-        public VirtualButton Key;
+        private static VirtualButton key => Input.QuickRestart;
         public static InputSearchUI Instance;
         public InputSearchUI(Overworld overworld) {
             Instance = this;
 
             Tag = Tags.HUD | Tags.PauseUpdate;
             Depth = -10000;
-            Add(Wiggle);
-            Overworld = overworld;
-            Key = Input.QuickRestart;
+            Add(wiggler);
+            this.overworld = overworld;
         }
-        private float WiggleDelay;
-        private Wiggler Wiggle = Wiggler.Create(0.4f, 4f, null, false, false);
-
-        public float inputEase;
-        public bool ShowSearchUI;
-        public Overworld Overworld;
+        private bool showSearchUI;
+        private float wiggleDelay;
+        private readonly Wiggler wiggler = Wiggler.Create(0.4f, 4f);
+        private float inputEase;
+        private Overworld overworld;
 
         public override void Update() {
-            if (Key.Pressed && WiggleDelay <= 0f) {
-                Wiggle.Start();
-                WiggleDelay = 0.5f;
+            if (key.Pressed && wiggleDelay <= 0f) {
+                wiggler.Start();
+                wiggleDelay = 0.5f;
             }
-            WiggleDelay -= Engine.DeltaTime;
-            inputEase = Calc.Approach(inputEase, (ShowSearchUI ? 1 : 0), Engine.DeltaTime * 4f);
+            wiggleDelay -= Engine.DeltaTime;
+            inputEase = Calc.Approach(inputEase, (showSearchUI ? 1 : 0), Engine.DeltaTime * 4f);
             base.Update();
         }
         public override void Render() {
             if (inputEase > 0f) {
                 float num = 0.5f;
-                float num2 = Overworld?.inputEase > 0f ? 48f : 0f;
+                float num2 = overworld?.inputEase > 0f ? 48f : 0f;
                 string label = Dialog.Clean("MAPLIST_SEARCH");
-                float num3 = ButtonUI.Width(label, Key);
+                float num3 = ButtonUI.Width(label, key);
 
                 Vector2 position = new Vector2(1880f, 1024f - num2);
                 position.X += (40f + num3 * num + 32f) * (1f - Ease.CubeOut(inputEase));
-                ButtonUI.Render(position, label, Key, num, 1f, Wiggle.Value * 0.05f, 1f);
+                ButtonUI.Render(position, label, key, num, 1f, wiggler.Value * 0.05f, 1f);
             }
+        }
+        public static void RegisterMenuEvents(TextMenu menu, bool showSearchUI) {
+            if (Instance == null)
+                Instance = new(null);
+            Instance.showSearchUI = showSearchUI;
+            if (!showSearchUI)
+                return;
+            Overworld overworld = Engine.Scene as Overworld;
+
+            if (Instance.Scene != Engine.Scene) {
+                Instance.overworld = overworld;
+                Engine.Scene.Add(Instance);
+            }
+            Action startSearching = SkinModHelperUI.AddSearchBox(menu, overworld);
+            //menu.Remove(menu.Items[menu.Items.Count - 1]);
+
+            menu.OnClose += () => Instance.showSearchUI = false;
+            menu.OnUpdate += () => {
+                if (key.Pressed)
+                    startSearching.Invoke();
+            };
         }
     }
     #endregion

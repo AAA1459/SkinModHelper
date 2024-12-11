@@ -202,7 +202,7 @@ namespace Celeste.Mod.SkinModHelper {
             }
             HairConfig hairConfig = HairConfig.For(self.Hair);
             int? dashCount = GetDashCount(self, self.Sprite);
-            if (dashCount != null && (self.Hair.Color != Color.White || hairConfig.HairFlash == false) && hairConfig.Safe_GetHairColor(100, (int)dashCount, out Color color)) {
+            if (dashCount != null && (self.Hair.Color != Color.White || hairConfig.HairFlash == false) && hairConfig.Safe_GetHairColor((int)dashCount, out Color color)) {
                 self.Hair.Color = color;
             }
         }
@@ -211,7 +211,7 @@ namespace Celeste.Mod.SkinModHelper {
 
             HairConfig hairConfig = HairConfig.For(self.Hair);
             int? dashCount = GetDashCount(self, self.Sprite);
-            if (dashCount != null && (self.Hair.Color != Color.White || hairConfig.HairFlash == false) && hairConfig.Safe_GetHairColor(100, (int)dashCount, out Color color)) {
+            if (dashCount != null && (self.Hair.Color != Color.White || hairConfig.HairFlash == false) && hairConfig.Safe_GetHairColor((int)dashCount, out Color color)) {
                 self.Hair.Color = color;
             }
         }
@@ -224,7 +224,7 @@ namespace Celeste.Mod.SkinModHelper {
             HairConfig hairConfig = HairConfig.For(self.Hair);
             int dashCount = GetStartedDashingCount(self);
 
-            if (hairConfig.Safe_GetHairColor(100, dashCount, out Color color))
+            if (hairConfig.Safe_GetHairColor(dashCount, out Color color))
                 return color;
             return orig(self, wasDashB);
         }
@@ -237,7 +237,7 @@ namespace Celeste.Mod.SkinModHelper {
                     HairConfig hairConfig = HairConfig.For(self.Hair);
                     int dashCount = GetStartedDashingCount(self);
 
-                    if (hairConfig.Safe_GetHairColor(100, dashCount, out Color color)) {
+                    if (hairConfig.Safe_GetHairColor(dashCount, out Color color)) {
                         orig = new(orig);
                         orig.Color = color;
                         orig.Color2 = Color.Lerp(color, Color.White, 0.4f);
@@ -340,7 +340,7 @@ namespace Celeste.Mod.SkinModHelper {
                 if (AssetExists<AssetTypeDirectory>(fullDir, out ModAsset dir2)) {
                     maxNum = 2;
                     foreach (ModAsset child in dir2.Children) {
-                        if (child.Type == typeof(Texture2D) && child.PathVirtual.StartsWith(fullDir + "dash") && int.TryParse(child.PathVirtual.Substring(fullDir.Length + 4), out int i) && i > maxNum)
+                        if (child.Type == typeof(Texture2D) && child.PathVirtual.StartsWith(fullDir + "dash", StringComparison.CurrentCultureIgnoreCase) && int.TryParse(child.PathVirtual.Substring(fullDir.Length + 4), out int i) && i > maxNum)
                             maxNum = i;
                     }
                 }
@@ -465,7 +465,7 @@ namespace Celeste.Mod.SkinModHelper {
 
             if (self.Entity is Player player && player.StateMachine.State == 14) {
                 int? dashes = GetDashCount(player, self.Sprite);
-                if (dashes != null && HairConfig.For(self).Safe_GetHairColor(100, (int)dashes, out Color color))
+                if (dashes != null && HairConfig.For(self).Safe_GetHairColor((int)dashes, out Color color))
                     self.Color = color;
             }
             orig(self);
@@ -476,25 +476,22 @@ namespace Celeste.Mod.SkinModHelper {
                 DynamicData selfData = DynamicData.For(self);
                 HairConfig hairConfig = HairConfig.For(self);
 
-                if (hairConfig.OutlineColor != null && RGB_Regex.IsMatch(hairConfig.OutlineColor))
-                    self.Border = Calc.HexToColor(hairConfig.OutlineColor);
-                else
-                    self.Border = Color.Black;
-
-                self.Border = ColorBlend(self.Border, selfData.Get("HairColorGrading"));
-
                 int? get_dashCount = GetDashCount(self.Entity, self.Sprite);
-                if (get_dashCount != null && (self.Entity is not Player || self.Color != Color.White || hairConfig.HairFlash == false) && hairConfig.Safe_GetHairColor(100, (int)get_dashCount, out Color color))
+                if (get_dashCount != null && (self.Entity is not Player || self.Color != Color.White || hairConfig.HairFlash == false) && hairConfig.Safe_GetHairColor((int)get_dashCount, out Color color))
                     self.Color = color;
-                if (CharacterConfig.For(self.Sprite).SilhouetteMode == true)
-                    self.Border = ColorBlend(self.Border, self.Color);
-                orig(self);
 
+                Color border = self.Border;
+                self.Border = ColorBlend(self.Border, selfData.Get("HairColorGrading"));
+                if (CharacterConfig.For(self.Sprite).SilhouetteMode == true) {
+                    self.Border = ColorBlend(self.Border, self.Color);
+                }
+                orig(self);
+                self.Border = border;
 
                 int? HairLength = hairConfig.GetHairLength(get_dashCount);
                 if (self.Entity is Player player)
                     if (player.StateMachine.State == Player.StStarFly)
-                        HairLength = hairConfig.GetHairLength(-1);
+                        HairLength = hairConfig.GetHairLength(HairConfig.FeatherIndexInAttrs);
                     else if (player.StateMachine.State == Player.StRedDash)
                         HairLength = null;
 
@@ -537,9 +534,7 @@ namespace Celeste.Mod.SkinModHelper {
 
             int? dashes = GetDashCount(self.Entity, self.Sprite);
             if (hairConfig.ActualHairColors != null && dashes != null && (self.Entity is not Player || self.Color != Color.White || hairConfig.HairFlash == false)) {
-                int index2 = hairConfig.ActualHairColors.ContainsKey(index - self.Sprite.HairCount) ? index - self.Sprite.HairCount : index;
-
-                if (hairConfig.Safe_GetHairColor(index2, (int)dashes, out Color color)) {
+                if (hairConfig.Safe_GetHairColor(index, index - self.Sprite.HairCount, (int)dashes, out Color color)) {
                     return ColorBlend(color * self.Alpha, DynamicData.For(self).Get("HairColorGrading"));
                 }
             }

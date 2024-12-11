@@ -86,6 +86,10 @@ namespace Celeste.Mod.SkinModHelper {
                     break;
                 case "loglevel":
                     #region
+                    string command2b = command2;
+                    if (command2b != null && char.IsLetter(command2b[0]))
+                        command2b = command2b.Remove(0).ToUpper() + command2b.Substring(1);
+                    Log($"{command2b}");
                     if (help2) {
                         message = "Quick changes SkinModHelper loglevel. and available subcommands are verbose, debug, info, warn, error, or any-number, or now, last, current";
                     } else if (command == "now" || command == "last" || command == "current") {
