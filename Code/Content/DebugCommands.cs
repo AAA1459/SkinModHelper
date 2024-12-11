@@ -49,9 +49,9 @@ namespace Celeste.Mod.SkinModHelper {
                             case "backpack":
                                 if (help3) {
                                     message = "Quick switch SkinModHelper backpack setting to... default, invert, on, off, or 0~3";
-                                } else if (Enum.TryParse(command2, true, out SkinModHelperSettings.BackpackMode result)) {
+                                } else if (Enum.TryParse(command3, true, out SkinModHelperSettings.BackpackMode result)) {
                                     message = $"Changed SkinModHelper's backpack setting to '{smh_Settings.Backpack = result}'";
-                                } else if (int.TryParse(command2, out int i) && i >= 0 && i < 4) {
+                                } else if (int.TryParse(command3, out int i) && i >= 0 && i < 4) {
                                     message = $"Changed SkinModHelper's backpack setting to '{smh_Settings.Backpack = (SkinModHelperSettings.BackpackMode)i}'";
                                 }
                                 break;
@@ -86,16 +86,12 @@ namespace Celeste.Mod.SkinModHelper {
                     break;
                 case "loglevel":
                     #region
-                    string command2b = command2;
-                    if (command2b != null && char.IsLetter(command2b[0]))
-                        command2b = command2b.Remove(0).ToUpper() + command2b.Substring(1);
-                    Log($"{command2b}");
                     if (help2) {
                         message = "Quick changes SkinModHelper loglevel. and available subcommands are verbose, debug, info, warn, error, or any-number, or now, last, current";
-                    } else if (command == "now" || command == "last" || command == "current") {
+                    } else if (command2 == "now" || command2 == "last" || command2 == "current") {
                         message = $"Current SkinModHelper loglevel is '{Logger.GetLogLevel("SkinModHelper")}'";
 
-                    } else if (!Enum.TryParse(command2, true, out LogLevel result)) {
+                    } else if (Enum.TryParse(command2, true, out LogLevel result)) {
                         Logger.SetLogLevel("SkinModHelper", result);
                         message = $"Changed SkinModHelper loglevel to '{result}'";
 
