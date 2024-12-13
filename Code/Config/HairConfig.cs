@@ -104,6 +104,8 @@ namespace Celeste.Mod.SkinModHelper {
         #region Configurable values
         public string OutlineColor { get; set; }
         public bool HairFlash { get; set; } = true;
+
+        public bool HairFlipable { get; set; }
         public int? HairFloatingDashCount { get; set; }
 
         public List<AttrWithDashes> HairAttrWithDashes {
@@ -381,7 +383,7 @@ namespace Celeste.Mod.SkinModHelper {
                 }
                 // float2.X mean the root scale, float2.Y mean the end scale.
                 float num = float2.X + ((float)index / (float)(attached.Sprite.HairCount - 1)) * (float2.Y - float2.X);
-                scale =  new Vector2(num * Math.Abs(attached.Sprite.Scale.X), num);
+                scale = new Vector2(num * Math.Abs(attached.Sprite.Scale.X), num);
                 return true;
             }
             scale = Vector2.Zero;

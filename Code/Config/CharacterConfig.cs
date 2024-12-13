@@ -30,7 +30,7 @@ namespace Celeste.Mod.SkinModHelper {
                 ModAsset asset = GetAssetOnSprite<AssetTypeYaml>(target, "skinConfig/CharacterConfig");
                 config = AssetIntoConfig<CharacterConfig>(asset) ?? new();
                 config.Source = asset;
-                config.Target = target;
+                config.attached = target;
                 config.SourcePath = rootPath;
 
                 if (target is PlayerSprite playerSprite)
@@ -53,7 +53,14 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        #region Values
+        #region Values 
+        private Image attached;
+        private Entity lastEntity;
+        private ModAsset Source;
+        private string SourcePath;
+        #endregion
+
+        #region Configurable values
         public bool? BadelineMode { get; set; }
         public bool? SilhouetteMode { get; set; }
 
@@ -63,15 +70,6 @@ namespace Celeste.Mod.SkinModHelper {
 
         public string TrailsColor { get; set; }
         public string DeathParticleColor { get; set; }
-
-
-        #endregion
-
-        #region Other Values 
-        public Image Target;
-        public Entity lastEntity;
-        public ModAsset Source;
-        public string SourcePath;
 
 
         public bool TweaksTEST;
@@ -103,7 +101,13 @@ namespace Celeste.Mod.SkinModHelper {
                     if (fs != null) {
                         for (int i = 0; i < fs.Length; i++) {
                             FieldInfo f = fs[i];
-                            log = log + "\n" + (f.FieldType.IsEnum ? "IsEnum " : "") + f;
+                            log += ("\n" + f);
+                            if (f.FieldType.IsEnum) {
+                                log += ": ";
+                                foreach (string str in f.FieldType.GetEnumNames()) {
+                                    log += (str + " ");
+                                }
+                            }
                         }
                     }
                     type2 = type2.BaseType;
@@ -152,28 +156,38 @@ namespace Celeste.Mod.SkinModHelper {
                             continue;
                         }
                         if (f.FieldType == typeof(Image)) {
-                            if (GetTextureOnSprite(Target, t.Value, out var texture))
+                            if (GetTextureOnSprite(attached, t.Value, out var texture))
                                 (v as Image).Texture = texture;
                             else
                                 Logger.Log(LogLevel.Warn, "SkinModHelper", $"{SourcePath}skinConfig/CharacterConfig Tweaks error: \n texture {SourcePath}{t.Value} does not exist");
                             continue;
                         }
 
-                        if (f.FieldType == typeof(MTexture)) {
-                            if (GetTextureOnSprite(Target, t.Value, out var texture2))
+                        if (f.FieldType == typeof(List<MTexture>)) {
+                            if (GetTexturesOnSprite(attached, t.Value, out var texture2)) {
                                 v = texture2;
-                            else
+                            } else {
+                                Logger.Log(LogLevel.Warn, "SkinModHelper", $"{SourcePath}skinConfig/CharacterConfig Tweaks error: \n textures {SourcePath}{t.Value} does not exist");
+                            }
+                        } else if (f.FieldType == typeof(MTexture)) {
+                            if (GetTextureOnSprite(attached, t.Value, out var texture2)) {
+                                v = texture2;
+                            } else {
                                 Logger.Log(LogLevel.Warn, "SkinModHelper", $"{SourcePath}skinConfig/CharacterConfig Tweaks error: \n texture {SourcePath}{t.Value} does not exist");
+                            }
                         } else if (f.FieldType == typeof(Color)) {
                             v = Calc.HexToColorWithAlpha(t.Value);
                         } else if (f.FieldType.IsEnum) {
-                            if (int.TryParse(t.Value, out int v3)) // string value cannot convert to enum, but int value can.
+                            if (Enum.TryParse(f.FieldType, t.Value, true, out object _enum)) {
+                                v = _enum;
+                            } else if (int.TryParse(t.Value, out int v3)) {
                                 v = v3;
-                            else
+                            } else {
                                 Logger.Log(LogLevel.Error, "SkinModHelper", $"{SourcePath}skinConfig/CharacterConfig Tweaks error: \n '{f.FieldType} {type}.{t.Name}' IsEnum, but its new value is not number");
-                        } else
+                            }
+                        } else {
                             v = Convert.ChangeType(t.Value, f.FieldType);
-
+                        }
                         f.SetValue(obj, v);
                     } catch (Exception e) {
                         Logger.Log(LogLevel.Error, "SkinModHelper", $"{SourcePath}skinConfig/CharacterConfig Tweaks error: \n '{f.FieldType} {type}.{t.Name}': \n   {e.Message}");

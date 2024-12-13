@@ -50,7 +50,7 @@ namespace Celeste.Mod.SkinModHelper
                 Build_SkinFreeConfig_NewMenu(menu, inGame);
             }
 
-            InputSearchUI.RegisterMenuEvents(menu, showSearchUI: category == NewMenuCategory.SkinFreeConfig);
+            InputSearchUI.Instance.RegisterMenuEvents(menu, showSearchUI: category == NewMenuCategory.SkinFreeConfig);
         }
         #endregion
 
@@ -981,6 +981,19 @@ namespace Celeste.Mod.SkinModHelper
 
     #region Search Button UI
     public class InputSearchUI : Entity {
+        #region Hooks
+        public static void Load() {
+            On.Celeste.Overworld.ctor += onOverworldConstruct;
+        }
+        public static void Unload() {
+            On.Celeste.Overworld.ctor -= onOverworldConstruct;
+        }
+        private static void onOverworldConstruct(On.Celeste.Overworld.orig_ctor orig, Overworld self, OverworldLoader loader) {
+            orig(self, loader);
+            Instance = new InputSearchUI(self);
+        }
+        #endregion
+
         private static VirtualButton key => Input.QuickRestart;
         public static InputSearchUI Instance;
         public InputSearchUI(Overworld overworld) {
@@ -1018,22 +1031,21 @@ namespace Celeste.Mod.SkinModHelper
                 ButtonUI.Render(position, label, key, num, 1f, wiggler.Value * 0.05f, 1f);
             }
         }
-        public static void RegisterMenuEvents(TextMenu menu, bool showSearchUI) {
-            if (Instance == null)
-                Instance = new(null);
-            Instance.showSearchUI = showSearchUI;
+        public void RegisterMenuEvents(TextMenu menu, bool showSearchUI) {
+            this.showSearchUI = showSearchUI;
             if (!showSearchUI)
                 return;
-            Overworld overworld = Engine.Scene as Overworld;
 
-            if (Instance.Scene != Engine.Scene) {
-                Instance.overworld = overworld;
-                Engine.Scene.Add(Instance);
+            Overworld overworld = Engine.Scene as Overworld;
+            // make sure the button is part of the current scene (Level or Overworld)
+            if (Scene != Engine.Scene) {
+                Engine.Scene.Add(this);
+                this.overworld = overworld;
             }
             Action startSearching = SkinModHelperUI.AddSearchBox(menu, overworld);
             //menu.Remove(menu.Items[menu.Items.Count - 1]);
 
-            menu.OnClose += () => Instance.showSearchUI = false;
+            menu.OnClose += () => this.showSearchUI = false;
             menu.OnUpdate += () => {
                 if (key.Pressed)
                     startSearching.Invoke();

@@ -65,6 +65,7 @@ namespace Celeste.Mod.SkinModHelper {
             TrailRecolor.Load();
 
             SkinModHelperInterop.Load();
+            InputSearchUI.Load();
         }
         public override void Initialize() {
             base.Initialize();
@@ -80,6 +81,8 @@ namespace Celeste.Mod.SkinModHelper {
             ObjectsHook.Unload();
             SomePatches.Unload();
             TrailRecolor.Unload();
+
+            InputSearchUI.Unload();
 
             foreach (ILHook h in doneILHooks) {
                 h.Dispose();
