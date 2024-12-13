@@ -96,7 +96,7 @@ and, customize certain type's field require special values:
 * if field type is _`Monocle.Image`_ or _`Monocle.MTexture`_, so value should be `[sprite path]`
   * its starting point at the previous folder of "skinConfig", aka sprites folder.
 * if field type is _`Microsoft.Xna.Framework.Color`_, so value should be `[six digit RGB hex code, or eight digit RGBA]`
-* if field type is an _`enum`_... so value should be `[number]`
+* if field type is an _`enum`_... so value should be `[number]`, or enum value's name from code.
 
 and and... here is a demo for refill.
 ```

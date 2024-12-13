@@ -39,7 +39,7 @@ HairAttrWithDashes:
 ```  
 * If there is a set with `Dashes` is -1, its value will work on the player feather state except for color.
 
-If you want to go a step further, set attr ​​for individual segments, so use this in the sets's ends
+If you want to go a step further, set attr ​​for individual segments, so use this in the each set's ends
 ```
   SegmentAttrs:
   - Segment: [Which segment of hair]     # work in reverse order if it is a negative number
