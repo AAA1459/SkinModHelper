@@ -14,7 +14,6 @@ using Microsoft.Xna.Framework.Input;
 
 using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
-using System.Net.WebSockets;
 
 namespace Celeste.Mod.SkinModHelper
 {

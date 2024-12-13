@@ -14,11 +14,6 @@ using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.PlayerSkinSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 using static Celeste.Mod.SkinModHelper.HairConfig.AttrWithDashes;
-using YamlDotNet.Core.Tokens;
-using YamlDotNet.Core.Events;
-using System.Runtime.InteropServices;
-using System.Runtime.CompilerServices;
-using static Celeste.ClutterBlock;
 
 namespace Celeste.Mod.SkinModHelper {
     public class HairConfig {

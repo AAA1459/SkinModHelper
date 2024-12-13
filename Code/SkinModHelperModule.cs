@@ -17,8 +17,6 @@ using System.Linq;
 
 using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using Celeste.Mod.SkinModHelper.Interop;
-using System.Xml.Linq;
-using YamlDotNet.Core.Tokens;
 
 namespace Celeste.Mod.SkinModHelper {
     public class SkinModHelperModule : EverestModule {
