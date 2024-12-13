@@ -4,13 +4,13 @@ If you want to customize hair color or more to your target, you can check here.
 
 The content here involves a new config, its structure and function is like this
 ```yaml
-  HairAttrWithDashes:
-  - < AttrWithDashes >  # color, lengths etc.
+HairAttrWithDashes:
+- < AttrWithDashes >  # color, lengths, scale.
   
-  HairFlash: [true/false]
-  HairFloatingDashCount: [number]
+HairFlash: [true/false]
+HairFloatingDashCount: [number]
   
-  OutlineColor: [use six digit RGB hex code]
+OutlineColor: [use six digit RGB hex code]
 ```
 
 If this contains what you need, follow these steps to use them:
@@ -26,21 +26,27 @@ If this contains what you need, follow these steps to use them:
 Here you can setting something according to the dashes, 
 e.g hair color, length. to make them different from madeline:
 ```
-  HairAttrWithDashes:
-  - Dashes: [any integers]     # except for this must be set, all others are optional
+HairAttrWithDashes:
+- Dashes: [any integers]     # except for this must be set, all others are optional
   
-    Color: [use six digit RGB hex code]     
-	  # example: "9B3FB5", which represents Baddy's 1-dash color
-	
-	Length: [integers from 1 to 99]     
-	  # when 'Dashes' is -1 this length will be applied to the feathers
-		
-    SegmentAttrs:
-    - Segment: [Which segment of hair]     # work in reverse order if it is a negative number
-      Color: [use six digit RGB hex code]
+  Color: [use six digit RGB hex code]     
+    # example: "9B3FB5", which represents Baddy's 1-dash color
+	  
+  Scale: [floats as root], [floats as end]
+    # The segments's scale will gradually transition between two floats from root to end.
+	  
+  Length: [integers from 1 to 99]
 ```  
-Note: if a set's `Dashes` greater than 2 and partial values ​​​​are not set,
-<br>&emsp;&emsp;so them will try to be filled with value from... the other sets that with `Dashes` are at least 2 and less than this set.
+* If there is a set with `Dashes` is -1, its value will work on the player feather state except for color.
+
+If you want to go a step further, set attr ​​for individual segments, so use this in the sets's ends
+```
+  SegmentAttrs:
+  - Segment: [Which segment of hair]     # work in reverse order if it is a negative number
+    Color: [use six digit RGB hex code]
+    Scale: [floats]
+```
+* Make the value of the segments work require set the corresponding value of the parent set also.
 
 
 ---
@@ -48,16 +54,16 @@ Note: if a set's `Dashes` greater than 2 and partial values ​​​​are not 
 By default, the player's hair flashes when dashes are used or refilled. 
 If you wish to disable this feature, use:
 ```
-  HairFlash: false
+HairFlash: false
 ```
 
 ---
 ### HairFloatingDashCount
 By default, the player's hair floating when have at least 2 dashes. If you want that floating to require more or less dashes, use:
 ```
-  HairFloatingDashCount: [any number]
-    # using "0" to make it always floating.
-    # using "-1" to make it never floating.
+HairFloatingDashCount: [any number]
+  # using "0" to make it always floating.
+  # using "-1" to make it never floating.
 ```
 
 
@@ -65,7 +71,7 @@ By default, the player's hair floating when have at least 2 dashes. If you want 
 ### OutlineColor
 If you need to recolor the hair border for target, use:
 ```
-  OutlineColor: [use six digit RGB hex code]     # default color is "000000"
+OutlineColor: [use six digit RGB hex code]     # default color is "000000"
 ```
 
 ---

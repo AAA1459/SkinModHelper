@@ -51,6 +51,7 @@ namespace Celeste.Mod.SkinModHelper {
 
             On.Celeste.PlayerHair.GetHairColor += PlayerHairGetHairColorHook;
             On.Celeste.PlayerHair.GetHairTexture += PlayerHairGetHairTextureHook;
+            On.Celeste.PlayerHair.GetHairScale += PlayerHairGetHairScaleHook;
 
             IL.Celeste.Player.UpdateHair += patch_SpriteMode_Badeline;
             IL.Celeste.Player.DashUpdate += patch_SpriteMode_Badeline;
@@ -95,6 +96,7 @@ namespace Celeste.Mod.SkinModHelper {
 
             On.Celeste.PlayerHair.GetHairColor -= PlayerHairGetHairColorHook;
             On.Celeste.PlayerHair.GetHairTexture -= PlayerHairGetHairTextureHook;
+            On.Celeste.PlayerHair.GetHairScale -= PlayerHairGetHairScaleHook;
 
             IL.Celeste.Player.UpdateHair -= patch_SpriteMode_Badeline;
             IL.Celeste.Player.DashUpdate -= patch_SpriteMode_Badeline;
@@ -361,7 +363,7 @@ namespace Celeste.Mod.SkinModHelper {
                 get_dashCount = dashes;
                 Log(LogLevel.Verbose, $"Got the dashes {dashes} of ghost for colorgrade");
             } else {
-                get_dashCount = GetDashCount(self.Entity, self.Sprite);
+                get_dashCount = self.Entity is PlayerDeadBody ? null : GetDashCount(self.Entity, self.Sprite);
             }
 
             if (self.Color == Color.White && atlas.Has(dir + "flash")) {
@@ -489,12 +491,9 @@ namespace Celeste.Mod.SkinModHelper {
                 self.Border = border;
 
                 int? HairLength = hairConfig.GetHairLength(get_dashCount);
-                if (self.Entity is Player player)
-                    if (player.StateMachine.State == Player.StStarFly)
-                        HairLength = hairConfig.GetHairLength(HairConfig.FeatherIndexInAttrs);
-                    else if (player.StateMachine.State == Player.StRedDash)
-                        HairLength = null;
-
+                if (self.Entity is Player player && player.StateMachine.State == Player.StRedDash) {
+                    HairLength = null;
+                }
                 selfData.Set("smh_HairLength", HairLength);
                 return;
             }
@@ -531,14 +530,23 @@ namespace Celeste.Mod.SkinModHelper {
         }
         private static Color PlayerHairGetHairColorHook(On.Celeste.PlayerHair.orig_GetHairColor orig, PlayerHair self, int index) {
             HairConfig hairConfig = HairConfig.For(self);
-
             int? dashes = GetDashCount(self.Entity, self.Sprite);
+
             if (hairConfig.ActualHairColors != null && dashes != null && (self.Entity is not Player || self.Color != Color.White || hairConfig.HairFlash == false)) {
-                if (hairConfig.Safe_GetHairColor(index, index - self.Sprite.HairCount, (int)dashes, out Color color)) {
+                if (hairConfig.Safe_GetHairColor(index, (int)dashes, out Color color)) {
                     return ColorBlend(color * self.Alpha, DynamicData.For(self).Get("HairColorGrading"));
                 }
             }
             return ColorBlend(orig(self, index), DynamicData.For(self).Get("HairColorGrading"));
+        }
+        private static Vector2 PlayerHairGetHairScaleHook(On.Celeste.PlayerHair.orig_GetHairScale orig, PlayerHair self, int index) {
+            HairConfig hairConfig = HairConfig.For(self);
+            int? dashes = GetDashCount(self.Entity, self.Sprite);
+
+            if (dashes != null && hairConfig.GetHairScale(index, dashes.Value, out Vector2 scale)) {
+                return scale;
+            }
+            return orig(self, index);
         }
         #endregion
 
@@ -613,12 +621,15 @@ namespace Celeste.Mod.SkinModHelper {
             }
         }
         public static int? GetDashCount(Entity entity, PlayerSprite sprite) {
+            if (entity is PlayerDeadBody playerBody)
+                entity = playerBody.player;
+
             switch (entity) {
                 case BadelineOldsite badelineOldsite:
                     return badelineOldsite.index;
                 case Player player:
                     if (player.StateMachine.State == Player.StStarFly)
-                        return null;
+                        return HairConfig.FeatherIndexInAttrs;
 
                     // DJMapHelper's MaxDashesTrigger setting OverrideHairColor for 0 dashes blue hair, so let's skin also get 0 dashes.
                     if (player.OverrideHairColor == Player.UsedHairColor)

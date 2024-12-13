@@ -121,7 +121,7 @@ namespace Celeste.Mod.SkinModHelper {
                                     message = message + ", but it doesn't exist";
                                 break;
                             case "id":
-                                message = "The player spriteID: {sprite.spriteName}";
+                                message = $"The player spriteID: {sprite.spriteName}";
                                 break;
                             case "mode":
                                 message = $"The player mode: {(int)sprite.Mode} : (smh){Player_Skinid_verify} : {GetPlayerSkinName((int)sprite.Mode)}";
