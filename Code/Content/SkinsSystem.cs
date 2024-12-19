@@ -300,8 +300,12 @@ namespace Celeste.Mod.SkinModHelper {
                 }
             }
             if (sprite is PlayerSprite && !IDHasHairMetadate.Contains(id)) {
-                Logger.Log(LogLevel.Debug, "SkinModHelper", $"The '{id}' create on PlayerSprite but it's not used in PlayerSprite.CreateFramesMetadata that having hooks to fill some animation, so let's do it");
-                PlayerSprite.CreateFramesMetadata(id);
+                if (self == GFX.SpriteBank) {
+                    Log(LogLevel.Info, $"PlayerSprite used '{id}' but it's not used CreateFramesMetadata and fill with the possible animations, so let's do it");
+                    PlayerSprite.CreateFramesMetadata(id);
+                } else {
+                    OnceLog(LogLevel.Warn, $"PlayerSprite used '{id}' but that from the custom SpriteBank/Xml... Cannot CreateFramesMetadata and fill it with the possible animations");
+                }
             }
             DynamicData spriteData = DynamicData.For(sprite);
             spriteData.Set("smh_spriteName", id);
@@ -840,9 +844,13 @@ namespace Celeste.Mod.SkinModHelper {
         public static void Log(LogLevel logLevel, string log) {
             Logger.Log(logLevel, "SkinModHelper", log);
         }
-        public static void Log(this string log, LogLevel logLevel = LogLevel.Info) {
-            Logger.Log(logLevel, "SkinModHelper", log);
+        public static void OnceLog(LogLevel logLevel, string log) {
+            if (!onceLog.Contains((logLevel, log))) {
+                Logger.Log(logLevel, "SkinModHelper", log);
+                onceLog.Add((logLevel, log));
+            }
         }
+        private static HashSet<(LogLevel, string)> onceLog = new();
         #endregion
     }
 }
