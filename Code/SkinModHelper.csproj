@@ -52,6 +52,9 @@
 		<Reference Include="$(CelestePrefix)\MMHOOK_Celeste.dll">
 			<Private>false</Private>
 		</Reference>
+		<Reference Include="Celeste">
+		  <HintPath>..\..\..\Celeste.dll</HintPath>
+		</Reference>
 	</ItemGroup>
 
 	<!--Include XNA or FNA-->

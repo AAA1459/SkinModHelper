@@ -18,13 +18,16 @@ using static Celeste.Mod.SkinModHelper.HairConfig.AttrWithDashes;
 namespace Celeste.Mod.SkinModHelper {
     public class HairConfig {
         #region Ctor / Initialization
+        internal const string _DynamicDataKey = "smh_hairConfig";
+
         public const int FeatherIndexInAttrs = -1;
         public const int GeneralSegmentIndex = 100;
+
         public HairConfig() { 
         }
         public static HairConfig For(PlayerHair target) {
             DynamicData selfData = DynamicData.For(target);
-            HairConfig config = selfData.Get<HairConfig>("smh_hairConfig");
+            HairConfig config = selfData.Get<HairConfig>(_DynamicDataKey);
 
             string rootPath = getAnimationRootPath(target.Sprite);
 
@@ -210,7 +213,7 @@ namespace Celeste.Mod.SkinModHelper {
                     if (ColorsMaxNum < attr.Dashes)
                         ColorsMaxNum = attr.Dashes;
                 }
-                if (attr.Length != null && attr.Length.Value > 0) {
+                if (attr.Length != null) {
                     Lengths[attr.Dashes] = Math.Min(attr.Length.Value, MAX_HAIRLENGTH);
                     if (attr.Dashes > _HairLengthsMaxNum) { _HairLengthsMaxNum = attr.Dashes; }
                 }
@@ -242,7 +245,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
 
         #region ProcessHairColors...
-        public void HairColorsProcess(Dictionary<int, Color> Colors, int maxCount) {
+        private void HairColorsProcess(Dictionary<int, Color> Colors, int maxCount) {
             // Default colors taken from vanilla
             List<Color> GeneratedHairColors = new List<Color>(new Color[maxCount + 1]) {
                 [0] = Calc.HexToColor("44B7FF"),

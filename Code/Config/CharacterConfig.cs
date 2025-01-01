@@ -17,12 +17,14 @@ using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 namespace Celeste.Mod.SkinModHelper {
     public class CharacterConfig {
         #region Ctor / Initialization
+        internal const string _DynamicDataKey = "smh_characterConfig";
+
         public CharacterConfig() {
         }
 
         public static CharacterConfig For(Image target) {
             DynamicData selfData = DynamicData.For(target);
-            CharacterConfig config = selfData.Get<CharacterConfig>("smh_characterConfig");
+            CharacterConfig config = selfData.Get<CharacterConfig>(_DynamicDataKey);
 
             string rootPath = getAnimationRootPath(target);
 

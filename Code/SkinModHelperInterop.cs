@@ -25,7 +25,16 @@ namespace Celeste.Mod.SkinModHelper.Interop {
         internal static void Load() {
             typeof(SkinModHelperInterop).ModInterop();
         }
-        
+
+        public static string GetHairConfig_DynamicDataKey() {
+            return HairConfig._DynamicDataKey;
+        }
+        public static string GetCharacterConfig_DynamicDataKey() {
+            return CharacterConfig._DynamicDataKey;
+        }
+
+
+
         public static void SetColorGrade(Sprite to, MTexture mTexture) {
             DynamicData spriteData = DynamicData.For(to);
 
