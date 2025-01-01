@@ -214,7 +214,7 @@ namespace Celeste.Mod.SkinModHelper {
                         ColorsMaxNum = attr.Dashes;
                 }
                 if (attr.Length != null) {
-                    Lengths[attr.Dashes] = Math.Min(attr.Length.Value, MAX_HAIRLENGTH);
+                    Lengths[attr.Dashes] = Math.Clamp(attr.Length.Value, 1, MAX_HAIRLENGTH);
                     if (attr.Dashes > _HairLengthsMaxNum) { _HairLengthsMaxNum = attr.Dashes; }
                 }
                 if (attr.Scale != null) {
