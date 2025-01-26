@@ -26,7 +26,7 @@ SkinModHelper_Settings_Otherskin_null= None
 SkinModHelper_MORE_OPTIONS= Advanced Options
 
 SkinModHelper_Settings_ShowOtherSelfVariants= Show Otherself variant
-SkinModHelper_Settings_ShowOtherSelfVariants_desc= for the player skins menu
+SkinModHelper_Settings_ShowOtherSelfVariants_desc= for the player skins menu. If off so it will be synced when the player variant changes
 
 SkinModHelper_Settings_ShowSkinSourceInAllCategory= Show player skin from where
 SkinModHelper_Settings_ShowSkinSourceInAllCategory_desc= for the all category of player skins menu
