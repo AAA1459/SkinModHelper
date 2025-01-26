@@ -144,6 +144,9 @@ namespace Celeste.Mod.SkinModHelper {
             if (smh_Settings.SelectedSilhouetteSkin == null) {
                 smh_Settings.SelectedSilhouetteSkin = DEFAULT;
             }
+            if (smh_Settings.SelectedOtherSelfSkin == null) {
+                smh_Settings.SelectedOtherSelfSkin = DEFAULT;
+            }
         }
         public static void ConfigInsert(ModAsset asset) {
             if (asset.Type != typeof(AssetTypeYaml))

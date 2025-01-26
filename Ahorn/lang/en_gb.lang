@@ -3,6 +3,10 @@ placements.triggers.SkinModHelper/SkinSwapTrigger.tooltips.skinId=The skin ID to
 
 placements.triggers.SkinModHelper/SkinSwapTrigger.tooltips.revertOnLeave=If checked, Player will lose the this skin when exiting the trigger.
 
+placements.triggers.SkinModHelper/SkinSwapTrigger.tooltips.playerVariant= the trigger will apply to the player variant of player skins menu.
+placements.triggers.SkinModHelper/SkinSwapTrigger.tooltips.otherselfVariant= the trigger will apply to the otherself variant of player skins menu.
+placements.triggers.SkinModHelper/SkinSwapTrigger.tooltips.silhouetteVariant= the trigger will apply to the silhouette variant of player skins menu.
+
 
 # Entity Reskin Trigger
 placements.triggers.SkinModHelper/EntityReskinTrigger.tooltips.entityIndex= On the basis of "EntityFullName", further filter the No.X to be reskin

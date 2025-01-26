@@ -127,15 +127,20 @@ namespace Celeste.Mod.SkinModHelper {
                 switch (mode) {
                     case PlayerSpriteMode.Madeline:
                     case PlayerSpriteMode.MadelineNoBackpack:
-                    case PlayerSpriteMode.MadelineAsBadeline:
                         hash_object = GetPlayerSkin();
+                        break;
+                    case PlayerSpriteMode.MadelineAsBadeline:
+                        hash_object = GetOtherselfSkin();
                         break;
                     case PlayerSpriteMode.Playback:
                         hash_object = GetSilhouetteSkin();
                         break;
                     case (PlayerSpriteMode)444482:
-                    case (PlayerSpriteMode)444483:
                         if ((hash_object = GetPlayerSkin("_lantern")) == GetPlayerSkin())
+                            hash_object = null;
+                        break;
+                    case (PlayerSpriteMode)444483:
+                        if ((hash_object = GetOtherselfSkin("_lantern")) == GetOtherselfSkin())
                             hash_object = null;
                         break;
                     default:
@@ -551,19 +556,19 @@ namespace Celeste.Mod.SkinModHelper {
         #endregion
 
         #region PlayerSpriteMode
-        private static void SetPlayerSpriteMode(PlayerSpriteMode? mode) {
-            Player player = _Player;
-            if (player != null) {
-                if (mode == null) {
-                    mode = player.DefaultSpriteMode;
-                }
-                if (player.Active) {
-                    player.ResetSpriteNextFrame((PlayerSpriteMode)mode);
-                } else {
-                    player.ResetSprite((PlayerSpriteMode)mode);
-                }
+        private static void SetPlayerSpriteMode(Player player, PlayerSpriteMode? mode) {
+            player ??= _Player;
+            if (player == null) {
+                return;
+            }
+            mode ??= player.DefaultSpriteMode;
+            if (player.Active) {
+                player.ResetSpriteNextFrame(mode.Value);
+            } else {
+                player.ResetSprite(mode.Value);
             }
         }
+
 
         private static void patch_SpriteMode_Badeline(ILContext il) {
             ILCursor cursor = new ILCursor(il);
@@ -607,19 +612,23 @@ namespace Celeste.Mod.SkinModHelper {
         #endregion
 
         #region Method
-        public static void RefreshPlayerSpriteMode(string SkinName = null, int dashCount = 1) {
-            if (Engine.Scene is not Level || _Player == null) {
+        public static void RefreshPlayerSpriteMode() {
+            if (Engine.Scene is not Level) {
                 return;
             }
-            if (SkinName != null && skinConfigs.ContainsKey(SkinName)) {
-                SetPlayerSpriteMode((PlayerSpriteMode)skinConfigs[SkinName].hashValues);
-
-            } else if (SaveData.Instance != null && SaveData.Instance.Assists.PlayAsBadeline) {
-                SetPlayerSpriteMode(PlayerSpriteMode.MadelineAsBadeline);
+            if (SaveData.Instance?.Assists.PlayAsBadeline == true) {
+                SetPlayerSpriteMode(_Player, PlayerSpriteMode.MadelineAsBadeline);
             } else {
-                SetPlayerSpriteMode(null);
+                SetPlayerSpriteMode(_Player, null);
             }
         }
+        public static void RefreshPlayerSpriteMode(Player player) {
+            if (player.DefaultSpriteMode == PlayerSpriteMode.MadelineAsBadeline || SaveData.Instance?.Assists.PlayAsBadeline == true)
+                SetPlayerSpriteMode(player, PlayerSpriteMode.MadelineAsBadeline);
+            else
+                SetPlayerSpriteMode(player, null);
+        }
+
         public static int? GetDashCount(Entity entity, PlayerSprite sprite) {
             if (entity is PlayerDeadBody playerBody)
                 entity = playerBody.player;

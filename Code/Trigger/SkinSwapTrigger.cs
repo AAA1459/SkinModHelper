@@ -14,12 +14,19 @@ namespace Celeste.Mod.SkinModHelper {
         private readonly string skinId;
         private readonly bool revertOnLeave;
 
+        private readonly bool playerVariant;
+        private readonly bool otherselfVariant;
+        private readonly bool silhouetteVariant;
 
-        private string oldskinId;
+        private string[] oldskinId = new string[3];
         public SkinSwapTrigger(EntityData data, Vector2 offset) 
             : base(data, offset) {
             skinId = data.Attr("skinId", DEFAULT);
             revertOnLeave = data.Bool("revertOnLeave", false);
+
+            playerVariant = data.Bool("playerVariant", true);
+            otherselfVariant = data.Bool("otherselfVariant", true);
+            silhouetteVariant = data.Bool("silhouetteVariant", false);
 
             if (string.IsNullOrEmpty(skinId)) {
                 skinId = "Null";
@@ -31,34 +38,55 @@ namespace Celeste.Mod.SkinModHelper {
         public override void OnEnter(Player player) {
             base.OnEnter(player);
 
-            oldskinId = Session.SelectedPlayerSkin;
-
-            string hash_object = skinId;
             if (skinConfigs.ContainsKey(skinId) || skinId == DEFAULT) {
-                Session.SelectedPlayerSkin = hash_object;
+                swapSkin(skinId);
             } else if (skinId == "Null")  {
-                Session.SelectedPlayerSkin = null;
+                swapSkin(null);
             } else {
                 Logger.Log(LogLevel.Warn, "SkinModHelper/SkinSwapTrigger", $"Tried to swap to unknown SkinID: {skinId}");
                 return;
             }
-
-            PlayerSkinSystem.RefreshPlayerSpriteMode();
+            PlayerSkinSystem.RefreshPlayerSpriteMode(player);
         }
 
         public override void OnLeave(Player player) {
             base.OnLeave(player);
             if (revertOnLeave) {
-                Session.SelectedPlayerSkin = oldskinId;
-
-                PlayerSkinSystem.RefreshPlayerSpriteMode();
+                revertSkin();
+                PlayerSkinSystem.RefreshPlayerSpriteMode(player);
             }
         }
         public override void SceneEnd(Scene scene) {
             if (revertOnLeave && PlayerIsInside) {
-                Session.SelectedPlayerSkin = oldskinId;
+                revertSkin();
             }
             base.SceneEnd(scene);
+        }
+
+        private void swapSkin(string newId) {
+            if (playerVariant) {
+                oldskinId[0] = Session.SelectedPlayerSkin;
+                Session.SelectedPlayerSkin = newId;
+            }
+            if (otherselfVariant) {
+                oldskinId[1] = Session.SelectedOtherSelfSkin;
+                Session.SelectedOtherSelfSkin = newId;
+            }
+            if (silhouetteVariant) {
+                oldskinId[2] = Session.SelectedSilhouetteSkin;
+                Session.SelectedSilhouetteSkin = newId;
+            }
+        }
+        private void revertSkin() {
+            if (playerVariant) {
+                Session.SelectedPlayerSkin = oldskinId[0];
+            }
+            if (otherselfVariant) {
+                Session.SelectedOtherSelfSkin = oldskinId[1];
+            }
+            if (silhouetteVariant) {
+                Session.SelectedSilhouetteSkin = oldskinId[2];
+            }
         }
     }
 }

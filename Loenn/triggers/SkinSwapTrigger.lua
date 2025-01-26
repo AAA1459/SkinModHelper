@@ -9,6 +9,9 @@ skinSwapTrigger.placements = {
             height = 40,
             skinId = "Default",
             revertOnLeave = false,
+			playerVariant = true,
+			otherselfVariant = true,
+			silhouetteVariant = false,
         }
     }
 }

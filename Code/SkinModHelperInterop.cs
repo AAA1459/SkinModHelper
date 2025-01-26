@@ -34,6 +34,11 @@ namespace Celeste.Mod.SkinModHelper.Interop {
         }
 
 
+        public static string GetPlayerSkinNameForGlobal() {
+            return SkinModHelperModule.GetPlayerSkinName(Player_Skinid_verify);
+        }
+
+
 
         public static void SetColorGrade(Sprite to, MTexture mTexture) {
             DynamicData spriteData = DynamicData.For(to);
@@ -45,16 +50,33 @@ namespace Celeste.Mod.SkinModHelper.Interop {
             SyncColorGrade(to, from);
         }
 
-        #region Legacy
         public static void SessionSet_PlayerSkin(string newSkinId) {
-            SkinModHelperModule.SessionSet_PlayerSkin(newSkinId);
+            if (smh_Session == null) {
+                Logger.Log(LogLevel.Warn, "SkinModHelper", $"Cannot set session because it is null");
+                return;
+            }
+            smh_Session.SetPlayerSkin(newSkinId);
         }
         public static void SessionSet_SilhouetteSkin(string newSkinId) {
-            SkinModHelperModule.SessionSet_SilhouetteSkin(newSkinId);
+            if (smh_Session == null) {
+                Logger.Log(LogLevel.Warn, "SkinModHelper", $"Cannot set session because it is null");
+                return;
+            }
+            smh_Session.SetSilhouetteSkin(newSkinId);
+        }
+        public static void SessionSet_OtherSelfSkin(string newSkinId) {
+            if (smh_Session == null) {
+                Logger.Log(LogLevel.Warn, "SkinModHelper", $"Cannot set session because it is null");
+                return;
+            }
+            smh_Session.SetOtherSelfSkin(newSkinId);
         }
         public static void SessionSet_GeneralSkin(string newSkinId, bool? OnOff) {
-            SkinModHelperModule.SessionSet_GeneralSkin(newSkinId, OnOff);
+            if (smh_Session == null) {
+                Logger.Log(LogLevel.Warn, "SkinModHelper", $"Cannot set session because it is null");
+                return;
+            }
+            smh_Session.SetGeneralSkin(newSkinId, OnOff);
         }
-        #endregion
     }
 }

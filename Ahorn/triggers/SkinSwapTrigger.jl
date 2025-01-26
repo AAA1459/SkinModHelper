@@ -2,7 +2,7 @@ module SkinModHelperSkinSwapTrigger
 using ..Ahorn, Maple
 
 @mapdef Trigger "SkinModHelper/SkinSwapTrigger" SkinSwapTrigger(x::Integer, y::Integer, width::Integer=32, height::Integer=40,
-	skinId::String="Default", revertOnLeave::Bool=false)
+	skinId::String="Default", revertOnLeave::Bool=false, playerVariant::Bool=true, otherselfVariant::Bool=true, silhouetteVariant::Bool=false)
 
 const placements = Ahorn.PlacementDict(
 	"Skin Swap Trigger (Skin Mod Helper)" => Ahorn.EntityPlacement(

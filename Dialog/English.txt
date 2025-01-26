@@ -15,18 +15,21 @@ SkinModHelper_options_BackpackMode_Invert= Invert
 SkinModHelper_Settings_PlayerSkin= Player Skins
 SkinModHelper_Settings_DefaultPlayer= Default
 
-SkinModHelper_Settings_SilhouetteSkin= Silhouette Skins
-SkinModHelper_Settings_DefaultSilhouette= Default
-
 SkinModHelper_Settings_PlayerSkinVariants= Variant
-SkinModHelper_Settings_PlayerSkinVariants_P= Silhouette Variant
+SkinModHelper_Settings_PlayerSkinVariants_P= Silhouette variant
+SkinModHelper_Settings_PlayerSkinVariants_Bad= Otherself variant
 
-
+SkinModHelper_Settings_AllMod= All
 SkinModHelper_Settings_Otherskin= General Skins
-SkinModHelper_Settings_Otherskin_null= No Grouping
+SkinModHelper_Settings_Otherskin_null= None
 
 SkinModHelper_MORE_OPTIONS= Advanced Options
-SkinModHelper_Settings_SilhouetteVariantsWithOwnMenu= Silhouette variants with own sub-menu
+
+SkinModHelper_Settings_ShowOtherSelfVariants= Show Otherself variant
+SkinModHelper_Settings_ShowOtherSelfVariants_desc= for the player skins menu
+
+SkinModHelper_Settings_ShowSkinSourceInAllCategory= Show player skin from where
+SkinModHelper_Settings_ShowSkinSourceInAllCategory_desc= for the all category of player skins menu
 
 
 ##---Precisely skin choose---
@@ -56,20 +59,20 @@ SkinModHelper_Other__Interact_icons= Interact icons
 
 SkinModHelper_OptionsDisabled= Unable to switch skins during Wakeup cutscene
 
-SkinModHelper_NeedConfirm= If you want to switch to current skin, press confirm!
+SkinModHelper_NeedConfirm= If you want to get the skin in current category, press confirm!
 SkinModHelper_VanillaConfirmed= Switched to vanilla.
-SkinModHelper_PlayerSkinConfirmed= Switched to current skin.
-SkinModHelper_SessionHint= The session covered the current skin, press confirm to force cancel it.
+SkinModHelper_PlayerSkinConfirmed= Switched current variant.
+
+SkinModHelper_Category= Mod: -0-
+SkinModHelper_SessionHint= The map settings covered the current skin, Press confirm to force cancel it.
 
 SkinModHelper_GeneralSkin_TurnedIntoOn= Turned this skin on.
 SkinModHelper_GeneralSkin_TurnedIntoOff= Turned this skin off.
-SkinModHelper_SessionHint_Alt= The session covered this skin, toggle switch to force cancel it.
+SkinModHelper_SessionHint_Alt= The map settings covered this skin, toggle switch to force cancel it.
 
-SkinModHelper_SessionWarning= Note: the session may conflict when this is enabled.
+SkinModHelper_SessionWarning= Note: the map settings may conflict when this is enabled.
 
 SkinModHelper_NeedReloadMenu= Request reopen menu to take a refresh
-
-
 
 
 ##---annotation name of animation-set ID---

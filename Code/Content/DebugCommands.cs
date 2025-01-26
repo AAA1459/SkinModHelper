@@ -208,13 +208,13 @@ namespace Celeste.Mod.SkinModHelper {
                                 if (help3 || help4) {
                                     message = $"Set the enabled status of general skin in session. \n  usage: skinmodhelper {command} {command2} [any-skin] [true/false/null]";
                                 } else if (command4 == "null" || command4 == "nil") {
-                                    SessionSet_GeneralSkin(command3, null);
+                                    smh_Session.SetGeneralSkin(command3, null);
                                     message = $"Changed session{slot}'s general skin '{command3}' to null";
                                     if (GetGeneralSkin(command3) == null)
                                         message = message + "...although it does not exist";
 
                                 } else if (TryParseToBoolen(command4, out bool boolen)) {
-                                    SessionSet_GeneralSkin(command3, boolen);
+                                    smh_Session.SetGeneralSkin(command3, boolen);
                                     message = $"Changed session{slot}'s general skin '{command3}' to {boolen}";
                                     if (GetGeneralSkin(command3) == null)
                                         message = message + "...although it does not exist";

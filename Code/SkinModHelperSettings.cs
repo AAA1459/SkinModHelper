@@ -42,12 +42,16 @@ namespace Celeste.Mod.SkinModHelper {
 
         [SettingIgnore]
         public string SelectedPlayerSkin { get; set; }
-
-
-        [SettingIgnore]
-        public bool SilhouetteVariantsWithOwnMenu { get; set; } = false;
         [SettingIgnore]
         public string SelectedSilhouetteSkin { get; set; }
+        [SettingIgnore]
+        public string SelectedOtherSelfSkin { get; set; }
+
+
+        [SettingIgnore]
+        public bool ShowOtherSelfVariants { get; set; } = false;
+        [SettingIgnore]
+        public bool ShowSkinSourceInAllCategory { get; set; } = true;
 
 
         [SettingIgnore]

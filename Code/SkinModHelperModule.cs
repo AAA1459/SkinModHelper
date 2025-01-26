@@ -126,17 +126,15 @@ namespace Celeste.Mod.SkinModHelper {
 
         #region Setting Update
         public static void UpdatePlayerSkin(string newSkinId, bool inGame) {
-            if (smh_Session != null) {
-                SessionSet_PlayerSkin(null);
-            }
             Settings.SelectedPlayerSkin = newSkinId;
             RefreshSkins(false);
         }
         public static void UpdateSilhouetteSkin(string newSkinId, bool inGame) {
-            if (smh_Session != null) {
-                smh_Session.SelectedSilhouetteSkin = null;
-            }
             Settings.SelectedSilhouetteSkin = newSkinId;
+            RefreshSkins(false);
+        }
+        public static void UpdateOtherSelfSkin(string newSkinId, bool inGame) {
+            Settings.SelectedOtherSelfSkin = newSkinId;
             RefreshSkins(false);
         }
         public static void UpdateGeneralSkin(string SkinId, bool OnOff, bool inGame) {
@@ -144,47 +142,6 @@ namespace Celeste.Mod.SkinModHelper {
                 smh_Session.ExtraXmlList.Remove(SkinId);
             }
             Settings.ExtraXmlList[SkinId] = OnOff;
-            RefreshSkins(false);
-        }
-        #endregion
-
-        #region Session Update
-        public static void SessionSet_PlayerSkin(string newSkinId) {
-            if (smh_Session == null) {
-                Logger.Log(LogLevel.Warn, "SkinModHelper", $"Cannot set session because it is null");
-                return;
-            } 
-            if (newSkinId != null && GetPlayerSkin(null, newSkinId) == null) {
-                Logger.Log(LogLevel.Warn, "SkinModHelper", $"PlayerSkin '{newSkinId}' does not exist!");
-            }
-            smh_Session.SelectedPlayerSkin = newSkinId;
-            RefreshSkins(false);
-        }
-        public static void SessionSet_SilhouetteSkin(string newSkinId) {
-            if (smh_Session == null) {
-                Logger.Log(LogLevel.Warn, "SkinModHelper", $"Cannot set session because it is null");
-                return;
-            }
-            if (newSkinId != null && GetPlayerSkin(null, newSkinId) == null) {
-                Logger.Log(LogLevel.Warn, "SkinModHelper", $"PlayerSkin '{newSkinId}' does not exist!");
-            }
-            smh_Session.SelectedSilhouetteSkin = newSkinId;
-            RefreshSkins(false);
-        }
-        public static void SessionSet_GeneralSkin(string newSkin, bool? OnOff) {
-            if (smh_Session == null) {
-                Logger.Log(LogLevel.Warn, "SkinModHelper", $"The player is not in the level, cannot setting session!");
-                return;
-            } 
-            if (GetGeneralSkin(newSkin) == null) {
-                Logger.Log(LogLevel.Warn, "SkinModHelper", $"GeneralSkin '{newSkin}' does not exist!");
-            }
-
-            if (OnOff == null) {
-                smh_Session.ExtraXmlList.Remove(newSkin);
-            } else if (OnOff != null) {
-                smh_Session.ExtraXmlList[newSkin] = OnOff.Value;
-            }
             RefreshSkins(false);
         }
         #endregion
@@ -240,6 +197,15 @@ namespace Celeste.Mod.SkinModHelper {
 
             return GetPlayerSkin(skin_suffix, skinName);
         }
+        public static string GetOtherselfSkin(string skin_suffix = null) {
+            string skinName = Settings.SelectedOtherSelfSkin ?? "";
+            if (Engine.Scene is Level or LevelLoader && smh_Session?.SelectedOtherSelfSkin != null) {
+                skinName = smh_Session.SelectedOtherSelfSkin;
+            }
+
+            return GetPlayerSkin(skin_suffix, skinName);
+        }
+
 
         /// <returns> 
         /// Return the enabled status of an GeneralSkin, return null if it does not exist.

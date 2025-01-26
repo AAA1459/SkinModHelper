@@ -14,6 +14,9 @@ triggers.SkinModHelper/SkinSwapTrigger.attributes.description.revertOnLeave=If c
 
 triggers.SkinModHelper/SkinSwapTrigger.attributes.description.skinId=The skin ID to apply. This should be the same ID as the one in SkinModHelperConfig.yaml  (use the "Default" for Madeline, not use any for recover the user own skin)
 
+triggers.SkinModHelper/SkinSwapTrigger.attributes.description.playerVariant= the trigger will apply to the player variant of player skins menu.
+triggers.SkinModHelper/SkinSwapTrigger.attributes.description.otherselfVariant= the trigger will apply to the otherself variant of player skins menu.
+triggers.SkinModHelper/SkinSwapTrigger.attributes.description.silhouetteVariant= the trigger will apply to the silhouette variant of player skins menu.
 
 # Entity Reskin Trigger
 triggers.SkinModHelper/EntityReskinTrigger.placements.name.normal=Entity Reskin Trigger
