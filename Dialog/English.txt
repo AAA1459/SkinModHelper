@@ -26,7 +26,7 @@ SkinModHelper_Settings_Otherskin_null= None
 SkinModHelper_MORE_OPTIONS= Advanced Options
 
 SkinModHelper_Settings_ShowOtherSelfVariants= Show Otherself variant
-SkinModHelper_Settings_ShowOtherSelfVariants_desc= for the player skins menu. If off so it will be synced when the player variant changes
+SkinModHelper_Settings_ShowOtherSelfVariants_desc= for the player skins menu. If off it will sync to the player variant changes.
 
 SkinModHelper_Settings_ShowSkinSourceInAllCategory= Show player skin from where
 SkinModHelper_Settings_ShowSkinSourceInAllCategory_desc= for the all category of player skins menu
@@ -64,11 +64,11 @@ SkinModHelper_VanillaConfirmed= Switched to vanilla.
 SkinModHelper_PlayerSkinConfirmed= Switched current variant.
 
 SkinModHelper_Category= Mod: -0-
-SkinModHelper_SessionHint= The map settings covered the current skin, Press confirm to force cancel it.
+SkinModHelper_SessionHint= The map settings covered the current skin, Press confirm to force cancel it once.
 
 SkinModHelper_GeneralSkin_TurnedIntoOn= Turned this skin on.
 SkinModHelper_GeneralSkin_TurnedIntoOff= Turned this skin off.
-SkinModHelper_SessionHint_Alt= The map settings covered this skin, toggle switch to force cancel it.
+SkinModHelper_SessionHint_Alt= The map settings covered this skin, toggle switch to force cancel it once.
 
 SkinModHelper_SessionWarning= Note: the map settings may conflict when this is enabled.
 
