@@ -87,7 +87,7 @@ namespace Celeste.Mod.SkinModHelper {
             IL.Celeste.Player.Render -= PlayerRenderIlHook_Color;
             On.Celeste.PlayerHair.Render -= PlayerHairRenderHook;
             On.Celeste.PlayerSprite.Render -= PlayerSpriteRenderHook;
-            On.Celeste.PlayerDeadBody.ctor += PlayerDeadBodyCtor;
+            On.Celeste.PlayerDeadBody.ctor -= PlayerDeadBodyCtor;
 
             On.Celeste.PlayerHair.Render -= PlayerHairRenderHook_ColorGrade;
             On.Celeste.Lookout.Update -= LookoutUpdateHook_ColorGrade;
