@@ -415,14 +415,20 @@ namespace Celeste.Mod.SkinModHelper {
             deathAnim.Justify = new(0.5f, 0.5f); // Center the texture.
             deathAnim.Visible = deathAnim.Active = true;
             deathAnim.Color = sprite.Color;
-
             entity.Add(deathAnim);
             Scene scene = self.Entity.Scene;
             scene.Add(entity);
             entity.Depth = -1000000;
 
             // Make sure animation playing for player pause retry.
-            if (self.Entity is PlayerDeadBody || scene[Tags.PauseUpdate].Contains(self.Entity)) {
+            if ((scene as Level)?.RetryPlayerCorpse == self.Entity) {
+                // not sure why sprite.Color is white here, anyway fix it for silhouette.
+                if (CharacterConfig.For(sprite).SilhouetteMode == true) {
+                    // the hair.Color also will occasionally be white for no reason... have to use deathEffect.Color
+                    deathAnim.Color = self.Color;
+                }
+                entity.AddTag(Tags.PauseUpdate);
+            } else if (self.Entity.TagCheck(Tags.PauseUpdate)) {
                 entity.AddTag(Tags.PauseUpdate);
             }
             DynamicData deathAnim_data = DynamicData.For(deathAnim);
