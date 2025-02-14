@@ -39,6 +39,7 @@ namespace Celeste.Mod.SkinModHelper {
             IL.Celeste.Player.Render += PlayerRenderIlHook_Color;
             On.Celeste.PlayerHair.Render += PlayerHairRenderHook;
             On.Celeste.PlayerSprite.Render += PlayerSpriteRenderHook;
+            On.Celeste.PlayerDeadBody.ctor += PlayerDeadBodyCtor;
 
             On.Celeste.PlayerHair.Render += PlayerHairRenderHook_ColorGrade;
             doneHooks.Add(new Hook(typeof(Sprite).GetMethod("Render", BindingFlags.Public | BindingFlags.Instance), SpriteRenderHook_ColorGrade));
@@ -253,6 +254,20 @@ namespace Celeste.Mod.SkinModHelper {
                 });
             }
         }
+        #endregion
+
+        #region PlayerDeadBody
+        private static void PlayerDeadBodyCtor(On.Celeste.PlayerDeadBody.orig_ctor orig, PlayerDeadBody self, Player player, Vector2 direction) {
+            Color? color = null;
+            if (CharacterConfig.For(player.Sprite).SilhouetteMode == true) {
+                color = player.Sprite.Color;
+            }
+            orig(self, player, direction);
+            if (color.HasValue) {
+                player.Sprite.Color = color.Value;
+            }
+        }
+
         #endregion
 
         #region Player IL
