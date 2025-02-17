@@ -33,7 +33,7 @@ Reskin the game! Solve the hard coding in game programs and provide their reskin
 for complete content of reskinable, [check here](https://github.com/AAA1459/SkinModHelper/wiki/Textures-list-of-Various-Type)
 
 Setting up your skin mod correctly requires some configuration. 
-See the [guide](docs/guide/README.md) for more information.
+See the [guide](https://github.com/AAA1459/SkinModHelper/tree/release/docs/guide/README.md) for more information.
 
 
 Contact
