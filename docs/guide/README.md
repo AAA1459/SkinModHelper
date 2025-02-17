@@ -53,7 +53,7 @@ so need to do more for it:
 <?xml version="1.0" encoding="utf-8" ?>
 
 <Sprites>
-  <!--  ↙<should be Character_ID you setted>  ↙<sprite directory under '[somemod]/Graphics/Atlases/Gameplay/' directory> -->
+  <!--  ↙<replace it with your Character_ID>  ↙<specify a directory and put the sprites there. this directory is attached to '...[somemod]/Graphics/Atlases/Gameplay/'> -->
   <MySkin copy="player" path="characters/MySkin/">
     <!--      ↓<anim name>                 ↓<anim speed>           ↓<non-required, the next after this anim>-->
     <Anim id="lookUp" path="lookUp" delay="0.1" frames="2-7" goto="lookUp_End"/>
