@@ -16,27 +16,45 @@ using System.Text.RegularExpressions;
 using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 using System.ComponentModel.Design;
+using System.Collections;
 
 namespace Celeste.Mod.SkinModHelper {
     public static class DebugCommands {
 
-        public const string HelpInfo = "SubCommands list: player(p), spriteidpath(sip), loglevel, settings, session";
+        public const string HelpInfo = "SubCommands list: player(p), spriteidpath(sip), loglevel, settings, session, g_loadingicon";
         private const string Error = "Error";
+
 
         [Command("skinmodhelper", HelpInfo)]
         #region Process
 #pragma warning disable CS0618
         public static void Process(string command, string command2, string command3, string command4) {
-            if (string.IsNullOrWhiteSpace(command) || (command = command.ToLower()) == "help") {
+            if (string.IsNullOrWhiteSpace(command)) {
                 Send(HelpInfo);
                 return;
             }
             bool help2 = string.IsNullOrWhiteSpace(command2) || (command2 = command2.ToLower()) == "help";
             bool help3 = string.IsNullOrWhiteSpace(command3) || (command3 = command3.ToLower()) == "help";
             bool help4 = string.IsNullOrWhiteSpace(command4) || (command4 = command4.ToLower()) == "help";
+
             string message = Error;
+            if (command == "help") {
+                command = command2;
+                if (command3 != null) {
+                    command2 = command3;
+                    if (command4 != null) {
+                        command3 = command4;
+                    } else { help3 = true; }
+                } else { help2 = true; }
+            }
+
 
             switch (command) {
+                case "test":
+                    StartDelayTiming("");
+                    //
+                    message = OutputDelayTiming();
+                    break;
                 case "settings":
                     if (help2) {
                         message = "Quick changes SkinModHelper setting. and available subcommands are \n  saving, backpack, disablehaircolor(dhc), disablehairlength(dhl), playerskinxmlgreatestpriority(psgp)";
@@ -225,12 +243,22 @@ namespace Celeste.Mod.SkinModHelper {
                         Instance.WriteSession(slot, Instance.SerializeSession(slot));
                     }
                     break;
+                case "g_loadingicon":
+                    if (help2 && command2 != null) {
+                        message = "Generate a loading animation in the lower right corner of the screen for preview";
+                        break;
+                    }
+                    Monocle.Commands.Clear();
+                    Entity e = new Entity() { Depth = -1000000, Tag = Tags.HUD | Tags.PauseUpdate | Tags.Persistent | Tags.FrozenUpdate | Tags.TransitionUpdate };
+                    Engine.Scene.Add(e);
+                    float.TryParse(command2, out float i2);
+                    e.Add(new Coroutine(G_loadingTex(e, i2 <= 0 ? 10 : i2)));
+                    return;
             }
-
             Send(message);
         }
 #pragma warning restore CS0618
-        public static bool TryParseToBoolen(string str, out bool boolen) {
+        private static bool TryParseToBoolen(string str, out bool boolen) {
             switch (str) {
                 case "on" or "true" or "1":
                     boolen = true;
@@ -242,10 +270,29 @@ namespace Celeste.Mod.SkinModHelper {
             boolen = false;
             return false;
         }
+        private static IEnumerator G_loadingTex(Entity e, float time) {
+            yield return 0.05f;
+            List <MTexture> loadingTex = OVR.Atlas.GetAtlasSubtextures("loading/");
+            Image img = new Image(loadingTex[0]);
+            img.CenterOrigin();
+            img.Scale = Vector2.One * 0.5f;
+            e.Add(img);
+            float loadingAlpha = 0f;
+            float loadingFrame = 0f;
+            while (loadingAlpha > 0f || loadingFrame == 0f) {
+                loadingFrame += Engine.DeltaTime * 10f;
+                loadingAlpha = Calc.Approach(loadingAlpha, loadingFrame < time ? 1 : 0, Engine.DeltaTime * 4f);
+                img.Texture = loadingTex[(int)(loadingFrame % (float)loadingTex.Count)];
+                img.Color = Color.White * Ease.CubeOut(loadingAlpha);
+                img.Position = new Vector2(1792f, 1080f - 128f * Ease.CubeOut(loadingAlpha));
+                yield return null;
+            }
+            e.RemoveSelf();
+        }
         #endregion
 
         #region send message
-        public static void Send(string text) {
+        private static void Send(string text) {
             Engine.Commands.Log(text);
         }
         #endregion

@@ -36,6 +36,7 @@ namespace Celeste.Mod.SkinModHelper {
 
             doneHooks.Add(new Hook(typeof(Atlas).GetMethod("get_Item", BindingFlags.Public | BindingFlags.Instance),
                                    typeof(SkinsSystem).GetMethod("Atlas_GetItemHook", BindingFlags.NonPublic | BindingFlags.Static)));
+
             On.Monocle.Atlas.GetAtlasSubtextures += GetAtlasSubtexturesHook;
             On.Monocle.Sprite.ctor_Atlas_string += SpriteCtorAtlasStringHook;
         }
@@ -404,13 +405,12 @@ namespace Celeste.Mod.SkinModHelper {
         #region Other Sprite Reskin
         private static MTexture Atlas_GetItemHook(Func<Atlas, string, MTexture> orig, Atlas self, string path) {
             path = OtherSpriteSkins.GetSkinWithPath(self, path, false);
-
             return orig(self, path);
         }
 
         private static List<MTexture> GetAtlasSubtexturesHook(On.Monocle.Atlas.orig_GetAtlasSubtextures orig, Atlas self, string path) {
             if (self == OVR.Atlas && path == "loading/" && loadingTextures.Count > 0) {
-                return loadingTextures[new Random().Next() % loadingTextures.Count];
+                return loadingTextures[new Random().Next(0, loadingTextures.Count - 1)];
             }
             path = RedirectPathToBackpack(self, path);
             path = OtherSpriteSkins.GetSkinWithPath(self, path, true);
@@ -725,9 +725,11 @@ namespace Celeste.Mod.SkinModHelper {
                 stopwatch.Restart();
             last_stopwatch_tag = givenTag;
         }
-        public static void OutputDelayTiming() {
+        public static string OutputDelayTiming() {
             stopwatch.Stop();
-            Logger.Log(LogLevel.Info, "SkinModHelper", $"{last_stopwatch_tag} delay: {stopwatch.ElapsedTicks} ticks");
+            string message = $"{last_stopwatch_tag} delay: {stopwatch.ElapsedTicks} ticks - {stopwatch.ElapsedMilliseconds} ms - {stopwatch.Elapsed} timespan";
+            Logger.Log(LogLevel.Info, "SkinModHelper", message);
+            return message;
         }
 
         public static string GetNumberFormat(int number, int ofDigits = 2) {

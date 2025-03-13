@@ -248,9 +248,9 @@ namespace Celeste.Mod.SkinModHelper {
         private void HairColorsProcess(Dictionary<int, Color> Colors, int maxCount) {
             // Default colors taken from vanilla
             List<Color> GeneratedHairColors = new List<Color>(new Color[maxCount + 1]) {
-                [0] = Calc.HexToColor("44B7FF"),
-                [1] = Calc.HexToColor("AC3232"),
-                [2] = Calc.HexToColor("FF6DEF")
+                [0] = _ZeroDashesColor,
+                [1] = _OneDashesColor,
+                [2] = _TwoDashesColor
             };
             foreach (var keyValue in Colors) {
                 GeneratedHairColors[keyValue.Key] = keyValue.Value;
@@ -287,6 +287,9 @@ namespace Celeste.Mod.SkinModHelper {
             }
             ActualHairColors = hairColors;
         }
+        public static readonly Color _ZeroDashesColor = Calc.HexToColor("44B7FF");
+        public static readonly Color _OneDashesColor = Calc.HexToColor("AC3232");
+        public static readonly Color _TwoDashesColor = Calc.HexToColor("FF6DEF");
         #endregion
 
         #endregion
