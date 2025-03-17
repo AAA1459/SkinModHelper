@@ -60,6 +60,11 @@ namespace Celeste.Mod.SkinModHelper {
         private Entity lastEntity;
         private ModAsset Source;
         private string SourcePath;
+
+        [YamlIgnore]
+        public Chooser<string> IdleColdOptions;
+        [YamlIgnore]
+        public Chooser<string> IdleWarmOptions;
         #endregion
 
         #region Configurable values
@@ -72,6 +77,34 @@ namespace Celeste.Mod.SkinModHelper {
 
         public string TrailsColor { get; set; }
         public string DeathParticleColor { get; set; }
+
+
+        public float? IdleOptionsWeight;
+
+        [YamlMember(Alias = "IdleColdOptions")]
+        public List<string> _IdleColdOptions {
+            get => null; set {
+                IdleColdOptions = new Chooser<string>();
+                foreach (string option in value) {
+                    string[] array = option.Split(',', 2, StringSplitOptions.TrimEntries);
+                    float.TryParse((array.Length == 2 ? array[1] : "3"), out float f);
+                    IdleColdOptions.Add(array[0].StartsWith("idle") ? array[0] : "idle" + array[0], f > 0f ? f : 3f);
+                }
+            }
+        }
+        [YamlMember(Alias = "IdleWarmOptions")]
+        public List<string> _IdleWarmOptions {
+            get => null; set {
+                IdleWarmOptions = new Chooser<string>();
+                foreach (string option in value) {
+                    string[] array = option.Split(',', 2, StringSplitOptions.TrimEntries);
+                    float.TryParse((array.Length == 2 ? array[1] : "3"), out float f);
+                    IdleWarmOptions.Add(array[0].StartsWith("idle") ? array[0] : "idle" + array[0], f > 0f ? f : 3f);
+                }
+            }
+        }
+
+
 
 
         public bool TweaksTEST;

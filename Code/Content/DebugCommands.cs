@@ -52,7 +52,9 @@ namespace Celeste.Mod.SkinModHelper {
             switch (command) {
                 case "test":
                     StartDelayTiming("");
-                    //
+                    for (int i = 0; i < 10000; i++) {
+                        _Player.Sprite.OnLastFrame.Invoke(null);
+                    }
                     message = OutputDelayTiming();
                     break;
                 case "settings":

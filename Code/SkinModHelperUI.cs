@@ -386,7 +386,6 @@ namespace Celeste.Mod.SkinModHelper
                 menu.Add(options_lists);
                 return;
             }
-
             Dictionary<string, List<SkinModHelperConfig>> mods = new();
             foreach (var config in OtherskinConfigs.Values) {
                 if (config.General_List == false)
@@ -447,12 +446,23 @@ namespace Celeste.Mod.SkinModHelper
                 options_lists.Add(Dialog.Has(configs.Key) ? Dialog.Clean(configs.Key) : configs.Key, options);
             }
             menu.Add(options_lists);
+            var changeHint = CreateDescription(menu, "SkinModHelper_Settings_Otherskin_onoffHint", Color.Gray, 0f, false);
             options_lists.OnValueChange += delegate {
                 // everest will call the OnEnter of first-option of currentmenu before entering there... i hate it.
                 foreach (var item in options_lists.CurrentMenu)
                     if (item is TextMenuExt.EaseInSubHeaderExt item2 && item2.TextColor == Color.Gray)
                         item2.FadeVisible = false;
+                changeHint.FadeVisible = options_lists.MenuIndex == 0;
             };
+            options_lists.OnEnter += delegate {
+                if (options_lists.MenuIndex == 0)
+                    changeHint.FadeVisible = true;
+            };
+            options_lists.OnLeave += delegate {
+                changeHint.FadeVisible = false;
+            };
+            if (inGame)
+                menu.Insert(menu.IndexOf(options_lists) + 1, changeHint);
         }
         #endregion
 

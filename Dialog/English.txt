@@ -21,7 +21,8 @@ SkinModHelper_Settings_PlayerSkinVariants_Bad= Otherself variant
 
 SkinModHelper_Settings_AllMod= All
 SkinModHelper_Settings_Otherskin= General Skins
-SkinModHelper_Settings_Otherskin_null= None
+SkinModHelper_Settings_Otherskin_null= Browse
+SkinModHelper_Settings_Otherskin_onoffHint= the skin changes to apply during the map requries a room, or map reload.
 
 SkinModHelper_MORE_OPTIONS= Advanced Options
 

@@ -15,6 +15,7 @@ using System.Text.RegularExpressions;
 
 using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
+using AsmResolver.PE.File;
 
 namespace Celeste.Mod.SkinModHelper {
     public static class PlayerSkinSystem {
@@ -60,8 +61,8 @@ namespace Celeste.Mod.SkinModHelper {
 
             doneILHooks.Add(new ILHook(typeof(Player).GetMethod("orig_Update", BindingFlags.Public | BindingFlags.Instance), ilPlayerOrig_Update));
 
-            doneILHooks.Add(new ILHook(typeof(Player).GetMethod("<.ctor>b__280_2", BindingFlags.NonPublic | BindingFlags.Instance), patch_SpriteMode_BackPack));
-            doneILHooks.Add(new ILHook(typeof(Player).GetMethod("<.ctor>b__280_1", BindingFlags.NonPublic | BindingFlags.Instance), patch_SpriteMode_BackPack));
+            doneILHooks.Add(new ILHook(typeof(Player).GetMethod("<.ctor>b__280_1", BindingFlags.NonPublic | BindingFlags.Instance), ilPlayer_b__280_1));
+            doneILHooks.Add(new ILHook(typeof(Player).GetMethod("<.ctor>b__280_2", BindingFlags.NonPublic | BindingFlags.Instance), ilPlayer_b__280_2));
 
             if (JungleHelperInstalled) {
                 Assembly assembly = Everest.Modules.Where(m => m.Metadata?.Name == "JungleHelper").First().GetType().Assembly;
@@ -328,6 +329,47 @@ namespace Celeste.Mod.SkinModHelper {
                 });
             }
         }
+
+        private static void ilPlayer_b__280_2(ILContext il) {
+            ILCursor cursor = new ILCursor(il);
+
+            float optionsWeight(float orig, Player p) => CharacterConfig.For(p.Sprite).IdleOptionsWeight ?? orig;
+            PlayerSpriteMode _patchSpriteMode_NB_V(PlayerSpriteMode orig, Player p) => (actualBackpack((int)orig) || CharacterConfig.For(p.Sprite).IdleWarmOptions != null) ? 0 : orig;
+            Chooser<string> chooserC(Chooser<string> orig, Player p) => CharacterConfig.For(p.Sprite).IdleColdOptions ?? orig;
+            Chooser<string> chooserW(Chooser<string> orig, Player p) => CharacterConfig.For(p.Sprite).IdleWarmOptions ?? orig;
+
+            if (cursor.TryGotoNext(MoveType.After, instr => instr.Match(OpCodes.Ldc_R4, 0.2f))) {
+                cursor.Emit(OpCodes.Ldarg_0);
+                cursor.EmitDelegate(optionsWeight);
+            }
+            if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchCallvirt<PlayerSprite>("get_Mode"))) {
+                cursor.Emit(OpCodes.Ldarg_0);
+                cursor.EmitDelegate(_patchSpriteMode_NB_V);
+            }
+            if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdsfld<Player>("idleColdOptions"))) {
+                cursor.Emit(OpCodes.Ldarg_0);
+                cursor.EmitDelegate(chooserC);
+            }
+            if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdsfld<Player>("idleWarmOptions"))) {
+                cursor.Emit(OpCodes.Ldarg_0);
+                cursor.EmitDelegate(chooserW);
+            }
+            if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdsfld<Player>("idleNoBackpackOptions"))) {
+                cursor.Emit(OpCodes.Ldarg_0);
+                cursor.EmitDelegate(chooserC);
+            }
+            while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchCallvirt<PlayerSprite>("get_Mode"))) {
+                cursor.EmitDelegate(_patchSpriteMode_NB);
+            }
+
+        }
+        private static void ilPlayer_b__280_1(ILContext il) {
+            ILCursor cursor = new ILCursor(il);
+            while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchCallvirt<PlayerSprite>("get_Mode"))) {
+                cursor.EmitDelegate(_patchSpriteMode_NB);
+            }
+        }
+        private static PlayerSpriteMode _patchSpriteMode_NB(PlayerSpriteMode mode) => (PlayerSpriteMode)(actualBackpack((int)mode) ? 0 : 1);
         #endregion
 
         #region ColorGrade
@@ -590,8 +632,7 @@ namespace Celeste.Mod.SkinModHelper {
             ILCursor cursor = new ILCursor(il);
             if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchCallvirt<PlayerSprite>("get_Mode"))) {
                 cursor.Emit(OpCodes.Ldarg_0);
-                cursor.EmitDelegate<Func<PlayerSpriteMode, Player, PlayerSpriteMode>>((orig, self) => {
-                    
+                cursor.EmitDelegate(static PlayerSpriteMode (PlayerSpriteMode orig, Player self) => {
                     CharacterConfig ModeConfig = CharacterConfig.For(self.Sprite);
                     if (ModeConfig != null) {
                         if (ModeConfig.BadelineMode == true) {
@@ -601,14 +642,6 @@ namespace Celeste.Mod.SkinModHelper {
                         }
                     }
                     return orig;
-                });
-            }
-        }
-        private static void patch_SpriteMode_BackPack(ILContext il) {
-            ILCursor cursor = new ILCursor(il);
-            while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchCallvirt<PlayerSprite>("get_Mode"))) {
-                cursor.EmitDelegate<Func<PlayerSpriteMode, PlayerSpriteMode>>((orig) => {
-                    return orig = (PlayerSpriteMode)(actualBackpack((int)orig) ? 0 : 1);
                 });
             }
         }
@@ -646,9 +679,6 @@ namespace Celeste.Mod.SkinModHelper {
         }
 
         public static int? GetDashCount(Entity entity, PlayerSprite sprite) {
-            if (entity is PlayerDeadBody playerBody)
-                entity = playerBody.player;
-
             switch (entity) {
                 case BadelineOldsite badelineOldsite:
                     return badelineOldsite.index;
@@ -662,6 +692,15 @@ namespace Celeste.Mod.SkinModHelper {
                     if (player.lastDashes == 0 && player.MaxDashes <= 0)
                         return 1;
                     return Math.Max(player.lastDashes, 0);
+                case PlayerDeadBody playerBody:
+                    Player player2 = playerBody.player;
+                    if (player2.StateMachine.State == Player.StStarFly)
+                        return HairConfig.FeatherIndexInAttrs;
+                    if (player2.OverrideHairColor == Player.UsedHairColor)
+                        return 0;
+                    if (player2.lastDashes == 0 && player2.MaxDashes <= 0)
+                        return 1;
+                    return Math.Max(player2.lastDashes, 0);
                 case PlayerPlayback:
                     return null;
             }

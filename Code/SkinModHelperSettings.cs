@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 
+using Monocle;
+
 using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 
@@ -20,6 +22,7 @@ namespace Celeste.Mod.SkinModHelper {
             "",
             ""
         };
+
         [SettingIgnore]
         public bool PlayerSkinGreatestPriority { get; set; } = false;
         [SettingIgnore]
