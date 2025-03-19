@@ -79,7 +79,7 @@ namespace Celeste.Mod.SkinModHelper {
         public string DeathParticleColor { get; set; }
 
 
-        public float? IdleOptionsWeight;
+        public float? IdleAnimationChance;
 
         [YamlMember(Alias = "IdleColdOptions")]
         public List<string> _IdleColdOptions {

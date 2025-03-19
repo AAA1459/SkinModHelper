@@ -333,7 +333,7 @@ namespace Celeste.Mod.SkinModHelper {
         private static void ilPlayer_b__280_2(ILContext il) {
             ILCursor cursor = new ILCursor(il);
 
-            float optionsWeight(float orig, Player p) => CharacterConfig.For(p.Sprite).IdleOptionsWeight ?? orig;
+            float optionsWeight(float orig, Player p) => CharacterConfig.For(p.Sprite).IdleAnimationChance ?? orig;
             PlayerSpriteMode _patchSpriteMode_NB_V(PlayerSpriteMode orig, Player p) => (actualBackpack((int)orig) || CharacterConfig.For(p.Sprite).IdleWarmOptions != null) ? 0 : orig;
             Chooser<string> chooserC(Chooser<string> orig, Player p) => CharacterConfig.For(p.Sprite).IdleColdOptions ?? orig;
             Chooser<string> chooserW(Chooser<string> orig, Player p) => CharacterConfig.For(p.Sprite).IdleWarmOptions ?? orig;
