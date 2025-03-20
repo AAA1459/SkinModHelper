@@ -155,7 +155,7 @@ namespace Celeste.Mod.SkinModHelper
                     }
                 }
                 ChangeUnselectedColor(option, 3);
-                if (!inAll && selected == option.Values[option.PreviousIndex].Item2) {
+                if (!inAll && selected == (option.Values.Count > 0 ? option.Values[option.PreviousIndex].Item2 : DEFAULT)) {
                     options_lists.SetInitialSelection(playermenu_initindex = playermenu_index);
                 }
 
