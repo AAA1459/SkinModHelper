@@ -34,6 +34,8 @@ namespace Celeste.Mod.SkinModHelper {
             On.Celeste.GameLoader.Begin -= GameLoaderBeginHook;
             On.Celeste.OverworldLoader.LoadThread -= OverworldLoaderLoadThreadHook;
 
+            On.Celeste.LevelLoader.StartLevel -= on_LevelLoader_StartLevel;
+
             On.Celeste.OuiFileSelectSlot.Setup -= OuiFileSelectSlotSetupHook;
         }
 
@@ -97,18 +99,17 @@ namespace Celeste.Mod.SkinModHelper {
         private static Dictionary<int, OuiFileSelectSlot> slots_tracking = new();
         private static void OuiFileSelectEnterILHook(ILContext il) {
             ILCursor cursor = new ILCursor(il);
-
-            cursor.GotoNext(MoveType.AfterLabel, instr => instr.MatchStfld<OuiFileSelect>("SlotSelected"));
-            cursor.EmitDelegate<Action>(() => {
-                // Make sure the slots's portrait reloading when everytime open save menu.
+            void _callSetup() {
                 if (OuiFileSelect.Loaded) {
                     foreach (OuiFileSelectSlot slot in new List<OuiFileSelectSlot>(slots_tracking.Values)) {
-                        typeof(OuiFileSelectSlot).GetMethod("Setup", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(slot, null);
+                        OuiFileSelectSlot_Setup.Invoke(slot, null);
                     }
                 }
-            });
+            }
+            cursor.GotoNext(MoveType.AfterLabel, instr => instr.MatchStfld<OuiFileSelect>("SlotSelected"));
+            cursor.EmitDelegate(_callSetup);
         }
-
+        private static MethodInfo OuiFileSelectSlot_Setup = typeof(OuiFileSelectSlot).GetMethod("Setup", BindingFlags.NonPublic | BindingFlags.Instance);
 
         // ---SaveFilePortraits---
         private static void SaveFilePortraits_Reload() {

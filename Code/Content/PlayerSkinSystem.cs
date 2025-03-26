@@ -15,7 +15,6 @@ using System.Text.RegularExpressions;
 
 using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
-using AsmResolver.PE.File;
 
 namespace Celeste.Mod.SkinModHelper {
     public static class PlayerSkinSystem {
@@ -238,22 +237,24 @@ namespace Celeste.Mod.SkinModHelper {
                 return color;
             return orig(self, wasDashB);
         }
-        public static void PlayerDashUpdateIlHook(ILContext il) {
+        private static void PlayerDashUpdateIlHook(ILContext il) {
             ILCursor cursor = new(il);
+
+            ParticleType _pDashParticle(ParticleType orig, Player p) {
+                HairConfig hairConfig = HairConfig.For(p.Hair);
+                int dashCount = GetStartedDashingCount(p);
+
+                if (hairConfig.Safe_GetHairColor(dashCount, out Color color)) {
+                    orig = new(orig);
+                    orig.Color = color;
+                    orig.Color2 = Color.Lerp(color, Color.White, 0.4f);
+                }
+                return orig;
+            };
+
             while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdsfld<Player>("P_DashA") || instr.MatchLdsfld<Player>("P_DashB") || instr.MatchLdsfld<Player>("P_DashBadB"))) {
                 cursor.Emit(OpCodes.Ldarg_0);
-                cursor.EmitDelegate<Func<ParticleType, Player, ParticleType>>((orig, self) => {
-
-                    HairConfig hairConfig = HairConfig.For(self.Hair);
-                    int dashCount = GetStartedDashingCount(self);
-
-                    if (hairConfig.Safe_GetHairColor(dashCount, out Color color)) {
-                        orig = new(orig);
-                        orig.Color = color;
-                        orig.Color2 = Color.Lerp(color, Color.White, 0.4f);
-                    }
-                    return orig;
-                });
+                cursor.EmitDelegate(_pDashParticle);
             }
         }
         #endregion
@@ -275,58 +276,50 @@ namespace Celeste.Mod.SkinModHelper {
         #region Player IL
         private static void ilPlayerOrig_Update(ILContext il) {
             ILCursor cursor = new ILCursor(il);
+            int _pHairFloating(int dashes, Player p) => HairConfig.For(p.Hair).HairFloatingDashCount is int i ? (i < 0 || Math.Max(p.Dashes, 0) < i ? 0 : 2) : dashes;
 
             if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdfld<Player>("Dashes"))) {
                 cursor.Emit(OpCodes.Ldarg_0);
-                cursor.EmitDelegate<Func<int, Player, int>>((orig, player) => {
-
-                    HairConfig config = HairConfig.For(player.Hair);
-                    if (config.HairFloatingDashCount != null) {
-                        return config.HairFloatingDashCount < 0 || Math.Max(player.Dashes, 0) < config.HairFloatingDashCount ? 0 : 2;
-                    }
-                    return orig;
-                });
+                cursor.EmitDelegate(_pHairFloating);
             }
         }
 
         private static void PlayerRenderIlHook_Color(ILContext il) {
             ILCursor cursor = new ILCursor(il);
 
+            Color _pLowStaminaFlash(Color color, Player p) {
+                CharacterConfig ModeConfig = CharacterConfig.For(p.Sprite);
+
+                object backup = null;
+                if (ModeConfig.LowStaminaFlashColor != null && RGB_Regex.IsMatch(ModeConfig.LowStaminaFlashColor)) {
+                    backup = color = Calc.HexToColor(ModeConfig.LowStaminaFlashColor);
+                    if (ModeConfig.SilhouetteMode == true) {
+                        color = ColorBlend(p.Hair.Color, color);
+                    }
+                } else if (ModeConfig.SilhouetteMode == true) {
+                    color = ColorBlend(p.Hair.Color, (backup = 0.4f));
+                }
+
+                if (ModeConfig.LowStaminaFlashHair || (ModeConfig.SilhouetteMode == true)) {
+                    DynamicData.For(p.Hair).Set("HairColorGrading", backup ?? color);
+                }
+                return color;
+            };
+            Color _pSilhouette(Color color, Player p) => CharacterConfig.For(p.Sprite).SilhouetteMode == true ? p.Hair.Color : color;
+
+
             // jump to the usage of the Red color
             if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchCall<Color>("get_Red"))) {
                 Logger.Log("SkinModHelper", $"Patching silhouette hair color at {cursor.Index} in IL code for Player.Render()");
                 cursor.Emit(OpCodes.Ldarg_0);
-                cursor.EmitDelegate<Func<Color, Player, Color>>((color, player) => {
-
-                    CharacterConfig ModeConfig = CharacterConfig.For(player.Sprite);
-                    
-                    object backup = null;
-                    if (ModeConfig.LowStaminaFlashColor != null && RGB_Regex.IsMatch(ModeConfig.LowStaminaFlashColor)) {
-                        backup = color = Calc.HexToColor(ModeConfig.LowStaminaFlashColor);
-                        if (ModeConfig.SilhouetteMode == true) {
-                            color = ColorBlend(player.Hair.Color, color);
-                        }
-                    } else if (ModeConfig.SilhouetteMode == true) {
-                        color = ColorBlend(player.Hair.Color, (backup = 0.4f));
-                    }
-
-                    if (ModeConfig.LowStaminaFlashHair || (ModeConfig.SilhouetteMode == true)) {
-                        DynamicData.For(player.Hair).Set("HairColorGrading", backup ?? color);
-                    }
-                    return color;
-                });
+                cursor.EmitDelegate(_pLowStaminaFlash);
             }
 
             // jump to the usage of the White-color / Null-color
             if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchCall<Color>("get_White"))) {
                 Logger.Log("SkinModHelper", $"Patching silhouette color at {cursor.Index} in IL code for Player.Render()");
                 cursor.Emit(OpCodes.Ldarg_0);
-                cursor.EmitDelegate<Func<Color, Player, Color>>((orig, self) => {
-                    if (CharacterConfig.For(self.Sprite).SilhouetteMode == true) {
-                        return self.Hair.Color;
-                    }
-                    return orig;
-                });
+                cursor.EmitDelegate(_pSilhouette);
             }
         }
 
@@ -632,19 +625,10 @@ namespace Celeste.Mod.SkinModHelper {
             ILCursor cursor = new ILCursor(il);
             if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchCallvirt<PlayerSprite>("get_Mode"))) {
                 cursor.Emit(OpCodes.Ldarg_0);
-                cursor.EmitDelegate(static PlayerSpriteMode (PlayerSpriteMode orig, Player self) => {
-                    CharacterConfig ModeConfig = CharacterConfig.For(self.Sprite);
-                    if (ModeConfig != null) {
-                        if (ModeConfig.BadelineMode == true) {
-                            return (PlayerSpriteMode)3;
-                        } else if (ModeConfig.BadelineMode == false) {
-                            return 0;
-                        }
-                    }
-                    return orig;
-                });
+                cursor.EmitDelegate(_patchSpriteMode_Bad);
             }
         }
+        private static PlayerSpriteMode _patchSpriteMode_Bad(PlayerSpriteMode mode, Player p) => CharacterConfig.For(p.Sprite).BadelineMode is bool b ? (b ? (PlayerSpriteMode)3 : 0) : mode;
 
         public static bool HasLantern(Func<PlayerSpriteMode, bool> orig, PlayerSpriteMode mode) {
             bool boolen = orig(mode);

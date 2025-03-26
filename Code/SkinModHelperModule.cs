@@ -268,6 +268,7 @@ namespace Celeste.Mod.SkinModHelper {
                     paths.Add(config.OtherSprite_ExPath);
             return paths;
         }
+
         #endregion    
     }
 }

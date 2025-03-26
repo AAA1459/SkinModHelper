@@ -19,6 +19,7 @@ using Celeste.Mod.Meta;
 
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 using System.Xml.Linq;
+using System.IO;
 
 namespace Celeste.Mod.SkinModHelper {
     public static class SkinsSystem {
@@ -28,15 +29,12 @@ namespace Celeste.Mod.SkinModHelper {
             Everest.Content.OnUpdate += EverestContentUpdateHook;
 
             On.Celeste.Player.Update += PlayerUpdateHook;
-            doneHooks.Add(new Hook(typeof(Sprite).GetMethod("Render", BindingFlags.Public | BindingFlags.Instance),
-                                   typeof(SkinsSystem).GetMethod("SpriteRenderHook", BindingFlags.NonPublic | BindingFlags.Static)));
+            doneHooks.Add(new Hook(typeof(Sprite).GetMethod("Render", BindingFlags.Public | BindingFlags.Instance), SpriteRenderHook));
 
             On.Monocle.SpriteBank.Create += SpriteBankCreateHook;
             On.Monocle.SpriteBank.CreateOn += SpriteBankCreateOnHook;
 
-            doneHooks.Add(new Hook(typeof(Atlas).GetMethod("get_Item", BindingFlags.Public | BindingFlags.Instance),
-                                   typeof(SkinsSystem).GetMethod("Atlas_GetItemHook", BindingFlags.NonPublic | BindingFlags.Static)));
-
+            doneILHooks.Add(new ILHook(typeof(Atlas).GetMethod("get_Item", BindingFlags.Public | BindingFlags.Instance), ilAtlas_get_Item));
             On.Monocle.Atlas.GetAtlasSubtextures += GetAtlasSubtexturesHook;
             On.Monocle.Sprite.ctor_Atlas_string += SpriteCtorAtlasStringHook;
         }
@@ -363,15 +361,16 @@ namespace Celeste.Mod.SkinModHelper {
             if (Xml_records.TryGetValue(xmlPath, out SpriteBank newBank))
                 return newBank;
 
-            else if (FailedXml_record.Contains(dir) || FailedXml_record.Contains(xmlPath))
+            if (FailedXml_record.Contains(dir) || FailedXml_record.Contains(xmlPath))
                 return null;
 
-            else if (!AssetExists<AssetTypeDirectory>(dir)) {
+            if (!AssetExists<AssetTypeDirectory>(dir)) {
                 FailedXml_record.Add(dir);
                 Logger.Log(LogLevel.Error, "SkinModHelper", $"The xmls directory of '{skinId}' does not exist: {dir}");
                 return null;
 
-            } else if (AssetExists<AssetTypeXml>(xmlPath)) {
+            } 
+            if (AssetExists<AssetTypeXml>(xmlPath)) {
                 try {
                     SpriteBank newBank_2 = new SpriteBank(origBank?.Atlas ?? GFX.Game, xmlPath);
                     return Xml_records[xmlPath] = newBank_2;
@@ -403,23 +402,24 @@ namespace Celeste.Mod.SkinModHelper {
         #endregion
 
         #region Other Sprite Reskin
-        private static MTexture Atlas_GetItemHook(Func<Atlas, string, MTexture> orig, Atlas self, string path) {
-            path = OtherSpriteSkins.GetSkinWithPath(self, path, false);
-            return orig(self, path);
+        private static void ilAtlas_get_Item(ILContext il) {
+            ILCursor cursor = new ILCursor(il);
+            if (cursor.TryGotoNext(MoveType.Before, instr => instr.MatchLdarg(1))) {
+                cursor.Emit(OpCodes.Ldsfld, typeof(SkinsSystem).GetField("OtherSpriteSkins"));
+                cursor.Emit(OpCodes.Ldarg_0);
+                cursor.GotoNext(MoveType.After, instr => instr.MatchLdarg(1));
+                cursor.Emit(OpCodes.Ldc_I4_0);
+                cursor.Emit(OpCodes.Call, typeof(nonBankReskin).GetMethod("GetSkinWithPath"));
+            }
         }
-
         private static List<MTexture> GetAtlasSubtexturesHook(On.Monocle.Atlas.orig_GetAtlasSubtextures orig, Atlas self, string path) {
             if (self == OVR.Atlas && path == "loading/" && loadingTextures.Count > 0) {
                 return loadingTextures[new Random().Next(0, loadingTextures.Count - 1)];
             }
-            path = RedirectPathToBackpack(self, path);
-            path = OtherSpriteSkins.GetSkinWithPath(self, path, true);
-            return orig(self, path);
+            return orig(self, OtherSpriteSkins.GetSkinWithPath(self, RedirectPathToBackpack(self, path), true));
         }
         private static void SpriteCtorAtlasStringHook(On.Monocle.Sprite.orig_ctor_Atlas_string orig, Sprite self, Atlas atlas, string path) {
-            path = RedirectPathToBackpack(atlas, path);
-            path = OtherSpriteSkins.GetSkinWithPath(atlas, path, true);
-            orig(self, atlas, path);
+            orig(self, atlas, OtherSpriteSkins.GetSkinWithPath(atlas, RedirectPathToBackpack(atlas, path), true));
         }
         #endregion
 

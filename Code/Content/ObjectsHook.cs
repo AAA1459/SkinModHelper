@@ -79,23 +79,24 @@ namespace Celeste.Mod.SkinModHelper {
         #region Booster
         public static void Celeste_Booster_ILHook(ILContext il) {
             ILCursor cursor = new(il);
+            string _(string orig, Booster self) {
+                // reskin blob, and outline btw
+                if (GetTextureOnSprite(self.sprite, "blob", out var blob)) {
+                    // Clone object to prevent lost of vanilla
+                    self.particleType = new(self.particleType) {
+                        Source = blob,
+                        Color = Color.White
+                    };
+                }
+                if (GetTextureOnSprite(self.sprite, "outline", out var outline)) {
+                    return outline.ToString();
+                }
+                return orig;
+            }
 
             while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdstr("objects/booster/outline"))) {
                 cursor.Emit(OpCodes.Ldarg_0);
-                cursor.EmitDelegate<Func<string, Booster, string>>((orig, self) => {
-
-                    if (GetTextureOnSprite(self.sprite, "blob", out var blob)) {
-                        // Clone object to prevent lost of vanilla
-                        self.particleType = new(self.particleType) {
-                            Source = blob,
-                            Color = Color.White
-                        };
-                    }
-                    if (GetTextureOnSprite(self.sprite, "outline", out var outline)) {
-                        orig = outline.ToString();
-                    }
-                    return orig;
-                });
+                cursor.EmitDelegate(_);
             }
         }
         #endregion
@@ -149,15 +150,14 @@ namespace Celeste.Mod.SkinModHelper {
         #region Seeker
         public static void Celeste_Seeker_ILHook(ILContext il) {
             ILCursor cursor = new(il);
-            while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchNewobj("Celeste.DeathEffect"))) {
-                cursor.Emit(OpCodes.Ldarg_0);
-                cursor.EmitDelegate<Func<DeathEffect, Seeker, DeathEffect>>((orig, self) => {
+            DeathEffect _(DeathEffect orig, Seeker self) {
+                DynamicData.For(orig).Set("sprite", self.sprite);
+                return orig;
+            }
 
-                    // 'Celeste.Seeker' Created new 'Monocle.Entity' to made an 'Celeste.DeathEffect'
-                    // But that let we cannot get Seeker's data by {orig.Entity} in DeathEffect, so we self to add that data
-                    DynamicData.For(orig).Set("sprite", self.sprite);
-                    return orig;
-                });
+            if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchNewobj("Celeste.DeathEffect"))) {
+                cursor.Emit(OpCodes.Ldarg_0);
+                cursor.EmitDelegate(_);
             }
         }
         #endregion

@@ -101,15 +101,15 @@ namespace Celeste.Mod.SkinModHelper {
         private static void ilFancyTextParse(ILContext il) {
             ILCursor cursor = new(il);
 
+            string _findPortraitSkin(string sprite) {
+                string skinId = Reskin_PortraitsBank.GetCurrentSkin("portrait_" + sprite);
+                return GFX.PortraitsSpriteBank.Has(skinId) ? skinId.Substring(9) : sprite;
+            }
+
             // This is more universal than the old hook, can works to the choice prompts of lua cutscenes.
             // But cannot refresh timely when in a dialogue.
             if (cursor.TryGotoNext(MoveType.Before, instr => instr.MatchStfld<FancyText.Portrait>("Sprite"))) {
-                cursor.EmitDelegate<Func<string, string>>((orig) => {
-                    string skinId = Reskin_PortraitsBank.GetCurrentSkin("portrait_" + orig);
-                    if (GFX.PortraitsSpriteBank.Has(skinId))
-                        orig = skinId.Substring(9);
-                    return orig;
-                });
+                cursor.EmitDelegate(_findPortraitSkin);
             }
 
         }
@@ -123,9 +123,7 @@ namespace Celeste.Mod.SkinModHelper {
 
             if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdstr("_ask"),
                 instr => instr.MatchCall(out MethodReference method) && method.Name == "Concat")) {
-                cursor.EmitDelegate<Func<string, string>>((orig) => {
-                    return ReplaceTextboxPath(orig);
-                });
+                cursor.EmitDelegate(ReplaceTextboxPath);
             }
         }
 
@@ -172,10 +170,10 @@ namespace Celeste.Mod.SkinModHelper {
 
         private static void PlayerSpritePlayHook(On.Monocle.Sprite.orig_Play orig, Sprite self, string id, bool restart = false, bool randomizeFrame = false) {
             string origID = id;
-            string animPrefix = DynamicData.For(self).Get<string>("smh_AnimPrefix");
 
             #region Animations Extensions
             if (self is PlayerSprite && self.Entity is Player player) {
+                string animPrefix = DynamicData.For(self).Get<string>("smh_AnimPrefix");
                 bool SwimCheck = player.Scene != null && player.Collidable && player.SwimCheck();
                 string newID = null;
                 switch (id) {
@@ -247,11 +245,6 @@ namespace Celeste.Mod.SkinModHelper {
                         }
                     }
                 }
-            } else {
-                SpriteExt_CrossHas(self, ref id, animPrefix, null);
-                if (!restart && origID != id && self.LastAnimationID?.Contains(id) == true) {
-                    return;
-                }
             }
             #endregion
 
@@ -284,39 +277,39 @@ namespace Celeste.Mod.SkinModHelper {
         #region Player
         private static void TempleFallCoroutineILHook(ILContext il) {
             ILCursor cursor = new ILCursor(il);
+
+            string _(string orig) => Player_Skinid_verify != 0 ? "fallPose" : orig;
+
             while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdstr("idle"))) {
-                cursor.EmitDelegate<Func<string, string>>((orig) => {
-                    if (Player_Skinid_verify != 0) {
-                        return "fallPose";
-                    }
-                    return orig;
-                });
+                cursor.EmitDelegate(_);
             }
         }
         private static void PlayerRenderIlHook_Sprite(ILContext il) {
             ILCursor cursor = new ILCursor(il);
 
+            string _findStartStarFlyWhiteSprite(string orig, Player p) {
+                // This hook position runs only when player.Sprite.CurrentAnimationID are "startStarFly", So we can indexing the textures directly.
+                string spritePath = getAnimationRootPath(p.Sprite.Texture) + "startStarFlyWhite";
+
+                if (p.Holding != null && GFX.Game.HasAtlasSubtextures($"{spritePath}_carry")) {
+                    return $"{spritePath}_carry";
+                }
+                if (GFX.Game.HasAtlasSubtextures(spritePath)) {
+                    return spritePath;
+                }
+                DynamicData selfData = DynamicData.For(p);
+                if (!selfData.TryGet("SMH_DisposableLog_bsaofsdlk", out string ddd)) {
+                    selfData.Set("SMH_DisposableLog_bsaofsdlk", "");
+                    GFX.Game.GetAtlasSubtextures(spritePath); // Triggering an atlas warning.
+                }
+                return orig;
+            }
+
             if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdstr("characters/player/startStarFlyWhite"))) {
                 Logger.Log("SkinModHelper", $"Changing startStarFlyWhite path at {cursor.Index} in CIL code for {cursor.Method.FullName}");
 
                 cursor.Emit(OpCodes.Ldarg_0);
-                cursor.EmitDelegate<Func<string, Player, string>>((orig, self) => {
-                    // This hook position runs only when player.Sprite.CurrentAnimationID are "startStarFly", So we can indexing the textures directly.
-                    string spritePath = getAnimationRootPath(self.Sprite.Texture) + "startStarFlyWhite";
-
-                    if (self.Holding != null && GFX.Game.HasAtlasSubtextures($"{spritePath}_carry")) {
-                        return $"{spritePath}_carry";
-                    }
-                    if (GFX.Game.HasAtlasSubtextures(spritePath)) {
-                        return spritePath;
-                    }
-                    DynamicData selfData = DynamicData.For(self);
-                    if (!selfData.TryGet("SMH_DisposableLog_bsaofsdlk", out string ddd)) {
-                        selfData.Set("SMH_DisposableLog_bsaofsdlk", "");
-                        GFX.Game.GetAtlasSubtextures(spritePath); // Triggering an atlas warning.
-                    }
-                    return orig;
-                });
+                cursor.EmitDelegate(_findStartStarFlyWhiteSprite);
             }
         }
         #endregion
@@ -479,10 +472,10 @@ namespace Celeste.Mod.SkinModHelper {
         #region MaddieHelpingHand
         private static void hookMadelineIsSilhouette(ILContext il) {
             ILCursor cursor = new ILCursor(il);
+            bool EmptyBlocks_1_boolen(bool b) => false;
+
             while (cursor.TryGotoNext(MoveType.After, instr => instr.OpCode == OpCodes.Callvirt && (instr.Operand as MethodReference).Name == "get_MadelineIsSilhouette")) {
-                cursor.EmitDelegate<Func<bool, bool>>(orig => {
-                    return false;
-                });
+                cursor.EmitDelegate(EmptyBlocks_1_boolen);
             }
         }
         #endregion
