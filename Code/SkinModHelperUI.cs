@@ -514,7 +514,7 @@ namespace Celeste.Mod.SkinModHelper
                 }
             });
             menu.Add(SkinFreeConfig_OnOff);
-            menu.Add(CreateDescription(menu, "SkinModHelper_SessionWarning", Color.Gray, 0f, true));
+            menu.Add(CreateDescription(menu, "SkinModHelper_SkinFreeConfig_Warning", Color.Gray, 0f, true));
 
             #region
             foreach (var respriteBank in RespriteBankModule.ManagedInstance()) {

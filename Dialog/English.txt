@@ -71,7 +71,8 @@ SkinModHelper_GeneralSkin_TurnedIntoOn= Turned this skin on.
 SkinModHelper_GeneralSkin_TurnedIntoOff= Turned this skin off.
 SkinModHelper_SessionHint_Alt= The map settings covered this skin, toggle switch to force cancel it once.
 
-SkinModHelper_SessionWarning= Note: the map settings may conflict when this is enabled.
+SkinModHelper_SkinFreeConfig_Warning= The skin changes to apply during the map requries a room, or map reload. {n}- Note: the map settings may conflict when this is enabled.
+
 
 SkinModHelper_NeedReloadMenu= Request reopen menu to take a refresh
 
