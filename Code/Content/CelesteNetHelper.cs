@@ -95,7 +95,7 @@ namespace Celeste.Mod.SkinModHelper.CelesteNet {
             int dashes = Dashes;
             if (dashes < 0)
                 return;
-            Send($"{Dashes}");
+            Send($"{dashes}");
         }
         public void Handle(CelesteNetConnection con, SkinModHelperData data) {
             if (data.Player != null)
