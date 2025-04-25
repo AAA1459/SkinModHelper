@@ -15,6 +15,7 @@ using System.Text.RegularExpressions;
 
 using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
+using Celeste.Mod.SkinModHelper.CelesteNet;
 
 namespace Celeste.Mod.SkinModHelper {
     public static class PlayerSkinSystem {
@@ -415,7 +416,7 @@ namespace Celeste.Mod.SkinModHelper {
                     get_dashCount = 1;
                 else
                     get_dashCount = Math.Max(player.lastDashes, 0);
-            } else if (selfData.Get("isGhost") != null && GetFieldPlus(self.Entity, "Dashes", out int dashes)){
+            } else if (selfData.Get("isGhost") != null && SMH_NetHelper.TryGetDashes(self.Entity, out int dashes)) {
                 get_dashCount = dashes;
                 Log(LogLevel.Verbose, $"Got the dashes {dashes} of ghost for colorgrade");
             } else {
@@ -688,7 +689,7 @@ namespace Celeste.Mod.SkinModHelper {
                 case PlayerPlayback:
                     return null;
             }
-            return sprite.Mode == (PlayerSpriteMode)2 ? 0 : null;
+            return sprite?.Mode == (PlayerSpriteMode)2 ? 0 : null;
         }
 
 

@@ -124,7 +124,7 @@ namespace Celeste.Mod.SkinModHelper {
                     if (sprite == null) {
                         message = "Can't find the player entity, If we are in maps?";
                     } else if (help2) {
-                        message = "SubSubCommands list: id, path, colorgrade(cg), hairpath, mode";
+                        message = "SubSubCommands list: id, path, rootpath, colorgrade(cg), hairpath, mode";
                     } else {
                         #region
                         switch (command2) {
@@ -138,13 +138,20 @@ namespace Celeste.Mod.SkinModHelper {
                                     message = message + ", but it doesn't exist";
                                 break;
                             case "id":
-                                message = $"The player spriteID: {sprite.spriteName}";
+                                message = $"SpriteID: {sprite.spriteName}";
                                 break;
                             case "mode":
-                                message = $"The player mode: {(int)sprite.Mode} : (smh){Player_Skinid_verify} : {GetPlayerSkinName((int)sprite.Mode)}";
+                                message = $"Sprite mode: {(int)sprite.Mode} : (smh){Player_Skinid_verify} : {GetPlayerSkinName((int)sprite.Mode)}";
                                 break;
-                            case "path":
-                                message = $"The player sprite's rootpath: {getAnimationRootPath(sprite)}";
+                            case "frame" or "path":
+                                if (sprite.Texture == null) {
+                                    message = $"Current frame is null";
+                                } else {
+                                    message = $"Current animation and frame: {sprite.LastAnimationID}, {sprite.Texture}";
+                                }
+                                break;
+                            case "rootpath":
+                                message = $"Root path: {getAnimationRootPath(sprite)}";
                                 break;
                             case "hairpath":
                                 if (help3) {
