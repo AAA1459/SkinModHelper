@@ -17,7 +17,6 @@ If you want to set color grades works for your target, To do follow these steps:
 ### more things
 * You have the option to include an extra color grade named "`flash.png`". It will take effect when the player's hair flashes.
 * Color grades can also function for NPC Badeline.
-* Please note that color grades not supported CelesteNet yet.
 
 ---
 [previous page](/docs/guide/README.md#more-miscellaneous)
