@@ -85,7 +85,6 @@ namespace Celeste.Mod.SkinModHelper.CelesteNet {
                 Player = Client.PlayerInfo,
                 Info = info
             });
-            ;
         }
         public override void Update(GameTime gameTime) {
             base.Update(gameTime);

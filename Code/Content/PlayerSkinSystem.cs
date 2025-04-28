@@ -418,7 +418,6 @@ namespace Celeste.Mod.SkinModHelper {
                     get_dashCount = Math.Max(player.lastDashes, 0);
             } else if (selfData.Get("isGhost") != null && SMH_NetHelper.TryGetDashes(self.Entity, out int dashes)) {
                 get_dashCount = dashes;
-                Log(LogLevel.Verbose, $"Got the dashes {dashes} of ghost for colorgrade");
             } else {
                 get_dashCount = self.Entity is PlayerDeadBody ? null : GetDashCount(self.Entity, self.Sprite);
             }

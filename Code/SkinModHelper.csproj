@@ -52,6 +52,12 @@
 		<Reference Include="$(CelestePrefix)\MMHOOK_Celeste.dll">
 			<Private>false</Private>
 		</Reference>
+		<Reference Include="CelesteNet.Client">
+		  <HintPath>..\..\dll\CelesteNet.Client.dll</HintPath>
+		</Reference>
+		<Reference Include="CelesteNet.Shared">
+		  <HintPath>..\..\dll\CelesteNet.Shared.dll</HintPath>
+		</Reference>
 	</ItemGroup>
 
 	<!--Include XNA or FNA-->

@@ -414,7 +414,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         private static List<MTexture> GetAtlasSubtexturesHook(On.Monocle.Atlas.orig_GetAtlasSubtextures orig, Atlas self, string path) {
             if (self == OVR.Atlas && path == "loading/" && loadingTextures.Count > 0) {
-                return loadingTextures[new Random().Next(0, loadingTextures.Count - 1)];
+                return loadingTextures[new Random().Next(0, loadingTextures.Count)];
             }
             return orig(self, OtherSpriteSkins.GetSkinWithPath(self, RedirectPathToBackpack(self, path), true));
         }

@@ -1,5 +1,5 @@
 - Name: SkinModHelperPlus
-  Version: 0.15.10
+  Version: 0.15.12
   DLL: Code/bin/SkinModHelperPlus.dll
   Dependencies:
     - Name: Everest
@@ -11,3 +11,5 @@
       Version: 1.0.0
     - Name: SkinModHelper
       Version: 0.6.1
+    - Name: CelesteNet.Client
+      Version: 2.2.2
