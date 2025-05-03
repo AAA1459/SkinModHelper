@@ -21,7 +21,7 @@ using System.Collections;
 namespace Celeste.Mod.SkinModHelper {
     public static class DebugCommands {
 
-        public const string HelpInfo = "SubCommands list: player(p), spriteidpath(sip), loglevel, settings, session, g_loadingicon";
+        public const string HelpInfo = "SubCommands list: player(p), spriteidpath(sip), loglevel, settings, session, g_loadingicon, hairprotoff";
         private const string Error = "Error";
 
 
@@ -38,7 +38,8 @@ namespace Celeste.Mod.SkinModHelper {
             bool help4 = string.IsNullOrWhiteSpace(command4) || (command4 = command4.ToLower()) == "help";
 
             string message = Error;
-            if (command == "help") {
+            bool TrueHelp = command == "help";
+            if (TrueHelp) {
                 command = command2;
                 if (command3 != null) {
                     command2 = command3;
@@ -250,7 +251,7 @@ namespace Celeste.Mod.SkinModHelper {
                     }
                     break;
                 case "g_loadingicon":
-                    if (help2 && command2 != null) {
+                    if (TrueHelp) {
                         message = "Generate a loading animation in the lower right corner of the screen for preview";
                         break;
                     }
@@ -259,6 +260,13 @@ namespace Celeste.Mod.SkinModHelper {
                     Engine.Scene.Add(e);
                     float.TryParse(command2, out float i2);
                     e.Add(new Coroutine(G_loadingTex(e, i2 <= 0 ? 10 : i2)));
+                    return;
+                case "hairprotoff":
+                    if (TrueHelp) {
+                        message = "Makes skins' hair show up on their fallback vanilla sprites, restore when restart chapter";
+                        break;
+                    }
+                    VanillaCharacterTextures.Clear();
                     return;
             }
             Send(message);
