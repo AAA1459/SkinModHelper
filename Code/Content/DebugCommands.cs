@@ -15,8 +15,9 @@ using System.Text.RegularExpressions;
 
 using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
-using System.ComponentModel.Design;
+using Celeste.Mod.SkinModHelper.Interop;
 using System.Collections;
+using System.IO;
 
 namespace Celeste.Mod.SkinModHelper {
     public static class DebugCommands {
@@ -52,9 +53,10 @@ namespace Celeste.Mod.SkinModHelper {
 
             switch (command) {
                 case "test":
-                    StartDelayTiming("");
-                    message = OutputDelayTiming();
-                    break;
+                    _Player.Hair.Alpha = 0.5f;
+                    SkinModHelperInterop.SetColorGrade(_Player.Sprite, GFX.Game["Spooooky/AstolfoSkinMod/characters/player/#ColorGrading/dash3"]);
+                    Monocle.Commands.Clear();
+                    return;
                 case "settings":
                     if (help2) {
                         message = "Quick changes SkinModHelper setting. and available subcommands are \n  saving, backpack, disablehaircolor(dhc), disablehairlength(dhl), playerskinxmlgreatestpriority(psgp)";

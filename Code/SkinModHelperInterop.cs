@@ -43,6 +43,8 @@ namespace Celeste.Mod.SkinModHelper.Interop {
         public static void SetColorGrade(Sprite to, MTexture mTexture) {
             DynamicData spriteData = DynamicData.For(to);
 
+            Log($"SetColorGrade: {mTexture?.Atlas}, {mTexture?.AtlasPath}");
+
             spriteData.Set("ColorGrade_Path", mTexture?.AtlasPath);
             spriteData.Set("ColorGrade_Atlas", mTexture?.Atlas);
         }

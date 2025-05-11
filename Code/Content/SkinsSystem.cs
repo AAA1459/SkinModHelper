@@ -619,23 +619,21 @@ namespace Celeste.Mod.SkinModHelper {
                 if (data?.Sources != null) {
                     return data.Sources[0].OverridePath ?? data.Sources[0].Path;
                 }
-                type = $"{(sprite.Has("idle") ? sprite.GetFrame("idle", 0) : sprite.Texture ?? sprite.Animations.Values.FirstOrDefault()?.Frames?.FirstOrDefault())}";
-            } else if (type is Image image) {
-                type = image.Texture.ToString();
-            } else {
-                type = $"{type}";
+                return getAnimationRootPath($"{(sprite.Has("idle") ? sprite.GetFrame("idle", 0) : sprite.Texture ?? sprite.Animations.Values.FirstOrDefault()?.Frames?.FirstOrDefault())}");
+            } 
+            if (type is Image image) {
+                return getAnimationRootPath(image.Texture.ToString());
             }
-
-            if (type is string path && path != null && path.LastIndexOf("/") >= 0) {
-                return path.Remove(path.LastIndexOf("/") + 1);
-            }
-            return "";
+            return getAnimationRootPath(type.ToString());
         }
         public static string getAnimationRootPath(Sprite sprite, string id) {
             return sprite.Has(id) && sprite.Animations[id].Frames?.Length > 0 ? getAnimationRootPath(sprite.Animations[id].Frames[0]) : getAnimationRootPath(sprite);
         }
-        public static string getAnimationRootPath(object type, out string returnValue) {
-            return returnValue = getAnimationRootPath(type);
+        public static string getAnimationRootPath(string type) {
+            if (type != null && type.LastIndexOf("/") >= 0) {
+                return type.Remove(type.LastIndexOf("/") + 1);
+            }
+            return "";
         }
         #endregion
         #region Method #3

@@ -434,11 +434,14 @@ namespace Celeste.Mod.SkinModHelper {
                 selfData.Set("ColorGrade_Path", colorGrade_Path += dashCount);
             }
         #endregion
-            goto_one:
+        goto_one:
 
             if (colorGrade_Path != null && atlas.Has(colorGrade_Path)) {
                 Effect colorGradeEffect = FxColorGrading_SMH;
-                colorGradeEffect.CurrentTechnique = colorGradeEffect.Techniques["ColorGradeSingle"];
+
+                colorGradeEffect.CurrentTechnique = colorGradeEffect.Techniques[
+                    AssetExists<AssetTypeText>(atlas.RelativeDataPath + getAnimationRootPath(colorGrade_Path) + "-ColorGradeBefColored") ? "ColorGradeBefColored" : "ColorGrade"
+                    ];
                 Engine.Graphics.GraphicsDevice.Textures[1] = atlas[colorGrade_Path].Texture.Texture_Safe;
 
                 Matrix matrix = DynamicData.For(Draw.SpriteBatch).Get<Matrix>("transformMatrix");
@@ -461,7 +464,10 @@ namespace Celeste.Mod.SkinModHelper {
 
                 if (atlas.Has(colorGrade_Path)) {
                     Effect colorGradeEffect = FxColorGrading_SMH;
-                    colorGradeEffect.CurrentTechnique = colorGradeEffect.Techniques["ColorGradeSingle"];
+
+                    colorGradeEffect.CurrentTechnique = colorGradeEffect.Techniques[
+                        AssetExists<AssetTypeText>(atlas.RelativeDataPath + getAnimationRootPath(colorGrade_Path) + "-ColorGradeBefColored") ? "ColorGradeBefColored" : "ColorGrade"
+                        ];
                     Engine.Graphics.GraphicsDevice.Textures[1] = atlas[colorGrade_Path].Texture.Texture_Safe;
 
                     Matrix matrix = DynamicData.For(Draw.SpriteBatch).Get<Matrix>("transformMatrix");

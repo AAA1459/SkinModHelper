@@ -106,7 +106,6 @@ namespace Celeste.Mod.SkinModHelper {
 
 
 
-
         public bool TweaksTEST;
         public List<Tweak> EntityTweaks { get; set; }
         public class Tweak {
