@@ -20,6 +20,7 @@ using Celeste.Mod.Meta;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 using System.Xml.Linq;
 using System.IO;
+using System.ComponentModel;
 
 namespace Celeste.Mod.SkinModHelper {
     public static class SkinsSystem {
@@ -707,6 +708,13 @@ namespace Celeste.Mod.SkinModHelper {
                     return false;
                 }
             }
+            if (specifyId != null && sprite.Has(specifyId)) {
+                id = specifyId;
+                return true;
+            }
+            return false;
+        }
+        public static bool SpriteExt_HasAndSet(Sprite sprite, ref string id, string specifyId) {
             if (specifyId != null && sprite.Has(specifyId)) {
                 id = specifyId;
                 return true;

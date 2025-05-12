@@ -53,8 +53,7 @@ namespace Celeste.Mod.SkinModHelper {
 
             switch (command) {
                 case "test":
-                    _Player.Hair.Alpha = 0.5f;
-                    SkinModHelperInterop.SetColorGrade(_Player.Sprite, GFX.Game["Spooooky/AstolfoSkinMod/characters/player/#ColorGrading/dash3"]);
+                    //SkinModHelperInterop.SetColorGrade(_Player.Sprite, GFX.Game["Spooooky/AstolfoSkinMod/characters/player/#ColorGrading/dash3"]);
                     Monocle.Commands.Clear();
                     return;
                 case "settings":
