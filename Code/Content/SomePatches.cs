@@ -1,4 +1,3 @@
-
 using FMOD.Studio;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -17,8 +16,6 @@ using System.Xml;
 
 using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
-using System.Buffers.Text;
-using System.Security.Cryptography;
 
 namespace Celeste.Mod.SkinModHelper {
     public static class SomePatches {
@@ -156,11 +153,9 @@ namespace Celeste.Mod.SkinModHelper {
             if (!self.Sprite.CurrentAnimationID.Contains("dreamDashOut")) {
                 string animPrefix = DynamicData.For(self.Sprite).Get<string>("smh_AnimPrefix");
 
-                if (!SpriteExt_TryPlay(self.Sprite, animPrefix + "wallBounce")) {
-                    if (!SpriteExt_TryPlay(self.Sprite, animPrefix + "jumpCrazy")) {
-                        if (!SpriteExt_TryPlay(self.Sprite, "wallBounce")) {
-                            SpriteExt_TryPlay(self.Sprite, "jumpCrazy");
-                        }
+                if (animPrefix == null || !SpriteExt_TryPlay(self.Sprite, animPrefix + "wallBounce") || !SpriteExt_TryPlay(self.Sprite, animPrefix + "jumpCrazy")) {
+                    if (!SpriteExt_TryPlay(self.Sprite, "wallBounce")) {
+                        SpriteExt_TryPlay(self.Sprite, "jumpCrazy");
                     }
                 }
             }
@@ -173,11 +168,9 @@ namespace Celeste.Mod.SkinModHelper {
                 string id = hyper ? "jumpHyper" : "jumpSuper";
                 string animPrefix = DynamicData.For(self.Sprite).Get<string>("smh_AnimPrefix");
 
-                if (!SpriteExt_TryPlay(self.Sprite, animPrefix + id)) {
-                    if (!SpriteExt_TryPlay(self.Sprite, animPrefix + "jumpCrazy")) {
-                        if (!SpriteExt_TryPlay(self.Sprite, id)) {
-                            SpriteExt_TryPlay(self.Sprite, "jumpCrazy");
-                        }
+                if (animPrefix == null || !SpriteExt_TryPlay(self.Sprite, animPrefix + id) || !SpriteExt_TryPlay(self.Sprite, animPrefix + "jumpCrazy")) {
+                    if (!SpriteExt_TryPlay(self.Sprite, id)) {
+                        SpriteExt_TryPlay(self.Sprite, "jumpCrazy");
                     }
                 }
             }
@@ -402,8 +395,11 @@ namespace Celeste.Mod.SkinModHelper {
                     if (alpha < 1f && self.Color.A == 1f) { self.Color = self.Color * alpha; }
 
                     string anim = "deathExAnim";
-                    SpriteExt_CrossHas(sprite, ref anim, DynamicData.For(sprite).Get<string>("smh_AnimPrefix"), anim);
-                    if (sprite.Has(anim)) {
+                    string animPrefix = DynamicData.For(sprite).Get<string>("smh_AnimPrefix");
+
+                    if (sprite.Has(animPrefix + anim)) {
+                        InsertDeathAnimation(self, sprite, animPrefix + anim);
+                    } else if (sprite.Has(anim)) {
                         InsertDeathAnimation(self, sprite, anim);
                     }
                     string scolor = CharacterConfig.For(sprite).DeathParticleColor;
