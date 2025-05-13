@@ -35,7 +35,7 @@ float4 PS_Colorgrade(float4 inPosition : SV_Position, float4 spriteColor : COLOR
 }
 
 
-float4 PS_ColorgradeBefColored(float4 inPosition : SV_Position, float4 spriteColor : COLOR0, float2 uv : TEXCOORD0) : COLOR0
+float4 PS_ColorgradeAftColored(float4 inPosition : SV_Position, float4 spriteColor : COLOR0, float2 uv : TEXCOORD0) : COLOR0
 {
     float4 pixel = SAMPLE_TEXTURE(sprite, uv) * spriteColor;
 
@@ -62,10 +62,10 @@ technique ColorGrade
         PixelShader = compile ps_2_0 PS_Colorgrade();
     }
 }
-technique ColorGradeBefColored
+technique ColorGradeAftColored
 {
     pass
     {
-        PixelShader = compile ps_2_0 PS_ColorgradeBefColored();
+        PixelShader = compile ps_2_0 PS_ColorgradeAftColored();
     }
 }
