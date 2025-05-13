@@ -184,7 +184,7 @@ namespace Celeste.Mod.SkinModHelper {
             if (self is PlayerSprite && self.Entity is Player player) {
                 string animPrefix = DynamicData.For(self).Get<string>("smh_AnimPrefix");
                 bool swimCheck = player.Scene != null && player.Collidable && player.SwimCheck();
-
+                bool Alt_restart = false;
             whileTag:
                 switch (id) {
                     case "walk":
@@ -247,8 +247,6 @@ namespace Celeste.Mod.SkinModHelper {
                             id = baseID + "_SideDown";
                         }
                     }
-                    if (id != self.LastAnimationID)
-                        restart = true; // Auhhh. The dash animations contain each other's the part of name. and prevent each other to playing since we
                     return id;
                 }
                 #endregion
@@ -279,25 +277,35 @@ namespace Celeste.Mod.SkinModHelper {
                             self.LastAnimationID = origID;
                             return;
                         }
-                    } else if ((origID != id || id == "duck" || id == "lookUp") && self.LastAnimationID.Contains(id)) {
-                        // Make sure that The orig animations will not be forced replay or The new animations will not be forced cancel.
-                        return;
-                    } else if (origID == "runStumble") {
-                        return;
-                    } else if (self.LastAnimationID.Contains("jumpCrazy")) {
-                        if ((origID == "jumpFast" || origID == "fallSlow" || origID == "runFast" || origID == "runWind") && (!player.onGround || !player.OnGround())) {
+                    } else {
+                        if (origID != id || id == "duck" || id == "lookUp") {
+                            if (id == self.LastAnimationID) {
+                                return;
+                            }
+                            if (self.Animations.TryGetValue(id, out var animation) && animation.Goto != null) {
+                                foreach (Chooser<string>.Choice choice in animation.Goto.Choices)
+                                    if (self.LastAnimationID == choice.Value)
+                                        return;
+                            }
+                        }
+                        if (origID == "runStumble") {
                             return;
                         }
-                    } else if (self.LastAnimationID.Contains("jumpHyper") || self.LastAnimationID.Contains("jumpSuper")) {
-                        if ((origID == "jumpFast" || origID == "fallFast" || origID == "runFast" || origID == "runWind" || (origID == "duck" && player.StartedDashing == false) || origID == "idle" || origID == "jumpSlow")
-                            && (!player.OnGround() || !player.wasOnGround)
-                            && (Math.Abs(player.Speed.X) > 110f || (player.wallSpeedRetentionTimer > 0f && Math.Abs(player.wallSpeedRetained) > 110f))) {
-                            return;
-                        }
+                        if (self.LastAnimationID.Contains("jumpCrazy")) {
+                            if ((origID == "jumpFast" || origID == "fallSlow" || origID == "runFast" || origID == "runWind") && (!player.onGround || !player.OnGround())) {
+                                return;
+                            }
+                        } else if (self.LastAnimationID.Contains("jumpHyper") || self.LastAnimationID.Contains("jumpSuper")) {
+                            if ((origID == "jumpFast" || origID == "fallFast" || origID == "runFast" || origID == "runWind" || (origID == "duck" && player.StartedDashing == false) || origID == "idle" || origID == "jumpSlow")
+                                && (!player.OnGround() || !player.wasOnGround)
+                                && (Math.Abs(player.Speed.X) > 110f || (player.wallSpeedRetentionTimer > 0f && Math.Abs(player.wallSpeedRetained) > 110f))) {
+                                return;
+                            }
 
-                    } else if (self.LastAnimationID.Contains("wallBounce")) {
-                        if ((origID == "jumpFast" || origID == "jumpSlow" || origID == "fallSlow" || origID == "fallFast") && !player.onGround) {
-                            return;
+                        } else if (self.LastAnimationID.Contains("wallBounce")) {
+                            if ((origID == "jumpFast" || origID == "jumpSlow" || origID == "fallSlow" || origID == "fallFast") && !player.onGround) {
+                                return;
+                            }
                         }
                     }
                 }
