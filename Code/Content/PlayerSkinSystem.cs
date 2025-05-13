@@ -440,7 +440,7 @@ namespace Celeste.Mod.SkinModHelper {
                 Effect colorGradeEffect = FxColorGrading_SMH;
 
                 colorGradeEffect.CurrentTechnique = colorGradeEffect.Techniques[
-                    AssetExists<AssetTypeText>(atlas.RelativeDataPath + getAnimationRootPath(colorGrade_Path) + "-ColorGradeBefColored") ? "ColorGradeBefColored" : "ColorGrade"
+                    CharacterConfig.For(self.Sprite).ColorGradingAfterColored ? "ColorGradeAftColored" : "ColorGrade"
                     ];
                 Engine.Graphics.GraphicsDevice.Textures[1] = atlas[colorGrade_Path].Texture.Texture_Safe;
 
@@ -466,7 +466,7 @@ namespace Celeste.Mod.SkinModHelper {
                     Effect colorGradeEffect = FxColorGrading_SMH;
 
                     colorGradeEffect.CurrentTechnique = colorGradeEffect.Techniques[
-                        AssetExists<AssetTypeText>(atlas.RelativeDataPath + getAnimationRootPath(colorGrade_Path) + "-ColorGradeBefColored") ? "ColorGradeBefColored" : "ColorGrade"
+                        CharacterConfig.For(self).ColorGradingAfterColored ? "ColorGradeAftColored" : "ColorGrade"
                         ];
                     Engine.Graphics.GraphicsDevice.Textures[1] = atlas[colorGrade_Path].Texture.Texture_Safe;
 

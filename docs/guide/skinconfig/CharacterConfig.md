@@ -18,6 +18,8 @@ DeathParticleColor: [use six digit RGB hex code]
 
 HoldableFacingFlipable: [true/false]
 
+ColorGradingAfterColored: [true/false]
+
 EntityTweaks:
 - < Tweaks >
 ```
@@ -103,6 +105,20 @@ HoldableFacingFlipable: true
 ```
 Theory this also should work for the holdable entities of helpers, pls feedback if not.
 
+
+---
+### ColorGrading before/after Colored
+The following content is related to [Skin ColorGrade](/docs/guide//skinconfig/ColorGrade.md).
+
+By default. SMH+ applying color grades _**before**_ hair and sprite is colored. 
+it makes the character (especially hair) to be grayscale, solid etc by color grades are impossible...
+
+If you happen to want the character to be grayscale etc. add this in character config: 
+```
+ColorGradingAfterColored: true
+```
+Like literally, it changes the default _**before**_ to _**after**_ there. <br>
+**If you want to change the local colors of character by color grading. ignore this.**
 
 ---
 ### _EntityTweaks_

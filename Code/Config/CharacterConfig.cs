@@ -104,6 +104,8 @@ namespace Celeste.Mod.SkinModHelper {
             }
         }
 
+        public bool ColorGradingAfterColored { get; set; }
+
 
 
         public bool TweaksTEST;
