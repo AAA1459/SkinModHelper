@@ -184,7 +184,6 @@ namespace Celeste.Mod.SkinModHelper {
             if (self is PlayerSprite && self.Entity is Player player) {
                 string animPrefix = DynamicData.For(self).Get<string>("smh_AnimPrefix");
                 bool swimCheck = player.Scene != null && player.Collidable && player.SwimCheck();
-                bool Alt_restart = false;
             whileTag:
                 switch (id) {
                     case "walk":

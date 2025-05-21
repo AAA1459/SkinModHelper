@@ -53,7 +53,8 @@ namespace Celeste.Mod.SkinModHelper {
 
             switch (command) {
                 case "test":
-                    //SkinModHelperInterop.SetColorGrade(_Player.Sprite, GFX.Game["Spooooky/AstolfoSkinMod/characters/player/#ColorGrading/dash3"]);
+                    CharacterConfig c = CharacterConfig.For(_Player.Sprite);
+                    c.ColorGradingAfterColored = !c.ColorGradingAfterColored;
                     Monocle.Commands.Clear();
                     return;
                 case "settings":
