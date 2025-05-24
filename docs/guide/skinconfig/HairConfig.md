@@ -26,22 +26,24 @@ If this contains what you need, follow these steps to use them:
 ### HairAttrWithDashes
 Here you can setting something according to the dashes, 
 e.g hair color, length. to make them different from madeline:
-```
+```yaml
 HairAttrWithDashes:
 - Dashes: [any integers]     # except for this must be set, all others are optional
   
   Color: [use six digit RGB hex code]     
     # example: "9B3FB5", which represents Baddy's 1-dash color
-	  
+  
   Scale: [floats as root], [floats as end]
     # The segments's scale will gradually transition between two floats from root to end.
-	  
+ 
   Length: [integers from 1 to 99]
 ```  
 * If there is a set with `Dashes` is -1, its value will work on the player feather state except for color.
+* The default scale is `1, 0.25`
+* The default length is `4`, `5`, `7` for normal, two-dashes, feather.
 
 If you want to go a step further, set attr ​​for individual segments, so use this in the each set's ends
-```
+```yaml
   SegmentAttrs:
   - Segment: [Which segment of hair]     # work in reverse order if it is a negative number
     Color: [use six digit RGB hex code]
@@ -54,14 +56,14 @@ If you want to go a step further, set attr ​​for individual segments, so use
 ### HairFlash
 By default, the player's hair flashes when dashes are used or refilled. 
 If you wish to disable this feature, use:
-```
+```yaml
 HairFlash: false
 ```
 
 ---
 ### HairFloatingDashCount
 By default, the player's hair floating when have at least 2 dashes. If you want that floating to require more or less dashes, use:
-```
+```yaml
 HairFloatingDashCount: [any number]
   # using "0" to make it always floating.
   # using "-1" to make it never floating.
