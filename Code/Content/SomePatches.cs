@@ -184,6 +184,7 @@ namespace Celeste.Mod.SkinModHelper {
             if (self is PlayerSprite && self.Entity is Player player) {
                 string animPrefix = DynamicData.For(self).Get<string>("smh_AnimPrefix");
                 bool swimCheck = player.Scene != null && player.Collidable && player.SwimCheck();
+
             whileTag:
                 switch (id) {
                     case "walk":
@@ -198,11 +199,20 @@ namespace Celeste.Mod.SkinModHelper {
                         }
                         break;
                     case "duck":
-                        if (player.DashAttacking == true) {
-                            if (swimCheck && self.Has(dashDirAnim("swimDashCrouch"))) {
+                        if (player.DashAttacking) {
+                            if (player.dashStartedOnGround & player.DashDir.Y >= 0f & player.DashDir.X != 0f & (player.DashDir.X > 0f ? 1 : -1) == (int)player.Facing & self.Has(animPrefix + "dashSlide")) {
+                                id = "dashSlide";
+                            } else if (swimCheck && self.Has(dashDirAnim("swimDashCrouch"))) {
                             } else {
                                 dashDirAnim("dashCrouch");
                             }
+                        } else if (player.StateMachine.State == Player.StDash & player.DashDir.X == 0f & self.Has(animPrefix + "dashGrounded")) {
+                            id = "dashGrounded";
+                        }
+                        break;
+                    case "idle":
+                        if (player.StateMachine.State == Player.StDash & !player.DashAttacking & player.DashDir.X == 0f & self.Has(animPrefix + "dashGrounded")) {
+                            id = "dashGrounded";
                         }
                         break;
                     case "swimUp" or "swimDown":
