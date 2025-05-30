@@ -206,12 +206,10 @@ namespace Celeste.Mod.SkinModHelper {
                             } else {
                                 dashDirAnim("dashCrouch");
                             }
-                        } else if (player.StateMachine.State == Player.StDash & player.DashDir.X == 0f & self.Has(animPrefix + "dashGrounded")) {
-                            id = "dashGrounded";
                         }
                         break;
-                    case "idle":
-                        if (player.StateMachine.State == Player.StDash & !player.DashAttacking & player.DashDir.X == 0f & self.Has(animPrefix + "dashGrounded")) {
+                    case "idle" or "edge" or "edgeBack":
+                        if (player.StateMachine.State == Player.StDash & player.DashDir.Y > 0f & player.DashDir.X == 0f & self.Has(animPrefix + "dashGrounded")) {
                             id = "dashGrounded";
                         }
                         break;
