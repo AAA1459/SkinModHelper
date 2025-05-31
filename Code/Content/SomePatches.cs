@@ -200,7 +200,7 @@ namespace Celeste.Mod.SkinModHelper {
                         break;
                     case "duck":
                         if (player.DashAttacking) {
-                            if (player.dashStartedOnGround & player.DashDir.Y >= 0f & player.DashDir.X != 0f & (player.DashDir.X > 0f ? 1 : -1) == (int)player.Facing & self.Has(animPrefix + "dashSlide")) {
+                            if (player.dashStartedOnGround && player.DashDir.Y >= 0f && player.DashDir.X != 0f && (player.DashDir.X > 0f ? 1 : -1) == (int)player.Facing && self.Has(animPrefix + "dashSlide")) {
                                 id = "dashSlide";
                             } else if (swimCheck && self.Has(dashDirAnim("swimDashCrouch"))) {
                             } else {
@@ -209,7 +209,7 @@ namespace Celeste.Mod.SkinModHelper {
                         }
                         break;
                     case "idle" or "edge" or "edgeBack":
-                        if (player.StateMachine.State == Player.StDash & player.DashDir.Y > 0f & player.DashDir.X == 0f & self.Has(animPrefix + "dashGrounded")) {
+                        if (player.StateMachine.State == Player.StDash && player.DashDir.Y > 0f && player.DashDir.X == 0f && self.Has(animPrefix + "dashGrounded")) {
                             id = "dashGrounded";
                         }
                         break;
