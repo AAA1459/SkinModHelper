@@ -80,7 +80,7 @@ namespace Celeste.Mod.SkinModHelper {
 
             if (SpriteID != null && GFX.SpriteBank.SpriteData.ContainsKey(search)) {
                 Type entityType = entity.GetType();
-                Sprite sprite = GetFieldPlus<Sprite>(entity, "sprite");
+                Sprite sprite = Extensions.GetField<Sprite>(entity, "sprite");
 
                 if (sprite != null) {
                     // --------sprite--------
@@ -88,13 +88,13 @@ namespace Celeste.Mod.SkinModHelper {
                     string SpritePath = getAnimationRootPath(sprite);
                     // ----------------
                     // --------flash--------
-                    Sprite flash = GetFieldPlus<Sprite>(entity, "flash");
+                    Sprite flash = Extensions.GetField<Sprite>(entity, "flash");
                     if (flash != null) {
                         GFX.SpriteBank.CreateOn(flash, SpriteID);
                     }
                     // ----------------
                     // --------outline--------
-                    var Field_outline = GetFieldPlus(entityType, "outline");
+                    var Field_outline = Extensions.GetField(entityType, "outline");
                     if (Field_outline != null && Field_outline.GetValue(entity) is Entity outline) {
                         foreach (Component component in outline) {
                             if (component is Image image && GFX.Game.Has($"{SpritePath}outline")) {
@@ -109,7 +109,7 @@ namespace Celeste.Mod.SkinModHelper {
                     // ----------------
                     // --------particle--------
                     if (entity is Booster || entity is Cloud) {
-                        var Field_particle = GetFieldPlus(entityType, "particleType");
+                        var Field_particle = Extensions.GetField(entityType, "particleType");
 
                         if (Field_particle != null && Field_particle.GetValue(entity) is ParticleType particleType) {
                             // Clone object to prevent lost of vanilla

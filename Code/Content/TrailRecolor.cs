@@ -43,7 +43,7 @@ namespace Celeste.Mod.SkinModHelper {
 
             string TrailsColor = CharacterConfig.For(sprite).TrailsColor;
 
-            if (TrailsColor != null && RGB_Regex.IsMatch(TrailsColor)) {
+            if (RGB_IsMatch(TrailsColor)) {
                 return Calc.HexToColor(TrailsColor);
             } else if (TrailsColor == "HairColor" && hair != null) {
                 return hair.Color;

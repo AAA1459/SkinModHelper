@@ -53,9 +53,6 @@ namespace Celeste.Mod.SkinModHelper {
 
             switch (command) {
                 case "test":
-                    CharacterConfig c = CharacterConfig.For(_Player.Sprite);
-                    c.ColorGradingAfterColored = !c.ColorGradingAfterColored;
-                    Monocle.Commands.Clear();
                     return;
                 case "settings":
                     if (help2) {

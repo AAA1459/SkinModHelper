@@ -419,7 +419,7 @@ namespace Celeste.Mod.SkinModHelper {
                     }
                     string scolor = CharacterConfig.For(sprite).DeathParticleColor;
 
-                    if (scolor != null && RGB_Regex.IsMatch(scolor)) {
+                    if (RGB_IsMatch(scolor)) {
                         self.Color = Calc.HexToColor(scolor) * GetAlpha(self.Color);
                     }
 
@@ -526,7 +526,7 @@ namespace Celeste.Mod.SkinModHelper {
 
                 string scolor = CharacterConfig.For(sprite).DeathParticleColor;
 
-                if (scolor != null && RGB_Regex.IsMatch(scolor)) {
+                if (RGB_IsMatch(scolor)) {
                     color = Calc.HexToColor(scolor) * GetAlpha(color);
                 }
                 if (GetTextureOnSprite(sprite, "death_particle", out var texture2))

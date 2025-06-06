@@ -81,7 +81,8 @@ namespace Celeste.Mod.SkinModHelper {
 
         /// <summary> 0-Default, 1-Invert, 2-Off, 3-On </summary>
         public static int backpackSetting = 0;
-        public static Regex RGB_Regex = new Regex(@"^[a-fA-F0-9]{6}$");
+        public static bool RGB_IsMatch(string type) => type != null && type.All(char.IsAsciiHexDigit) && type.Length is 6;
+        public static bool RGBA_IsMatch(string type) => type != null && type.All(char.IsAsciiHexDigit) && (type.Length is 6 or 8);
 
         public static bool build_warning = true;
 
@@ -105,7 +106,6 @@ namespace Celeste.Mod.SkinModHelper {
         public static Dictionary<string, SpriteBank> Xml_records = new();
 
         public static Dictionary<int, string> skinname_hashcache = new();
-        private static Dictionary<(Type, string), FieldInfo> fieldref_cache = new();
 
         public static HashSet<string> VanillaCharacterTextures = new();
         public static HashSet<string> IDHasHairMetadate = new();
@@ -611,6 +611,9 @@ namespace Celeste.Mod.SkinModHelper {
         #endregion
         #region Method #2
         public static string getAnimationRootPath(object type) {
+            if (type is null) {
+                return null;
+            }
             if (type is Sprite sprite) {
                 var data = DynamicData.For(sprite).Get<SpriteData>("smh_spriteData");
                 if (data?.Sources != null) {
@@ -634,36 +637,6 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
         #region Method #3
-        public static FieldInfo GetFieldPlus(Type type, string name) {
-            if (fieldref_cache.TryGetValue((type, name), out FieldInfo field)) {
-                return field;
-            }
-            Type type2 = type;
-            while (field == null && type2 != null) {
-                field = type2.GetField(name, BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
-
-                // some mods entities works based on vanilla entities, but mods entity possible don't have theis own field.
-                type2 = type2.BaseType;
-            }
-            fieldref_cache[(type, name)] = field;
-            return field;
-        }
-        public static T GetFieldPlus<T>(object obj, string name) {
-            FieldInfo field = GetFieldPlus(obj.GetType(), name);
-            if (field != null && field.GetValue(obj) is T value) {
-                return value;
-            }
-            return default;
-        }
-        public static bool GetFieldPlus<T>(object obj, string name, out T value) {
-            FieldInfo field = GetFieldPlus(obj.GetType(), name);
-            if (field != null && field.FieldType == typeof(T)) {
-                value = (T)field.GetValue(obj);
-                return true;
-            }
-            value = default;
-            return false;
-        }
 
         public static bool AssetExists<T>(string path) {
             if (path.LastIndexOf(".") >= 0) {

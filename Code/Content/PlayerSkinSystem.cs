@@ -292,7 +292,7 @@ namespace Celeste.Mod.SkinModHelper {
                 CharacterConfig ModeConfig = CharacterConfig.For(p.Sprite);
 
                 object backup = null;
-                if (ModeConfig.LowStaminaFlashColor != null && RGB_Regex.IsMatch(ModeConfig.LowStaminaFlashColor)) {
+                if (RGB_IsMatch(ModeConfig.LowStaminaFlashColor)) {
                     backup = color = Calc.HexToColor(ModeConfig.LowStaminaFlashColor);
                     if (ModeConfig.SilhouetteMode == true) {
                         color = ColorBlend(p.Hair.Color, color);

@@ -25,7 +25,6 @@ namespace Celeste.Mod.SkinModHelper {
 
             IL.Celeste.Booster.Added += Celeste_Booster_ILHook;
             On.Celeste.FlyFeather.Added += Celeste_flyFeather_Hook;
-            On.Celeste.Cloud.Added += Celeste_Cloud_Hook;
 
             On.Celeste.Refill.Added += Celeste_Refill_Hook;
             On.Monocle.Entity.Added += EntityAddedHook;
@@ -39,7 +38,6 @@ namespace Celeste.Mod.SkinModHelper {
 
             IL.Celeste.Booster.Added -= Celeste_Booster_ILHook;
             On.Celeste.FlyFeather.Added -= Celeste_flyFeather_Hook;
-            On.Celeste.Cloud.Added -= Celeste_Cloud_Hook;
 
             On.Celeste.Refill.Added -= Celeste_Refill_Hook;
             On.Monocle.Entity.Added -= EntityAddedHook;
@@ -64,30 +62,10 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        #region Cloud
-        public static void Celeste_Cloud_Hook(On.Celeste.Cloud.orig_Added orig, Cloud self, Scene scene) {
-            orig(self, scene);
-            if (GetTextureOnSprite(self.sprite, "clouds", out var clouds)) {
-                self.particleType = new(self.particleType) {
-                    Source = clouds,
-                    Color = Color.White
-                };
-            }
-        }
-        #endregion
-
         #region Booster
         public static void Celeste_Booster_ILHook(ILContext il) {
             ILCursor cursor = new(il);
             string _(string orig, Booster self) {
-                // reskin blob, and outline btw
-                if (GetTextureOnSprite(self.sprite, "blob", out var blob)) {
-                    // Clone object to prevent lost of vanilla
-                    self.particleType = new(self.particleType) {
-                        Source = blob,
-                        Color = Color.White
-                    };
-                }
                 if (GetTextureOnSprite(self.sprite, "outline", out var outline)) {
                     return outline.ToString();
                 }
@@ -173,9 +151,9 @@ namespace Celeste.Mod.SkinModHelper {
             orig(self, scene);
         }
         private static void BadelineBoost_stretchReskin(Entity self) {
-            Image stretch = GetFieldPlus<Image>(self, "stretch");
+            Image stretch = Extensions.GetField<Image>(self, "stretch");
             Sprite sprite = self.Get<Sprite>();
-
+            
             if (stretch != null && sprite != null) {
                 if (GetTextureOnSprite(sprite, "stretch", out var stretch2)) {
                     stretch.Texture = stretch2;

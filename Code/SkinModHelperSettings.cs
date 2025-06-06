@@ -6,6 +6,7 @@ using Monocle;
 
 using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
+using System.Numerics;
 
 namespace Celeste.Mod.SkinModHelper {
     [SettingName("SKIN_MOD_HELPER_SETTINGS_TITLE")]
@@ -22,6 +23,7 @@ namespace Celeste.Mod.SkinModHelper {
             "",
             ""
         };
+        public Vector2 V2 { get; set; } = Vector2.Zero;
 
         [SettingIgnore]
         public bool PlayerSkinGreatestPriority { get; set; } = false;

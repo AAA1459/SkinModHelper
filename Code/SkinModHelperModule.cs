@@ -61,6 +61,7 @@ namespace Celeste.Mod.SkinModHelper {
             ObjectsHook.Load();
             SomePatches.Load();
             TrailRecolor.Load();
+            ParticleModify.Load();
 
             SkinModHelperInterop.Load();
             InputSearchUI.Load();
@@ -79,6 +80,7 @@ namespace Celeste.Mod.SkinModHelper {
             ObjectsHook.Unload();
             SomePatches.Unload();
             TrailRecolor.Unload();
+            ParticleModify.Unload();
 
             InputSearchUI.Unload();
 

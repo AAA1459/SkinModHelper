@@ -33,6 +33,12 @@ namespace Celeste.Mod.SkinModHelper.Interop {
             return CharacterConfig._DynamicDataKey;
         }
 
+        // We used some hooks to figure out which entity called ParticleSystem.Emit and reskin particle there. but it may not be accurate... This can be used to avoid it.
+        /// <summary> Check and get if your static particles are modified in the skin of the specify entity </summary>
+        public static bool ParticleReplace(ParticleType ptcl, Entity entity, out ParticleType ptcl2) {
+            return ParticleModify.ParticleReplace(ptcl, entity, out ptcl2);
+        }
+
 
         public static string GetPlayerSkinNameForGlobal() {
             return SkinModHelperModule.GetPlayerSkinName(Player_Skinid_verify);

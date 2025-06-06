@@ -9,15 +9,22 @@ using MonoMod.Utils;
 using System.Linq;
 using System.IO;
 using System.Reflection;
+using Celeste.Mod.Helpers;
 
 using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.PlayerSkinSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
+using static Celeste.Mod.CelesteNet.DataTypes.DataInternalBlob;
+using YamlDotNet.Core.Tokens;
+using Celeste.Mod.CelesteNet;
+using System.Collections;
+using static Monocle.ParticleType;
 
 namespace Celeste.Mod.SkinModHelper {
     public class CharacterConfig {
         #region Ctor / Initialization
         internal const string _DynamicDataKey = "smh_characterConfig";
+        internal const string _ConfigName = "skinConfig/CharacterConfig";
 
         public CharacterConfig() {
         }
@@ -29,7 +36,7 @@ namespace Celeste.Mod.SkinModHelper {
             string rootPath = getAnimationRootPath(target);
 
             if (config == null || config.SourcePath != rootPath) {
-                ModAsset asset = GetAssetOnSprite<AssetTypeYaml>(target, "skinConfig/CharacterConfig");
+                ModAsset asset = GetAssetOnSprite<AssetTypeYaml>(target, _ConfigName);
                 config = AssetIntoConfig<CharacterConfig>(asset) ?? new();
                 config.Source = asset;
                 config.attached = target;
@@ -37,14 +44,17 @@ namespace Celeste.Mod.SkinModHelper {
 
                 if (target is PlayerSprite playerSprite)
                     config.ModeInitialize(playerSprite.Mode);
+                config.ParticleModifierInit();
 
                 selfData.Set("smh_characterConfig", config);
             }
             if (target.Entity != config.lastEntity) {
                 config.lastEntity = target.Entity;
-                if (config.EntityTweaks != null && target is Sprite)
-                    // Avoid multiple EntityTweaks works, make sure this target is the first of its entity. 
-                    if (target == target.Entity?.Get<Sprite>())
+                // Avoid multiple EntityTweaks works, make sure this target is the first of its entity. 
+                if (target is Sprite sprite && sprite == target.Entity?.Get<Sprite>())
+                    config.ParticleModifyRefresh();
+
+                    if (config.EntityTweaks != null)
                         config.ValuesTweak(target.Entity, config.EntityTweaks, config.TweaksTEST);
             }
             return config;
@@ -105,22 +115,235 @@ namespace Celeste.Mod.SkinModHelper {
         }
 
         public bool ColorGradingAfterColored { get; set; }
+        #endregion
 
+        #region ParticleModify
+        public List<particleModifier> ParticleModify { get; set; }
 
+        public class particleModifier {
+            [YamlIgnore]
+            public CharacterConfig Parent;
+            [YamlIgnore]
+            public ParticleType BaseParticle;
+            [YamlIgnore]
+            public FieldInfo BaseField;
 
+            [YamlIgnore]
+            public ParticleType NewParticle {
+                get => newParticle ??= NewParticleInit(BaseParticle);
+            }
+            private ParticleType newParticle;
+
+            public string TargetFullName { get; set; }
+            public bool IsStatic = true;
+
+            public string Source; // MTexture
+            public List<string> SourceChooser; // Chooser<MTexture>
+            public string Color;
+            public string Color2;
+            public string ColorMode; // ParticleType.ColorModes
+            public string FadeMode; // ParticleType.FadeModes
+            public float? SpeedMin;
+            public float? SpeedMax;
+            public float? SpeedMultiplier;
+            public string Acceleration;
+            public float? Friction;
+            public float? Direction;
+            public float? DirectionRange;
+            public float? LifeMin;
+            public float? LifeMax;
+            public float? Size;
+            public float? SizeRange;
+            public float? SpinMin;
+            public float? SpinMax;
+            public bool? SpinFlippedChance;
+            public string RotationMode; // ParticleType.RotationModes
+            public bool? ScaleOut;
+            public bool? UseActualDeltaTime;
+
+            public ParticleType NewParticleInit(ParticleType baseParticle) {
+                ParticleType particle = new ParticleType(baseParticle);
+
+                if (Source != null) {
+                    if (GetTextureOnSprite(Parent.attached, Source, out MTexture texture)) {
+                        particle.SourceChooser = null;
+                        particle.Source = texture;
+                    } else {
+                        Log(LogLevel.Error, $"{Parent.SourcePath}{_ConfigName} ParticleModify:\n   The texture {Parent.SourcePath}{Source} does not exist");
+                    }
+                } else if (SourceChooser != null) {
+                    if (SourceChooser.Count == 0 || SourceChooser[0] == "null") {
+                        particle.SourceChooser = null;
+                    } else {
+                        Chooser<MTexture> chooser = new Chooser<MTexture>();
+                        foreach (string source in SourceChooser) {
+                            if (GetTextureOnSprite(Parent.attached, source, out MTexture texture)) {
+                                chooser.Add(texture, 1f);
+                            } else {
+                                Log(LogLevel.Error, $"{Parent.SourcePath}{_ConfigName} ParticleModify:\n   The texture {Parent.SourcePath}{Source} does not exist");
+                            }
+                        }
+                        particle.SourceChooser = chooser;
+                    }
+                }
+
+                if (RGBA_IsMatch(Color)) {
+                    particle.Color = Calc.HexToColorWithAlpha(Color);
+                }
+                if (RGBA_IsMatch(Color2)) {
+                    particle.Color2 = Calc.HexToColorWithAlpha(Color2);
+                }
+                if (ColorMode != null) {
+                    if (Enum.TryParse(ColorMode, true, out ParticleType.ColorModes result)) {
+                        particle.ColorMode = result;
+                    } else if (int.TryParse(ColorMode, out int result2)) {
+                        particle.ColorMode = (ParticleType.ColorModes)result2;
+                    } else {
+                        Log(LogLevel.Error, $"{Parent.SourcePath}{_ConfigName} ParticleModify:\n   The '{ColorMode}' is invalid ColorMode value.");
+                    }
+                }
+                if (FadeMode != null) {
+                    if (Enum.TryParse(FadeMode, true, out ParticleType.FadeModes result)) {
+                        particle.FadeMode = result;
+                    } else if (int.TryParse(FadeMode, out int result2)) {
+                        particle.FadeMode = (ParticleType.FadeModes)result2;
+                    } else {
+                        Log(LogLevel.Error, $"{Parent.SourcePath}{_ConfigName} ParticleModify:\n   The '{FadeMode}' is invalid FadeMode value.");
+                    }
+                }
+                if (SpeedMin != null) {
+                    particle.SpeedMin = SpeedMin.Value;
+                }
+                if (SpeedMax != null) {
+                    particle.SpeedMax = SpeedMax.Value;
+                }
+                if (SpeedMultiplier != null) {
+                    particle.SpeedMultiplier = SpeedMultiplier.Value;
+                }
+                if (Acceleration != null) {
+                    string[] array = Acceleration.Split(',', 2, StringSplitOptions.TrimEntries);
+                    if (array.Length == 2 && float.TryParse(array[0], out float f) && float.TryParse(array[1], out float f2)) {
+                        particle.Acceleration = new Vector2(f, f2);
+                    } else {
+                        Log(LogLevel.Error, $"{Parent.SourcePath}{_ConfigName} ParticleModify:\n   The Acceleration value should be an array with two floats than '{Acceleration}'.");
+                    }
+                }
+                if (Friction != null) {
+                    particle.Friction = Friction.Value;
+                }
+                if (Direction != null) {
+                    particle.Direction = Direction.Value;
+                }
+                if (DirectionRange != null) {
+                    particle.DirectionRange = DirectionRange.Value;
+                }
+                if (LifeMin != null) {
+                    particle.LifeMin = LifeMin.Value;
+                }
+                if (LifeMax != null) {
+                    particle.LifeMax = LifeMax.Value;
+                }
+                if (Size != null) {
+                    particle.Size = Size.Value;
+                }
+                if (SizeRange != null) {
+                    particle.SizeRange = SizeRange.Value;
+                }
+                if (SpinMin != null) {
+                    particle.SpinMin = SpinMin.Value;
+                }
+                if (SpinMax != null) {
+                    particle.SpinMax = SpinMax.Value;
+                }
+                if (SpinFlippedChance != null) {
+                    particle.SpinFlippedChance = SpinFlippedChance.Value;
+                }
+                if (RotationMode != null) {
+                    if (Enum.TryParse(RotationMode, true, out ParticleType.RotationModes result)) {
+                        particle.RotationMode = result;
+                    } else if (int.TryParse(RotationMode, out int result2)) {
+                        particle.RotationMode = (ParticleType.RotationModes)result2;
+                    } else {
+                        Log(LogLevel.Error, $"{Parent.SourcePath}{_ConfigName} ParticleModify:\n   The '{RotationMode}' is invalid RotationMode value.");
+                    }
+                }
+                if (ScaleOut != null) {
+                    particle.ScaleOut = ScaleOut.Value;
+                }
+                if (UseActualDeltaTime != null) {
+                    particle.UseActualDeltaTime = UseActualDeltaTime.Value;
+                }
+                return particle;
+            }
+        }
+        private void ParticleModifierInit() {
+            if (ParticleModify != null) {
+                foreach (var m in ParticleModify) {
+                    if (m.TargetFullName == null) {
+                        Log(LogLevel.Error, $"{SourcePath}{_ConfigName} ParticleModify:\n   An unset TargetFullName value was found");
+                        continue;
+                    }
+                    m.Parent = this;
+
+                    // the value ends with ':' char are not supported by Yaml Deserialization... well that doesn't affect this.
+                    int i = m.TargetFullName.LastIndexOf("::");
+                    string ClassName = i < 0 ? m.TargetFullName : m.TargetFullName.Remove(i);
+
+                    Type type;
+                    if (string.IsNullOrEmpty(ClassName) || (type = Extensions.GetTypeFrom(ClassName)) == null) {
+                        Log(LogLevel.Error, $"{SourcePath}{_ConfigName} ParticleModify:\n   Invalid type '{ClassName}'");
+                        continue;
+                    }
+                    string FieldName = m.TargetFullName.Substring(Math.Min(i + 2, m.TargetFullName.Length));
+
+                    FieldInfo field = m.IsStatic ? Extensions.GetStaticField(type, FieldName) : Extensions.GetField(type, FieldName);
+                    if (field?.FieldType != typeof(ParticleType)) {
+                        Log(LogLevel.Error, $"{SourcePath}{_ConfigName} ParticleModify:\n   Invalid field '{FieldName}' in '{ClassName}'");
+                        continue;
+                    }
+                    m.BaseField = field;
+                    if (m.IsStatic) {
+                        m.BaseParticle = (ParticleType)field.GetValue(null);
+                    }
+                }
+            }
+        }
+        private void ParticleModifyRefresh() {
+            if (ParticleModify != null) {
+                foreach (var m in ParticleModify) {
+                    if (m.IsStatic || m.BaseField == null) {
+                        continue;
+                    }
+                    try {
+                        m.BaseField.SetValue(lastEntity, m.NewParticleInit((ParticleType)m.BaseField.GetValue(lastEntity)));
+                    } catch (Exception e) {
+                        Logger.Log(LogLevel.Error, "SkinModHelper", $"{SourcePath}{_ConfigName} ParticleModify:\n   {e.Message}");
+                    }
+                }
+            }
+        }
+        #endregion
+
+        #region EntityTweaks
         public bool TweaksTEST;
         public List<Tweak> EntityTweaks { get; set; }
         public class Tweak {
-            public string Name { get; set; }
+            public string Name { get => name; set {
+                    string[] array = value.Split(',', 2, StringSplitOptions.TrimEntries);
+                    if (array.Length == 2) {
+                        Value = array[1];
+                    }
+                    name = array[0];
+                }
+            }
+            private string name;
             public string Value { get; set; }
             public string LimitOnType { get; set; }
 
             public bool subTEST;
             public List<Tweak> subTweaks { get; set; }
         }
-        #endregion
 
-        #region EntityTweaks Method
         private static List<Type> NotCloneList = new List<Type>() {
             typeof(Image)
         };
@@ -165,9 +388,9 @@ namespace Celeste.Mod.SkinModHelper {
                     if (!match)
                         continue;
                 }
-                FieldInfo f = GetFieldPlus(type, t.Name);
+                FieldInfo f = Extensions.GetField(type, t.Name);
                 if (f == null) {
-                    Logger.Log(TEST ? LogLevel.Warn : LogLevel.Info, "SkinModHelper", $"{SourcePath}skinConfig/CharacterConfig Tweaks error: \n Not found the Instance Field: {type}.{t.Name}");
+                    Logger.Log(TEST ? LogLevel.Warn : LogLevel.Info, "SkinModHelper", $"{SourcePath}skinConfig/CharacterConfig Tweaks error: \n Invalid field '{t.Name}' in '{type}'");
                     continue;
                 }
 
