@@ -6,6 +6,9 @@ The content here involves a new config, its structure and function is like this
 ```yaml
 HairAttrWithDashes:
 - < AttrWithDashes >  # color, lengths, scale.
+
+BangsOffset: [x],[y]
+HairOffset: [x],[y]
   
 HairFlash: [true/false]
 HairFloatingDashCount: [number]
@@ -51,6 +54,16 @@ If you want to go a step further, set attr ​​for individual segments, so use
 ```
 * Make the value of the segments work require set the corresponding value of the parent set also.
 
+
+---
+### HairOffset
+If your skin has custom bangs, or hair textures size larger than 10x10. it may will be offset and looks like baldeline even.
+<br>This can be used for re-offset it.
+```yaml
+BangsOffset: [number as X], [number as Y]
+HairOffset: [number as X], [number as Y]
+```
+btw if you want to add custom bangs and hair just put the `bangs00~02` and `hair00` etc textures in the sprites folder. they will work
 
 ---
 ### HairFlash

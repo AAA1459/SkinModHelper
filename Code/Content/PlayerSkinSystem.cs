@@ -49,8 +49,8 @@ namespace Celeste.Mod.SkinModHelper {
             On.Celeste.Payphone.Update += PayphoneUpdateHook_ColorGrade;
 
             On.Celeste.PlayerHair.Update += PlayerHairUpdateHook;
-            On.Celeste.PlayerHair.AfterUpdate += on_PlayerHair_AfterUpdate;
-
+            IL.Celeste.PlayerHair.AfterUpdate += il_PlayerHair_AfterUpdate;
+            
             On.Celeste.PlayerHair.GetHairColor += PlayerHairGetHairColorHook;
             On.Celeste.PlayerHair.GetHairTexture += PlayerHairGetHairTextureHook;
             On.Celeste.PlayerHair.GetHairScale += PlayerHairGetHairScaleHook;
@@ -95,7 +95,7 @@ namespace Celeste.Mod.SkinModHelper {
             On.Celeste.Payphone.Update -= PayphoneUpdateHook_ColorGrade;
 
             On.Celeste.PlayerHair.Update -= PlayerHairUpdateHook;
-            On.Celeste.PlayerHair.AfterUpdate -= on_PlayerHair_AfterUpdate;
+            IL.Celeste.PlayerHair.AfterUpdate -= il_PlayerHair_AfterUpdate;
 
             On.Celeste.PlayerHair.GetHairColor -= PlayerHairGetHairColorHook;
             On.Celeste.PlayerHair.GetHairTexture -= PlayerHairGetHairTextureHook;
@@ -517,12 +517,40 @@ namespace Celeste.Mod.SkinModHelper {
         #endregion
 
         #region PlayerHair
-        private static void on_PlayerHair_AfterUpdate(On.Celeste.PlayerHair.orig_AfterUpdate orig, PlayerHair self) {
-            // Hair fills its nodes basen on HairCount at AfterUpdate instead of Render... For safety, modify HairCount here.
-            if (DynamicData.For(self).TryGet("smh_HairLength", out int? length) && length != null)
-                self.Sprite.HairCount = (int)length;
+        private static void il_PlayerHair_AfterUpdate(ILContext il) {
+            ILCursor cursor = new ILCursor(il);
 
-            orig(self);
+            void SetHairLength(PlayerHair hair) {
+                if (DynamicData.For(hair).TryGet("smh_HairLength", out int? length) && length != null) {
+                    hair.Sprite.HairCount = (int)length;
+                }
+            }
+            Vector2 SetHairOffset(Vector2 orig, PlayerHair hair) {
+                if (HairConfig.For(hair).HairOffset is Vector2 vector) {
+                    return orig + vector;
+                }
+                return orig;
+            }
+            void SetBangsOffset(PlayerHair hair) {
+                HairConfig config = HairConfig.For(hair);
+                if (config.BangsOffset is Vector2 vector) {
+                    hair.Nodes[0] += new Vector2(vector.X * (float)hair.Facing, vector.Y);
+                }
+                if (config.HairOffset is Vector2 vector2) {
+                    hair.Nodes[0] -= new Vector2(vector2.X * (float)hair.Facing, vector2.Y);
+                }
+            }
+            cursor.Emit(OpCodes.Ldarg_0);
+            cursor.EmitDelegate(SetHairLength);
+
+            if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchCallvirt<PlayerSprite>("get_HairOffset"))) {
+                cursor.Emit(OpCodes.Ldarg_0);
+                cursor.EmitDelegate(SetHairOffset);
+            }
+            if (cursor.TryGotoNext(MoveType.Before, instr => instr.MatchRet())) {
+                cursor.Emit(OpCodes.Ldarg_0);
+                cursor.EmitDelegate(SetBangsOffset);
+            }
         }
         private static void PlayerHairUpdateHook(On.Celeste.PlayerHair.orig_Update orig, PlayerHair self) {
             DynamicData.For(self).Set("HairColorGrading", null);
@@ -563,7 +591,6 @@ namespace Celeste.Mod.SkinModHelper {
         }
 
         private static MTexture PlayerHairGetHairTextureHook(On.Celeste.PlayerHair.orig_GetHairTexture orig, PlayerHair self, int index) {
-
             HairConfig config = HairConfig.For(self);
             if (config.new_bangs != null && VanillaCharacterTextures.Contains($"{self.Sprite.Texture}")) {
                 if (DynamicData.For(self).Get("SMH_DisposableLog_aPhggdddd") == null) {
@@ -581,12 +608,10 @@ namespace Celeste.Mod.SkinModHelper {
                 MTexture hair = config.new_hairs.Count > self.Sprite.HairFrame ? config.new_hairs[self.Sprite.HairFrame] : config.new_hairs[0];
 
                 int ri = index - self.Sprite.HairCount;
-                if (GFX.Game.Has($"{hair}_{ri}"))
-                    return GFX.Game[$"{hair}_{ri}"]; //Set the texture for hair of each section from back to front.
-                else if (GFX.Game.Has($"{hair}_{index}"))
-                    return GFX.Game[$"{hair}_{index}"]; //Set the texture for hair of each section.
-                else
-                    return hair;
+                if (config.GetSubHairTexture(hair, ri, out MTexture subHair) || config.GetSubHairTexture(hair, index, out subHair)) {
+                    return subHair;
+                }
+                return hair;
             }
             return orig(self, index);
         }

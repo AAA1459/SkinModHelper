@@ -23,7 +23,7 @@ namespace Celeste.Mod.SkinModHelper {
         public const int FeatherIndexInAttrs = -1;
         public const int GeneralSegmentIndex = 100;
 
-        public HairConfig() { 
+        public HairConfig() {
         }
         public static HairConfig For(PlayerHair target) {
             DynamicData selfData = DynamicData.For(target);
@@ -39,8 +39,10 @@ namespace Celeste.Mod.SkinModHelper {
                     config.SourcePath = rootPath;
 
                     string hairPath = $"{OtherskinConfigs[isOld].OtherSprite_ExPath}/characters/player/";
-                    if (GFX.Game.HasAtlasSubtextures(hairPath + "bangs"))
+                    if (GFX.Game.HasAtlasSubtextures(hairPath + "bangs")) {
                         config.new_bangs = GFX.Game.GetAtlasSubtextures(hairPath + "bangs");
+                    }
+
                     if (GFX.Game.HasAtlasSubtextures(hairPath + "hair"))
                         config.new_hairs = GFX.Game.GetAtlasSubtextures(hairPath + "hair");
 
@@ -72,7 +74,6 @@ namespace Celeste.Mod.SkinModHelper {
             }
             return config;
         }
-
         #endregion
 
         #region Values
@@ -98,13 +99,37 @@ namespace Celeste.Mod.SkinModHelper {
         [YamlIgnore]
         public Dictionary<(int, int?), Vector2> ActualHairScales;
         #endregion
-        
+
         #region Configurable values
         public string OutlineColor { get; set; }
         public bool HairFlash { get; set; } = true;
 
         public bool HairFlipable { get; set; }
         public int? HairFloatingDashCount { get; set; }
+
+        [YamlMember(Alias = "BangsOffset")]
+        public string _BangsOffset {
+            get => $"{BangsOffset}"; set {
+                if (value.Split(',', 2, StringSplitOptions.TrimEntries) is string[] array
+                    && array.Length == 2 && int.TryParse(array[0], out int x) && int.TryParse(array[1], out int y)) {
+                    BangsOffset = new Vector2(x, y);
+                }
+            }
+        }
+        [YamlMember(Alias = "HairOffset")]
+        public string _HairOffset {
+            get => $"{HairOffset}"; set {
+                if (value.Split(',', 2, StringSplitOptions.TrimEntries) is string[] array
+                    && array.Length == 2 && int.TryParse(array[0], out int x) && int.TryParse(array[1], out int y)) {
+                    HairOffset = new Vector2(x, y);
+                }
+            }
+        }
+
+        [YamlIgnore]
+        public Vector2? BangsOffset;
+        [YamlIgnore]
+        public Vector2? HairOffset;
 
         public List<AttrWithDashes> HairAttrWithDashes {
             get => null; // Just for deserialization to recognize this property, don't use it here
@@ -390,6 +415,21 @@ namespace Celeste.Mod.SkinModHelper {
             scale = Vector2.Zero;
             return false;
         }
+
+
+        public bool GetSubHairTexture(MTexture parent, int index, out MTexture sub) {
+            string name = $"{parent}_{index}";
+            if (SegmentCache.TryGetValue(name, out sub)) {
+                return sub != null;
+            }
+            Atlas atlas = parent.Atlas ?? GFX.Game;
+            if (atlas.Has(name)) {
+                sub = atlas[name];
+            }
+            SegmentCache[name] = sub;
+            return sub != null;
+        }
+        private Dictionary<string, MTexture> SegmentCache = new();
         #endregion
     }
 }
