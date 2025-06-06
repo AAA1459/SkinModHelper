@@ -14,11 +14,6 @@ using Celeste.Mod.Helpers;
 using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.PlayerSkinSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
-using static Celeste.Mod.CelesteNet.DataTypes.DataInternalBlob;
-using YamlDotNet.Core.Tokens;
-using Celeste.Mod.CelesteNet;
-using System.Collections;
-using static Monocle.ParticleType;
 
 namespace Celeste.Mod.SkinModHelper {
     public class CharacterConfig {

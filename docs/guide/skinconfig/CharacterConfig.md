@@ -18,6 +18,9 @@ DeathParticleColor: [use six digit RGB hex code]
 
 HoldableFacingFlipable: [true/false]
 
+ParticleModify:
+- < particleModifier >
+
 ColorGradingAfterColored: [true/false]
 
 EntityTweaks:
@@ -37,7 +40,7 @@ If this contains what you need, follow these steps to use them:
 ### SilhouetteMode
 If you want to Color the entire target's sprites with its hair color, be like a silhouette.
 So use this:
-```
+```yaml
 SilhouetteMode: true
 ```
 Note: This also affects target's hair border color, just by default it is unaffected black.
@@ -46,11 +49,11 @@ Note: This also affects target's hair border color, just by default it is unaffe
 ### LowStaminaFlash
 When the player's stamina is almost deplete, the player will start flashing red.
 If you want to customize this flash color (especially when red is too intense for your skin), use this:
-```
+```yaml
 LowStaminaFlashColor: [use six digit RGB hex code]     # default color is "ff0000"
 ```
 If you want this flash effect to apply to the skin's hair as well, use:
-```
+```yaml
 LowStaminaFlashHair: true
 ```
 
@@ -58,7 +61,7 @@ LowStaminaFlashHair: true
 ### IdleAnimationChance
 When the player is playing the idle animation, the idle variant animations idleA, idleB, idleC will be plays randomly with different weight.
 If you think A, B, C are not enough. want even D, E... check this:
-```
+```yaml
 IdleColdOptions:
 - A, 3
 - B, 5
@@ -71,7 +74,7 @@ And the numbers are the weight of each animation when the game is going to play 
 NOTE: Don't ignore the basic A, B, C and only have D, E. Otherwise the game won't play them.
 
 And this, it can changes the frequency of the idle variant animations
-```
+```yaml
 IdleAnimationChance: [Numbers between 0 and 1]    
   # 1 is 100% to play the idle variants. The default value is 0.2 as 20%
 ```
@@ -82,7 +85,7 @@ IdleAnimationChance: [Numbers between 0 and 1]
 ### TrailsColor
 Certain entities will generate trails at times... such as bird, oshiro boss, seeker...
 if you want to recolor these trails, use this:
-```
+```yaml
 TrailsColor: [use six digit RGB hex code]
   # If the target is Badeline Chaser, you can set this to a special "HairColor"
 ```
@@ -92,7 +95,7 @@ NOTE: this is not applicable for players or silhouettes.
 ### DeathParticleColor
 Certain entities generate death particles with their color, 
 if you want to recolor these particlet, use this:
-```
+```yaml
 DeathParticleColor: [use six digit RGB hex code]
 ```
 
@@ -100,10 +103,54 @@ DeathParticleColor: [use six digit RGB hex code]
 ### HoldableFacingFlipable
 Theo Crystal or Glider entities is holdable for player, but their's sprites do not flip with moving...
 if you want change their to do, so: 
-```
+```yaml
 HoldableFacingFlipable: true
 ```
 Theory this also should work for the holdable entities of helpers, pls feedback if not.
+
+---
+### ParticleModify
+Used to modify specific particles emitted by an entity that have this skin. 
+
+Requires a certain code knowledge. 
+checking the content of `Celeste.ParticleType`, `Celeste.ParticleTypes` may also helps. and [here and search _**particleModifier**_](/Code/Config/CharacterConfig.cs)
+
+The way of use is to specify a field of `ParticleType` type and overwrite partial values. Here is a entire structure.
+```yaml
+ParticleModify:
+- TargetFullName: [CalssFullName]::[FieldName]    # e.g `Celeste.Player::P_CassetteFly`
+
+  Source: [String as texture path]
+    # Find and set a texture to particles near the folder that containing this config.
+  SourceChooser: [String list]
+    # Set multiple textures for particles... to randomly get one at every emitted.
+  # `Source` and `SourceChooser` cannot be set at the same time
+  
+  Color: [six digit RGB hex code]
+  Color2: [six digit RGB hex code]
+  ColorMode: [Static/Choose/Blink/Fade]    # Select one as value like `true` of [true/false]
+  FadeMode: [None/Linear/Late/InAndOut]
+  SpeedMin: [floats]
+  SpeedMax: [floats]
+  SpeedMultiplier: [floats]
+  Acceleration: [floats, floats]
+  Friction: [floats]
+  Direction: [floats]
+  DirectionRange: [floats]
+  LifeMin: [floats]
+  LifeMax: [floats]
+  Size: [floats]
+  SizeRange: [floats]
+  SpinMin: [floats]
+  SpinMax: [floats]
+  SpinFlippedChance: [true/false]
+  RotationMode: [None/Random/SameAsDirection]
+  ScaleOut: [true/false]
+  UseActualDeltaTime: [true/false]
+
+```
+
+
 
 
 ---
@@ -114,17 +161,18 @@ By default. SMH+ applying color grades _**before**_ hair and sprite is colored.
 it makes the character (especially hair) to be grayscale, solid etc by color grades are impossible...
 
 If you happen to want the character to be grayscale etc. add this in character config: 
-```
+```yaml
 ColorGradingAfterColored: true
 ```
 Like literally, it changes the default _**before**_ to _**after**_ there. <br>
 **If you want to change the local colors of character by color grading. ignore this.**
 
 ---
+
 ### _EntityTweaks_
 there maybe required you have some code knowledge... 
 it'll allow customize entity's any initial-value, any sprites:
-```
+```yaml
 EntityTweaks:
 - Name: [Field name]  
   Value: [Field's new value]
@@ -142,23 +190,6 @@ and, customize certain type's field require special values:
   * its starting point at the previous folder of "skinConfig", aka sprites folder.
 * if field type is _`Microsoft.Xna.Framework.Color`_, so value should be `[six digit RGB hex code, or eight digit RGBA]`
 * if field type is an _`enum`_... so value should be `[number]`, or enum value's name from code.
-
-and and... here is a demo for refill.
-```
-EntityTweaks:
-  - Name: "outline"     # MTexture type : sprite path
-    Value: "flash04"
-  - Name: "p_glow"   # ParticleType Type
-    subTweaks: 
-      - Name: "Size"       # Float type : number
-        Value: 1.6
-      - Name: "SizeRange"  # Float type : number
-        Value: 1.2
-      - Name: "Color"      # Color type : hex code
-        Value: "8351c888"
-      - Name: "Color2"     # Color type : hex code
-        Value: "5e29a8"
-```
 
 ---
 
