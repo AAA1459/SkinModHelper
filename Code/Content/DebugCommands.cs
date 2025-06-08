@@ -72,23 +72,6 @@ namespace Celeste.Mod.SkinModHelper {
                                     message = $"Changed SkinModHelper's backpack setting to '{smh_Settings.Backpack = (SkinModHelperSettings.BackpackMode)i}'";
                                 }
                                 break;
-
-                            case "disablehaircolor" or "dhc" or "pshcd" or "playerskinhaircolorsdisabled":
-                                if (help3) {
-                                    message = "Quick switch hidden settings of SkinModHelper... onoff for PlayerSkinHairColorsDisabled, available subcommands are on, true, off, false";
-                                } else if (TryParseToBoolen(command3, out bool boolen)) {
-                                    message = $"Changed SkinModHelper's PlayerSkinHairColorsDisabled setting to '{smh_Settings.PlayerSkinHairColorsDisabled = boolen}'";
-                                }
-                                break;
-
-                            case "disablehairlength" or "dhl" or "pshld" or "playerskinhairlengthsdisabled":
-                                if (help3) {
-                                    message = "Quick switch hidden settings of SkinModHelper... onoff for PlayerSkinHairLengthsDisabled, available subcommands are on, true, off, false";
-                                } else if (TryParseToBoolen(command3, out bool boolen)) {
-                                    message = $"Changed SkinModHelper's PlayerSkinHairLengthsDisabled setting to '{smh_Settings.PlayerSkinHairLengthsDisabled = boolen}'";
-                                }
-                                break;
-
                             case "psgp" or "playerskinxmlgreatestpriority":
                                 if (help3) {
                                     message = "Quick switch hidden settings of SkinModHelper... onoff for PlayerSkinXmlGreatestPriority, available subcommands are on, true, off, false";

@@ -49,8 +49,7 @@ namespace Celeste.Mod.SkinModHelper {
                     if (target.Entity is Player) {
                         config.oldHairColors = OtherskinOldConfig[isOld].HairColors ?? new();
                         config.HairFlash = false;
-                        if (!smh_Settings.PlayerSkinHairColorsDisabled)
-                            config.Old_BuildHairColors();
+                        config.Old_BuildHairColors();
                     }
                 } else {
                     ModAsset asset = GetAssetOnSprite<AssetTypeYaml>(target.Sprite, "skinConfig/HairConfig");
@@ -94,6 +93,10 @@ namespace Celeste.Mod.SkinModHelper {
         public Dictionary<int, List<Color>> ActualHairColors;
         [YamlIgnore]
         public Dictionary<int, int> ActualHairLengths;
+        [YamlIgnore]
+        public bool ColorsActive = true;
+        [YamlIgnore]
+        public bool LengthsActive = true;
 
         /// <summary>The <see cref="Vector2"/> here mean both root and end scales, not x,y.</summary>
         [YamlIgnore]
@@ -261,9 +264,9 @@ namespace Celeste.Mod.SkinModHelper {
                 }
             }
             bool ForceColors = HairFlash == false || AssetExists<AssetTypeDirectory>(GFX.Game.RelativeDataPath + getAnimationRootPath(attached.Sprite, "idle") + "ColorGrading");
-            if ((Colors.Count > 0 || ForceColors) && !(smh_Settings.PlayerSkinHairColorsDisabled && attached.Entity is Player))
+            if ((Colors.Count > 0 || ForceColors))
                 HairColorsProcess(Colors, ColorsMaxNum);
-            if (Lengths.Count > 0 && !(smh_Settings.PlayerSkinHairLengthsDisabled && attached.Entity is Player))
+            if (Lengths.Count > 0)
                 ActualHairLengths = Lengths;
             if (Scales.Count > 0)
                 ActualHairScales = Scales;
@@ -360,7 +363,7 @@ namespace Celeste.Mod.SkinModHelper {
 
         #region Method
         public bool Safe_GetHairColor(int dashes, out Color color) {
-            if (ActualHairColors == null || dashes < 0) {
+            if (ActualHairColors == null || !ColorsActive || dashes < 0) {
                 color = new();
                 return false;
             }
@@ -369,7 +372,7 @@ namespace Celeste.Mod.SkinModHelper {
             return true;
         }
         public bool Safe_GetHairColor(int index, int dashes, out Color color) {
-            if (ActualHairColors == null || dashes < 0) {
+            if (ActualHairColors == null || !ColorsActive || dashes < 0) {
                 color = new();
                 return false;
             }
@@ -381,7 +384,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
 
         public int? GetHairLength(int? get_dashes) {
-            if (get_dashes == null || ActualHairLengths == null) {
+            if (!LengthsActive || get_dashes == null || ActualHairLengths == null) {
                 return null;
             }
             // dashes is -1 for when player into flyFeathers state.
@@ -415,21 +418,6 @@ namespace Celeste.Mod.SkinModHelper {
             scale = Vector2.Zero;
             return false;
         }
-
-
-        public bool GetSubHairTexture(MTexture parent, int index, out MTexture sub) {
-            string name = $"{parent}_{index}";
-            if (SegmentCache.TryGetValue(name, out sub)) {
-                return sub != null;
-            }
-            Atlas atlas = parent.Atlas ?? GFX.Game;
-            if (atlas.Has(name)) {
-                sub = atlas[name];
-            }
-            SegmentCache[name] = sub;
-            return sub != null;
-        }
-        private Dictionary<string, MTexture> SegmentCache = new();
         #endregion
     }
 }

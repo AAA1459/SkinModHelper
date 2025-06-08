@@ -40,6 +40,14 @@ namespace Celeste.Mod.SkinModHelper.Interop {
         }
 
 
+        public static void SetHairConfigColor_Active(PlayerHair hair, bool onoff) {
+            HairConfig.For(hair).ColorsActive = onoff;
+        }
+        public static void SetHairConfigLengths_Active(PlayerHair hair, bool onoff) {
+            HairConfig.For(hair).LengthsActive = onoff;
+        }
+
+
         public static string GetPlayerSkinNameForGlobal() {
             return SkinModHelperModule.GetPlayerSkinName(Player_Skinid_verify);
         }

@@ -74,7 +74,6 @@ namespace Celeste.Mod.SkinModHelper {
                 cursor.Emit(OpCodes.Stsfld, typeof(ParticleModify).GetField("Tracked", BindingFlags.NonPublic | BindingFlags.Static));
             }
             void Redirect(Entity entity) {
-                OnceLog(LogLevel.Error, "EntityList works");
                 switch (entity) {
                     case NPC05_Badeline npc05:
                         Tracked = npc05.shadow; // BadelineOldsite.P_Vanish

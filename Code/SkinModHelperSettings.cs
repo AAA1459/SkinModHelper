@@ -27,10 +27,6 @@ namespace Celeste.Mod.SkinModHelper {
 
         [SettingIgnore]
         public bool PlayerSkinGreatestPriority { get; set; } = false;
-        [SettingIgnore]
-        public bool PlayerSkinHairColorsDisabled { get; set; } = false;
-        [SettingIgnore]
-        public bool PlayerSkinHairLengthsDisabled { get; set; } = false;
 
         public enum BackpackMode { Default, Invert, Off, On }
         private BackpackMode backpack = BackpackMode.Default;
