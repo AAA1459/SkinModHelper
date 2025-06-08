@@ -16,6 +16,7 @@ using System.Text.RegularExpressions;
 using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 using Celeste.Mod.SkinModHelper.CelesteNet;
+using static Celeste.Mod.CelesteNet.DataTypes.DataInternalBlob;
 
 namespace Celeste.Mod.SkinModHelper {
     public static class PlayerSkinSystem {
@@ -607,9 +608,9 @@ namespace Celeste.Mod.SkinModHelper {
             } else if (config.new_hairs != null) {
                 MTexture hair = config.new_hairs.Count > self.Sprite.HairFrame ? config.new_hairs[self.Sprite.HairFrame] : config.new_hairs[0];
 
-                int ri = index - self.Sprite.HairCount;
-                if (config.GetSubHairTexture(hair, ri, out MTexture subHair) || config.GetSubHairTexture(hair, index, out subHair)) {
-                    return subHair;
+                string name = $"{hair}_{index - self.Sprite.HairCount}";
+                if (GFX.Game.Has(name) || GFX.Game.Has(name = $"{hair}_{index}")) {
+                    return GFX.Game[name];
                 }
                 return hair;
             }

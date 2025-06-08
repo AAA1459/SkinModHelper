@@ -27,8 +27,8 @@ namespace Celeste.Mod.SkinModHelper {
             On.Celeste.FlyFeather.Added += Celeste_flyFeather_Hook;
 
             On.Celeste.Refill.Added += Celeste_Refill_Hook;
-            On.Monocle.Entity.Added += EntityAddedHook;
 
+            IL.Monocle.EntityList.UpdateLists += ilEntityList_UpdateList;
             // Hooking an anonymous delegate of Seeker
             doneILHooks.Add(new ILHook(typeof(Seeker).GetMethod("<.ctor>b__58_2", BindingFlags.NonPublic | BindingFlags.Instance), Celeste_Seeker_ILHook));
         }
@@ -40,7 +40,7 @@ namespace Celeste.Mod.SkinModHelper {
             On.Celeste.FlyFeather.Added -= Celeste_flyFeather_Hook;
 
             On.Celeste.Refill.Added -= Celeste_Refill_Hook;
-            On.Monocle.Entity.Added -= EntityAddedHook;
+            IL.Monocle.EntityList.UpdateLists -= ilEntityList_UpdateList;
         }
         #endregion
 
@@ -141,19 +141,24 @@ namespace Celeste.Mod.SkinModHelper {
         #endregion
 
         #region BadelineBoost
-        private static void EntityAddedHook(On.Monocle.Entity.orig_Added orig, Entity self, Scene scene) {
+        public static void ilEntityList_UpdateList(ILContext il) {
+            ILCursor cursor = new(il);
 
-            // You can see... DJMapHelper and StrawberryJam's BadelineBoost works not as an BadelineBoost type... so let hooking here
-            if (self.GetType().Name.Contains("BadelineBoost")) {
-                BadelineBoost_stretchReskin(self);
-            }
+            var addedEntityLoc = -1;
+            cursor.GotoNext(MoveType.Before, instr => instr.MatchCallvirt<Entity>("Added"));
+            cursor.GotoPrev(MoveType.After, instr => instr.MatchLdloc(out addedEntityLoc));
+            cursor.GotoNext(MoveType.After, instr => instr.MatchCallvirt<Entity>("Added"));
 
-            orig(self, scene);
+            cursor.Emit(OpCodes.Ldloc, addedEntityLoc);
+            cursor.EmitDelegate(BadelineBoost_stretchReskin);
         }
-        private static void BadelineBoost_stretchReskin(Entity self) {
-            Image stretch = Extensions.GetField<Image>(self, "stretch");
-            Sprite sprite = self.Get<Sprite>();
-            
+        private static void BadelineBoost_stretchReskin(Entity entity) {
+            if (!entity.GetType().Name.Contains("BadelineBoost")) {
+                return;
+            }
+            Image stretch = Extensions.GetField<Image>(entity, "stretch");
+            Sprite sprite = entity.Get<Sprite>();
+
             if (stretch != null && sprite != null) {
                 if (GetTextureOnSprite(sprite, "stretch", out var stretch2)) {
                     stretch.Texture = stretch2;

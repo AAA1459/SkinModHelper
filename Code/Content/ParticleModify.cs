@@ -23,20 +23,18 @@ namespace Celeste.Mod.SkinModHelper {
     public static class ParticleModify {
         #region Hooks
         public static void Load() {
-            IL.Monocle.EntityList.Update += onEntityList_Update;
-
-            
+            IL.Monocle.EntityList.Update += ilEntityList_Update;
             On.Celeste.PlayerCollider.Check += PlayerCollider_Check; // For Key.P_Collect.
+
             doneILHooks.Add(new ILHook(typeof(Key).GetMethod("UseRoutine", BindingFlags.Public | BindingFlags.Instance).GetStateMachineTarget(), il_OverrideTracked));
             doneILHooks.Add(new ILHook(typeof(NPC01_Theo).GetMethod("Yolo", BindingFlags.NonPublic | BindingFlags.Instance).GetStateMachineTarget(), il_OverrideTracked));
-
             On.Celeste.Holdable.Pickup += onHoldable_Pickup; // For Glider.P_Platform
 
             // Various cutscenes
             On.Celeste.BadelineDummy.Appear += onBadelineDummy_Appear;
             On.Celeste.BadelineDummy.Vanish += onBadelineDummy_Vanish;
             On.Celeste.Player.CreateSplitParticles += onPlayer_CreateSplitParticles;
-
+            
             IL.Monocle.ParticleEmitter.Simulate += ilParticleEmitter_Simulate;
             On.Monocle.ParticleSystem.Emit_ParticleType_Vector2 += onParticleSystem_Emit_PtclV2;
             On.Monocle.ParticleSystem.Emit_ParticleType_Vector2_float += onParticleSystem_Emit_PtclV2F;
@@ -45,8 +43,12 @@ namespace Celeste.Mod.SkinModHelper {
         }
 
         public static void Unload() {
-            IL.Monocle.EntityList.Update -= onEntityList_Update;
+            IL.Monocle.EntityList.Update -= ilEntityList_Update;
             On.Celeste.PlayerCollider.Check -= PlayerCollider_Check;
+            On.Celeste.Holdable.Pickup -= onHoldable_Pickup;
+            On.Celeste.BadelineDummy.Appear -= onBadelineDummy_Appear;
+            On.Celeste.BadelineDummy.Vanish -= onBadelineDummy_Vanish;
+            On.Celeste.Player.CreateSplitParticles -= onPlayer_CreateSplitParticles;
 
             IL.Monocle.ParticleEmitter.Simulate -= ilParticleEmitter_Simulate;
             On.Monocle.ParticleSystem.Emit_ParticleType_Vector2 -= onParticleSystem_Emit_PtclV2;
@@ -56,9 +58,12 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion 
 
-        private static void onEntityList_Update(ILContext il) {
+        private static void ilEntityList_Update(ILContext il) {
             ILCursor cursor = new ILCursor(il);
+
             if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchStloc(1))) {
+                Log(LogLevel.Verbose, $"EntityList_Update IL at {cursor.Index} in CIL code for {cursor.Method.FullName}");
+
                 cursor.Emit(OpCodes.Ldnull);
                 cursor.Emit(OpCodes.Stsfld, typeof(ParticleModify).GetField("OverrideTracked", BindingFlags.NonPublic | BindingFlags.Static));
                 cursor.Emit(OpCodes.Ldloc_1);
@@ -69,6 +74,7 @@ namespace Celeste.Mod.SkinModHelper {
                 cursor.Emit(OpCodes.Stsfld, typeof(ParticleModify).GetField("Tracked", BindingFlags.NonPublic | BindingFlags.Static));
             }
             void Redirect(Entity entity) {
+                OnceLog(LogLevel.Error, "EntityList works");
                 switch (entity) {
                     case NPC05_Badeline npc05:
                         Tracked = npc05.shadow; // BadelineOldsite.P_Vanish
@@ -98,6 +104,8 @@ namespace Celeste.Mod.SkinModHelper {
             ILCursor cursor = new ILCursor(il);
 
             while (cursor.TryGotoNext(MoveType.Before, instr => instr.MatchCallvirt<ParticleSystem>("Emit"))) {
+                Log(LogLevel.Verbose, $"ParticleModifyIL at {cursor.Index} in CIL code for {cursor.Method.FullName}");
+
                 cursor.Emit(OpCodes.Ldloc_1); // NPC01_Theo or Key...
                 cursor.Emit(OpCodes.Stsfld, typeof(ParticleModify).GetField("OverrideTracked", BindingFlags.NonPublic | BindingFlags.Static));
                 cursor.GotoNext(MoveType.After, instr => instr.MatchCallvirt<ParticleSystem>("Emit"));
