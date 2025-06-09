@@ -19,6 +19,7 @@ namespace Celeste.Mod.SkinModHelper {
     public class HairConfig {
         #region Ctor / Initialization
         internal const string _DynamicDataKey = "smh_hairConfig";
+        internal const string _ConfigName = "skinConfig/HairConfig";
 
         public const int FeatherIndexInAttrs = -1;
         public const int GeneralSegmentIndex = 100;
@@ -52,7 +53,7 @@ namespace Celeste.Mod.SkinModHelper {
                         config.Old_BuildHairColors();
                     }
                 } else {
-                    ModAsset asset = GetAssetOnSprite<AssetTypeYaml>(target.Sprite, "skinConfig/HairConfig");
+                    ModAsset asset = GetAssetOnSprite<AssetTypeYaml>(target.Sprite, _ConfigName);
                     config = AssetIntoConfig<HairConfig>(asset) ?? new();
                     config.Source = asset;
                     config.attached = target;
@@ -406,12 +407,12 @@ namespace Celeste.Mod.SkinModHelper {
             while (dashes > 2 && !ActualHairScales.ContainsKey((dashes, null))) {
                 dashes--;
             }
-            if (ActualHairScales.TryGetValue((dashes, null), out Vector2 float2)) {
-                if (ActualHairScales.TryGetValue((dashes, index - attached.Sprite.HairCount), out Vector2 float2b) || ActualHairScales.TryGetValue((dashes, index), out float2b)) {
-                    float2 = float2b;
+            if (ActualHairScales.TryGetValue((dashes, null), out Vector2 vector)) {
+                if (ActualHairScales.TryGetValue((dashes, index - attached.Sprite.HairCount), out Vector2 vectorAlt) || ActualHairScales.TryGetValue((dashes, index), out vectorAlt)) {
+                    vector = vectorAlt;
                 }
                 // float2.X mean the root scale, float2.Y mean the end scale.
-                float num = float2.X + ((float)index / (float)(attached.Sprite.HairCount - 1)) * (float2.Y - float2.X);
+                float num = vector.Y + (1f - (float)index / (float)(attached.Sprite.HairCount)) * (vector.X - vector.Y);
                 scale = new Vector2(num * Math.Abs(attached.Sprite.Scale.X), num);
                 return true;
             }

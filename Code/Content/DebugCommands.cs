@@ -56,7 +56,7 @@ namespace Celeste.Mod.SkinModHelper {
                     return;
                 case "settings":
                     if (help2) {
-                        message = "Quick changes SkinModHelper setting. and available subcommands are \n  saving, backpack, disablehaircolor(dhc), disablehairlength(dhl), playerskinxmlgreatestpriority(psgp)";
+                        message = "Quick changes SkinModHelper setting. and available subcommands are \n  saving, backpack, PlayerSkinXmlGreatestPriority(psgp)";
                     } else {
                         #region
                         switch (command2) {
