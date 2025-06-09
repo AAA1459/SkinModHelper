@@ -118,7 +118,7 @@ checking the content of `Celeste.ParticleType`, `Celeste.ParticleTypes` may also
 The way of use is to specify a field of `ParticleType` type and overwrite partial values. Here is a entire structure.
 ```yaml
 ParticleModify:
-- TargetFullName: [CalssFullName]::[FieldName]    # e.g `Celeste.Player::P_CassetteFly`
+- TargetFullName: [ClassFullName]::[FieldName]    # e.g `Celeste.Player::P_CassetteFly`
 
   Source: [String as texture path]
     # Find and set a texture to particles near the folder that containing this config.
