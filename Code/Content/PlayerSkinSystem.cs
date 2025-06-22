@@ -48,7 +48,7 @@ namespace Celeste.Mod.SkinModHelper {
 
             On.Celeste.Lookout.Update += LookoutUpdateHook_ColorGrade;
             On.Celeste.Payphone.Update += PayphoneUpdateHook_ColorGrade;
-
+            
             On.Celeste.PlayerHair.Update += PlayerHairUpdateHook;
             IL.Celeste.PlayerHair.AfterUpdate += il_PlayerHair_AfterUpdate;
             
@@ -206,14 +206,17 @@ namespace Celeste.Mod.SkinModHelper {
             if (self.Sprite != null) {
                 DynamicData.For(self.Sprite).Set("smh_AnimPrefix", smh_Session?.Player_animPrefixAddOn);
             }
+            HairConfig hairConfig = HairConfig.For(self.Hair);
+            int dashCount = (int)GetDashCount(self, self.Sprite);
+            if (self.StateMachine.State != Player.StRedDash && hairConfig.GetHairLength(dashCount) is int length) {
+                self.Sprite.HairCount = length;
+            }
 
             // in there, DJMapHelper's MaxDashesTrigger setting OverrideHairColor for 0 dashes blue hair, let's reset it to skin's 0 dashes color.
             if (self.OverrideHairColor != Player.UsedHairColor) {
                 return;
             }
-            HairConfig hairConfig = HairConfig.For(self.Hair);
-            int? dashCount = GetDashCount(self, self.Sprite);
-            if (dashCount != null && (self.Hair.Color != Color.White || hairConfig.HairFlash == false) && hairConfig.Safe_GetHairColor((int)dashCount, out Color color)) {
+            if ((self.Hair.Color != Color.White || hairConfig.HairFlash == false) && hairConfig.Safe_GetHairColor(dashCount, out Color color)) {
                 self.Hair.Color = color;
             }
         }
@@ -522,8 +525,8 @@ namespace Celeste.Mod.SkinModHelper {
             ILCursor cursor = new ILCursor(il);
 
             void SetHairLength(PlayerHair hair) {
-                if (DynamicData.For(hair).TryGet("smh_HairLength", out int? length) && length != null) {
-                    hair.Sprite.HairCount = (int)length;
+                if (hair.Entity is not Player && HairConfig.For(hair).GetHairLength(GetDashCount(hair.Entity, hair.Sprite)) is int length) {
+                    hair.Sprite.HairCount = length;
                 }
             }
             Vector2 SetHairOffset(Vector2 orig, PlayerHair hair) {
@@ -580,12 +583,6 @@ namespace Celeste.Mod.SkinModHelper {
                 }
                 orig(self);
                 self.Border = border;
-
-                int? HairLength = hairConfig.GetHairLength(get_dashCount);
-                if (self.Entity is Player player && player.StateMachine.State == Player.StRedDash) {
-                    HairLength = null;
-                }
-                selfData.Set("smh_HairLength", HairLength);
                 return;
             }
             orig(self);
