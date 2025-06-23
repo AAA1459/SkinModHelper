@@ -17,7 +17,6 @@ using System.Linq;
 using System.Diagnostics;
 
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
-using Celeste.Mod.CelesteNet.Client;
 
 namespace Celeste.Mod.SkinModHelper {
     public static class SkinsSystem {

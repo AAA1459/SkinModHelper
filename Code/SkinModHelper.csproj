@@ -49,8 +49,11 @@
 
 	<!--Include Celeste.dll and MMHOOK_Celeste.dll-->
 	<ItemGroup>
-		<Reference Include="$(CelestePrefix)\MMHOOK_Celeste.dll">
-			<Private>false</Private>
+		<Reference Include="MMHOOK_Celeste">
+		  <HintPath>..\..\dll\5509__MMHOOK_Celeste.dll</HintPath>
+		</Reference>
+		<Reference Include="FNA">
+		  <HintPath>..\..\dll\5509__FNA.dll</HintPath>
 		</Reference>
 		<Reference Include="CelesteNet.Client">
 		  <HintPath>..\..\dll\CelesteNet.Client.dll</HintPath>
@@ -62,13 +65,7 @@
 
 	<!--Include XNA or FNA-->
 	<Choose>
-		<When Condition="'$(CelesteType)' == 'FNA'">
-			<ItemGroup>
-				<Reference Include="$(CelestePrefix)\FNA.dll">
-					<Private>false</Private>
-				</Reference>
-			</ItemGroup>
-		</When>
+		<When Condition="'$(CelesteType)' == 'FNA'" />
 
 		<When Condition="'$(CelesteType)' == 'XNA'">
 			<ItemGroup>
