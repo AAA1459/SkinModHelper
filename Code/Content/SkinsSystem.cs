@@ -571,7 +571,7 @@ namespace Celeste.Mod.SkinModHelper {
             return c.A == 0 ? 0f : c.A / 255f;
         }
         /// <summary> 
-        /// A method similar to Color.Multiply, but ignore alpha value
+        /// A method similar to Color.Multiply, but not change alpha value of "c1".
         /// </summary>
         public static Color ColorBlend(Color c1, object obj) {
             if (obj is Color c2 && c2.A != 0) {

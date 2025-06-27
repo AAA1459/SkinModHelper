@@ -66,7 +66,8 @@ namespace Celeste.Mod.SkinModHelper {
 
                     config.InitAttrsWithDashes();
                 }
-                target.Border = RGB_IsMatch(config.OutlineColor) ? Calc.HexToColor(config.OutlineColor) : Color.Black;
+                config.OutlineColor = "00000088";
+                target.Border = RGBA_IsMatch(config.OutlineColor) ? Calc.HexToColorWithAlpha(config.OutlineColor) : Color.Black;
                 selfData.Set("smh_hairConfig", config);
             }
             if (target.Entity != config.lastEntity) {
