@@ -7,8 +7,10 @@ The content here involves a new config, its structure and function is like this
 HairAttrWithDashes:
 - < AttrWithDashes >  # color, lengths, scale.
 
-BangsOffset: [x],[y]
-HairOffset: [x],[y]
+HairFlipMode: [None/SyncBangs/FacingBangs/FacingPrevHair]
+
+BangsOrigin: [x],[y]
+HairOrigin: [x],[y]
   
 HairFlash: [true/false]
 HairFloatingDashCount: [number]
@@ -24,6 +26,18 @@ If this contains what you need, follow these steps to use them:
    * Example path: `../Gameplay/[target sprites's directory]/skinConfig/HairConfig.yaml`
 4. Copy the fields you need and specify their values in `HairConfig.yaml`
    * For fields details, refer below.
+
+---
+### CustomHair
+if you want to add custom bangs and hair.
+just put the `bangs00~02` and `hair00` etc textures in the sprites directory. they will work
+
+You can also add more `hair01`, `hair02` on this basis. They will be displayed together with `bangs01`, etc.
+
+If you want something more advanced, You can set independent textures for specific segments of hair.
+<br>e.g `hair00_3` as the _third_ segment. `hair00_-1` as the _one to last_ segment.
+
+(No need to operate the config file but still write it here)
 
 ---
 ### HairAttrWithDashes
@@ -56,14 +70,29 @@ If you want to go a step further, set attr ​​for individual segments, so use
 
 
 ---
-### HairOffset
-If your skin has custom bangs, or hair textures size larger than 10x10. it may will be offset and looks like baldeline even.
-<br>This can be used for re-offset it.
-```yaml
-BangsOffset: [number as X], [number as Y]
-HairOffset: [number as X], [number as Y]
+### HairFlipMode
+Vanilla only flips bangs based on player facing, not hair.
+
+So we provide the following ways to flip your hair. You can choose them.
 ```
-btw if you want to add custom bangs and hair just put the `bangs00~02` and `hair00` etc textures in the sprites folder. they will work
+HairFlipMode: [None/SyncBangs/FacingBangs/FacingPrevHair]    # The default value is "None"
+```
+* If its value is `None`. they just not to flips. just vanilla.
+* If its value is `SyncBangs`. all segments will sync the bangs facing.
+* If its value is `FacingBangs`... the segments will facing to bangs.
+* If its value is `FacingPrevHair`. the segments will facing its previous segment.
+
+---
+### HairOrigin
+Vanilla assumes the center position of the hair texture is `5,5`. then flip and render them from there.
+
+If your hair texture size is larger than vanilla hair with 10x10. The player may become baldelline. Or hair cannot be flipped correctly
+
+And here. can re-set the center position of the hair to avoid these.
+```yaml
+BangsOrigin: [number as X], [number as Y]
+HairOrigin: [number as X], [number as Y]
+```
 
 ---
 ### HairFlash

@@ -50,8 +50,9 @@ namespace Celeste.Mod.SkinModHelper {
             On.Celeste.Payphone.Update += PayphoneUpdateHook_ColorGrade;
             
             On.Celeste.PlayerHair.Update += PlayerHairUpdateHook;
+            IL.Celeste.PlayerHair.Render += il_PlayerHair_Render;
             IL.Celeste.PlayerHair.AfterUpdate += il_PlayerHair_AfterUpdate;
-            
+
             On.Celeste.PlayerHair.GetHairColor += PlayerHairGetHairColorHook;
             On.Celeste.PlayerHair.GetHairTexture += PlayerHairGetHairTextureHook;
             On.Celeste.PlayerHair.GetHairScale += PlayerHairGetHairScaleHook;
@@ -529,33 +530,31 @@ namespace Celeste.Mod.SkinModHelper {
                     hair.Sprite.HairCount = length;
                 }
             }
-            Vector2 SetHairOffset(Vector2 orig, PlayerHair hair) {
-                if (HairConfig.For(hair).HairOffset is Vector2 vector) {
-                    return orig + vector;
-                }
-                return orig;
-            }
-            void SetBangsOffset(PlayerHair hair) {
-                HairConfig config = HairConfig.For(hair);
-                if (config.BangsOffset is Vector2 vector) {
-                    hair.Nodes[0] += new Vector2(vector.X * (float)hair.Facing, vector.Y);
-                }
-                if (config.HairOffset is Vector2 vector2) {
-                    hair.Nodes[0] -= new Vector2(vector2.X * (float)hair.Facing, vector2.Y);
-                }
-            }
             cursor.Emit(OpCodes.Ldarg_0);
             cursor.EmitDelegate(SetHairLength);
+        }
+        private static void il_PlayerHair_Render(ILContext il) {
+            ILCursor cursor = new ILCursor(il);
 
-            if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchCallvirt<PlayerSprite>("get_HairOffset"))) {
-                cursor.Emit(OpCodes.Ldarg_0);
-                cursor.EmitDelegate(SetHairOffset);
+            Vector2 ChangeHairOrigin(PlayerHair hair, int index) {
+                return index == 0 ? HairConfig.For(hair).BangsOrigin : HairConfig.For(hair).HairOrigin;
             }
-            if (cursor.TryGotoNext(MoveType.Before, instr => instr.MatchRet())) {
+
+            if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchCallvirt<PlayerHair>("GetHairTexture"))) {
                 cursor.Emit(OpCodes.Ldarg_0);
-                cursor.EmitDelegate(SetBangsOffset);
+                cursor.Emit(OpCodes.Ldloc, 5);
+                cursor.EmitDelegate(ChangeHairOrigin);
+                cursor.Emit(OpCodes.Stloc, 1);
+            }
+            if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchCallvirt<PlayerHair>("GetHairTexture"))) {
+                cursor.Emit(OpCodes.Ldarg_0);
+                cursor.Emit(OpCodes.Ldloc, 7);
+                cursor.EmitDelegate(ChangeHairOrigin);
+                cursor.Emit(OpCodes.Stloc, 1);
             }
         }
+
+
         private static void PlayerHairUpdateHook(On.Celeste.PlayerHair.orig_Update orig, PlayerHair self) {
             DynamicData.For(self).Set("HairColorGrading", null);
 
@@ -628,10 +627,10 @@ namespace Celeste.Mod.SkinModHelper {
             HairConfig hairConfig = HairConfig.For(self);
             int? dashes = GetDashCount(self.Entity, self.Sprite);
 
-            if (dashes != null && hairConfig.GetHairScale(index, dashes.Value, out Vector2 scale)) {
-                return scale;
+            if (dashes == null || !hairConfig.GetHairScale(index, dashes.Value, out Vector2 scale)) {
+                scale = orig(self, index);
             }
-            return orig(self, index);
+            return hairConfig.FlipHair(scale, index);
         }
         #endregion
 

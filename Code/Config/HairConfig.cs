@@ -66,7 +66,6 @@ namespace Celeste.Mod.SkinModHelper {
 
                     config.InitAttrsWithDashes();
                 }
-                config.OutlineColor = "00000088";
                 target.Border = RGBA_IsMatch(config.OutlineColor) ? Calc.HexToColorWithAlpha(config.OutlineColor) : Color.Black;
                 selfData.Set("smh_hairConfig", config);
             }
@@ -108,33 +107,23 @@ namespace Celeste.Mod.SkinModHelper {
         #region Configurable values
         public string OutlineColor { get; set; }
         public bool HairFlash { get; set; } = true;
-
-        public bool HairFlipable { get; set; }
         public int? HairFloatingDashCount { get; set; }
+        public enum HairFlipModes { None, SyncBangs, FacingBangs, FacingPrevHair }
+        public HairFlipModes HairFlipMode { get; set; } = HairFlipModes.None;
 
-        [YamlMember(Alias = "BangsOffset")]
-        public string _BangsOffset {
-            get => $"{BangsOffset}"; set {
-                if (value.Split(',', 2, StringSplitOptions.TrimEntries) is string[] array
-                    && array.Length == 2 && int.TryParse(array[0], out int x) && int.TryParse(array[1], out int y)) {
-                    BangsOffset = new Vector2(x, y);
-                }
-            }
+        [YamlMember(Alias = "BangsOrigin")]
+        public string _BangsOrigin {
+            get => null; set { BangsOrigin = StringToVector2(value); }
         }
-        [YamlMember(Alias = "HairOffset")]
-        public string _HairOffset {
-            get => $"{HairOffset}"; set {
-                if (value.Split(',', 2, StringSplitOptions.TrimEntries) is string[] array
-                    && array.Length == 2 && int.TryParse(array[0], out int x) && int.TryParse(array[1], out int y)) {
-                    HairOffset = new Vector2(x, y);
-                }
-            }
+        [YamlMember(Alias = "HairOrigin")]
+        public string _HairOrigin {
+            get => null; set { HairOrigin = StringToVector2(value); }
         }
+        [YamlIgnore]
+        public Vector2 BangsOrigin = new Vector2(5f, 5f);
+        [YamlIgnore]
+        public Vector2 HairOrigin = new Vector2(5f, 5f);
 
-        [YamlIgnore]
-        public Vector2? BangsOffset;
-        [YamlIgnore]
-        public Vector2? HairOffset;
 
         public List<AttrWithDashes> HairAttrWithDashes {
             get => null; // Just for deserialization to recognize this property, don't use it here
@@ -225,7 +214,16 @@ namespace Celeste.Mod.SkinModHelper {
             public int Dashes { get; set; }
             public int Length { get; set; }
         }
-
+        public string BangsOffset {
+            get => null; set {
+                BangsOrigin += StringToVector2(value);
+            }
+        }
+        public string HairOffset {
+            get => null; set {
+                HairOrigin += StringToVector2(value);
+            }
+        }
         #endregion
 
         #region InitAttrsWithDashes
@@ -419,6 +417,26 @@ namespace Celeste.Mod.SkinModHelper {
             }
             scale = Vector2.Zero;
             return false;
+        }
+        public Vector2 FlipHair(Vector2 scale, int index) {
+            if (index > 0) {
+                switch (HairFlipMode) {
+                    case HairFlipModes.SyncBangs:
+                        scale.X *= (float)attached.Facing;
+                        break;
+                    case HairFlipModes.FacingBangs:
+                        float f = attached.Nodes[index].X - attached.Nodes[0].X;
+                        scale.X *= (f < 0f ? 1 : -1);
+                        break;
+                    case HairFlipModes.FacingPrevHair:
+                        f = attached.Nodes[index].X - attached.Nodes[index - 1].X;
+                        scale.X *= (f < 0f ? 1 : -1);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            return scale;
         }
         #endregion
     }

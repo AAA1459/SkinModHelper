@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Celeste.Mod.Helpers;
-using System.Diagnostics.CodeAnalysis;
-using System.Text.RegularExpressions;
+using Microsoft.Xna.Framework;
+using YamlDotNet.Core.Tokens;
 
 namespace Celeste.Mod.SkinModHelper {
     public static class Extensions {
