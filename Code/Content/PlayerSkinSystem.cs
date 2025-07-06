@@ -16,7 +16,6 @@ using System.Text.RegularExpressions;
 using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 using Celeste.Mod.SkinModHelper.CelesteNet;
-using static Celeste.Mod.CelesteNet.DataTypes.DataInternalBlob;
 
 namespace Celeste.Mod.SkinModHelper {
     public static class PlayerSkinSystem {
@@ -97,6 +96,7 @@ namespace Celeste.Mod.SkinModHelper {
             On.Celeste.Payphone.Update -= PayphoneUpdateHook_ColorGrade;
 
             On.Celeste.PlayerHair.Update -= PlayerHairUpdateHook;
+            IL.Celeste.PlayerHair.Render -= il_PlayerHair_Render;
             IL.Celeste.PlayerHair.AfterUpdate -= il_PlayerHair_AfterUpdate;
 
             On.Celeste.PlayerHair.GetHairColor -= PlayerHairGetHairColorHook;
@@ -540,17 +540,30 @@ namespace Celeste.Mod.SkinModHelper {
                 return index == 0 ? HairConfig.For(hair).BangsOrigin : HairConfig.For(hair).HairOrigin;
             }
 
+            int v = -1;
+            int v2 = -1;
+            cursor.GotoNext(instr => instr.MatchCallvirt<PlayerSprite>("get_HasHair"));
+            cursor.GotoNext(instr => instr.MatchLdloca(out v));
+
             if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchCallvirt<PlayerHair>("GetHairTexture"))) {
+                cursor.GotoPrev(instr => instr.MatchBr(out _));
+                cursor.GotoPrev(instr => instr.MatchStloc(out v2));
+                cursor.GotoNext(MoveType.After, instr => instr.MatchCallvirt<PlayerHair>("GetHairTexture"));
+
                 cursor.Emit(OpCodes.Ldarg_0);
-                cursor.Emit(OpCodes.Ldloc, 5);
+                cursor.Emit(OpCodes.Ldloc, v2);
                 cursor.EmitDelegate(ChangeHairOrigin);
-                cursor.Emit(OpCodes.Stloc, 1);
+                cursor.Emit(OpCodes.Stloc, v);
             }
             if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchCallvirt<PlayerHair>("GetHairTexture"))) {
+                cursor.GotoPrev(instr => instr.MatchBr(out _));
+                cursor.GotoPrev(instr => instr.MatchStloc(out v2));
+                cursor.GotoNext(MoveType.After, instr => instr.MatchCallvirt<PlayerHair>("GetHairTexture"));
+
                 cursor.Emit(OpCodes.Ldarg_0);
-                cursor.Emit(OpCodes.Ldloc, 7);
+                cursor.Emit(OpCodes.Ldloc, v2);
                 cursor.EmitDelegate(ChangeHairOrigin);
-                cursor.Emit(OpCodes.Stloc, 1);
+                cursor.Emit(OpCodes.Stloc, v);
             }
         }
 
