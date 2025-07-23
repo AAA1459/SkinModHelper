@@ -178,10 +178,14 @@ namespace Celeste.Mod.SkinModHelper {
 
 
         private static void PlayerSpritePlayHook(On.Monocle.Sprite.orig_Play orig, Sprite self, string id, bool restart = false, bool randomizeFrame = false) {
-            string origID = id;
+            if (self is not PlayerSprite) {
+                orig(self, id, restart, randomizeFrame);
+                return;
+            }
 
             #region Animations Extensions
-            if (self is PlayerSprite && self.Entity is Player player) {
+            string origID = id;
+            if (self.Entity is Player player) {
                 string animPrefix = DynamicData.For(self).Get<string>("smh_AnimPrefix");
                 bool swimCheck = player.Scene != null && player.Collidable && player.SwimCheck();
 
@@ -316,32 +320,37 @@ namespace Celeste.Mod.SkinModHelper {
                         }
                     }
                 }
+                goto Final;
+            } else if (self.Entity is PlayerDeadBody) {
+                string animPrefix = DynamicData.For(self).Get<string>("smh_AnimPrefix") + id;
+                if (self.Has(animPrefix))
+                    id = animPrefix;
+                goto Final;
             }
             #endregion
 
-            if (self is PlayerSprite && self.Entity is Player || self.Entity is PlayerDeadBody) {
-                if (!self.Has(id)) {
-                    Sprite sprite;
-                    string spriteName = (self as PlayerSprite).spriteName ?? "";
-                    Logger.Log(LogLevel.Error, "SkinModHelper", $"'{spriteName}' missing animation: {id}");
+            orig(self, id, restart, randomizeFrame);
+            return;
+        Final:
+            if (!self.Has(id)) {
+                Sprite sprite;
+                string spriteName = (self as PlayerSprite).spriteName ?? "";
+                Logger.Log(LogLevel.Error, "SkinModHelper", $"'{spriteName}' missing animation: {id}");
 
-                    if ((sprite = GFX.SpriteBank.SpriteData["player"].Sprite).Animations.TryGetValue(id, out Sprite.Animation anim) ||
-                        (sprite = GFX.SpriteBank.SpriteData["player_no_backpack"].Sprite).Animations.TryGetValue(id, out anim)) {
-                        self.Animations[id] = anim;
-                        PatchSpritewithLogs(sprite, self);
+                if ((sprite = GFX.SpriteBank.SpriteData["player"].Sprite).Animations.TryGetValue(id, out Sprite.Animation anim) ||
+                    (sprite = GFX.SpriteBank.SpriteData["player_no_backpack"].Sprite).Animations.TryGetValue(id, out anim)) {
+                    self.Animations[id] = anim;
+                    PatchSpritewithLogs(sprite, self);
 
-                        if (GFX.SpriteBank.Has(spriteName))
-                            PatchSprite(sprite, GFX.SpriteBank.SpriteData[spriteName].Sprite);
-                    } else {
-                        return;
-                    }
+                    if (GFX.SpriteBank.Has(spriteName))
+                        PatchSprite(sprite, GFX.SpriteBank.SpriteData[spriteName].Sprite);
+                } else {
+                    return;
                 }
-                orig(self, id, restart, randomizeFrame);
-                if (origID == "startStarFly")
-                    self.CurrentAnimationID = origID;
-                return;
             }
             orig(self, id, restart, randomizeFrame);
+            if (origID == "startStarFly")
+                self.CurrentAnimationID = origID;
         }
         #endregion
 
