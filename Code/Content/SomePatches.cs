@@ -312,8 +312,6 @@ namespace Celeste.Mod.SkinModHelper {
                                 && (Math.Abs(player.Speed.X) > 110f || (player.wallSpeedRetentionTimer > 0f && Math.Abs(player.wallSpeedRetained) > 110f))) {
                                 return;
                             }
-                            Log($"origID: {origID}, OnGround: {!player.OnGround()}, wasOnGround: {!player.wasOnGround}");
-
                         } else if (self.LastAnimationID.Contains("wallBounce")) {
                             if ((origID == "jumpFast" || origID == "jumpSlow" || origID == "fallSlow" || origID == "fallFast") && !player.onGround) {
                                 return;
