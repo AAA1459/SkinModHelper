@@ -308,10 +308,11 @@ namespace Celeste.Mod.SkinModHelper {
                             }
                         } else if (self.LastAnimationID.Contains("jumpHyper") || self.LastAnimationID.Contains("jumpSuper")) {
                             if ((origID == "jumpFast" || origID == "fallFast" || origID == "runFast" || origID == "runWind" || (origID == "duck" && player.StartedDashing == false) || origID == "idle" || origID == "jumpSlow")
-                                && (!player.OnGround() || !player.wasOnGround)
+                                && (!player.wasOnGround || player.Speed.Y < 0f)
                                 && (Math.Abs(player.Speed.X) > 110f || (player.wallSpeedRetentionTimer > 0f && Math.Abs(player.wallSpeedRetained) > 110f))) {
                                 return;
                             }
+                            Log($"origID: {origID}, OnGround: {!player.OnGround()}, wasOnGround: {!player.wasOnGround}");
 
                         } else if (self.LastAnimationID.Contains("wallBounce")) {
                             if ((origID == "jumpFast" || origID == "jumpSlow" || origID == "fallSlow" || origID == "fallFast") && !player.onGround) {
