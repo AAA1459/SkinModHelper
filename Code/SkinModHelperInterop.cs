@@ -53,6 +53,63 @@ namespace Celeste.Mod.SkinModHelper.Interop {
         }
 
 
+        public static int GetDashTrailCount(Player player) {
+            return GetStartedDashingCount(player);
+        }
+        public static int SetDashTrailCount(Player player, int count) {
+            return SetStartedDashingCount(player, count);
+        }
+        public static Color? GetHairColor(PlayerHair hair, int dashes) {
+            if (HairConfig.For(hair).Safe_GetHairColor(dashes, out Color color)) {
+                return color;
+            }
+            return null;
+        }
+        public static Color? GetHairColor(PlayerHair hair, int dashes, int index) {
+            if (HairConfig.For(hair).Safe_GetHairColor(dashes, index, out Color color)) {
+                return color;
+            }
+            return null;
+        }
+
+        public static Color? GetDeathOrbColor(Player player) {
+            string scolor = CharacterConfig.For(player.Sprite).DeathParticleColor;
+            if (RGB_IsMatch(scolor)) {
+                return Calc.HexToColor(scolor);
+            }
+            int? dashes = GetDashCount(player, player.Sprite);
+            if (dashes != null && HairConfig.For(player.Hair).Safe_GetHairColor((int)dashes, out Color color2)) {
+                return color2;
+            }
+            return null;
+        }
+        public static Color? GetDeathOrbColor(Entity entity) {
+            string scolor = CharacterConfig.For(entity.Get<Sprite>()).DeathParticleColor;
+            if (RGB_IsMatch(scolor)) {
+                return Calc.HexToColor(scolor);
+            }
+            return null;
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         public static void SetColorGrade(Sprite to, MTexture mTexture) {
             DynamicData spriteData = DynamicData.For(to);

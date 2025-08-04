@@ -517,33 +517,29 @@ namespace Celeste.Mod.SkinModHelper {
         #region DeathEffect other
         // Although in "DeathEffectRenderHook", we blocked the original method. but only Player will still run this...
         private static void DeathEffectDrawHook(On.Celeste.DeathEffect.orig_Draw orig, Vector2 position, Color color, float ease) {
-            Entity entity = null;
+            MTexture texture = null;
+
             if (Engine.Scene != null) {
                 foreach (Player player in Engine.Scene.Tracker.GetEntities<Player>()) {
                     if (player.Center + player.deadOffset == position) {
-                        entity = player; break;
-                    }
-                }
-            }
-            MTexture texture = null;
-            Sprite sprite = entity?.Get<PlayerSprite>() ?? entity?.Get<Sprite>();
-            if (sprite != null) {
-                float alpha = GetAlpha(sprite.Color);
-                if (alpha < 1f && color.A == 255)
-                    color = color * alpha;
 
-                string scolor = CharacterConfig.For(sprite).DeathParticleColor;
+                        string scolor = CharacterConfig.For(player.Sprite).DeathParticleColor;
+                        if (RGB_IsMatch(scolor)) {
+                            color = Calc.HexToColor(scolor);
+                        } else {
+                            int? dashes = PlayerSkinSystem.GetDashCount(player, player.Sprite);
+                            if (dashes != null && HairConfig.For(player.Hair).Safe_GetHairColor((int)dashes, out Color color2)) {
+                                color = color2;
+                            }
+                        }
 
-                if (RGB_IsMatch(scolor)) {
-                    color = Calc.HexToColor(scolor) * GetAlpha(color);
-                }
-                if (GetTextureOnSprite(sprite, "death_particle", out var texture2))
-                    texture = texture2;
-
-                if (entity is Player) {
-                    string overridePath = OtherSpriteSkins.GetSkinWithPath(GFX.Game, "death_particle");
-                    if (overridePath != "death_particle") {
-                        texture = GFX.Game[overridePath];
+                        string overridePath = OtherSpriteSkins.GetSkinWithPath(GFX.Game, "death_particle");
+                        if (overridePath != "death_particle") {
+                            texture = GFX.Game[overridePath];
+                        } else if (GetTextureOnSprite(player.Sprite, "death_particle", out var texture2)) {
+                            texture = texture2;
+                        }
+                        break;
                     }
                 }
             }

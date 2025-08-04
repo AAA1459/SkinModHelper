@@ -32,23 +32,22 @@ namespace Celeste.Mod.SkinModHelper {
         private static TrailManager.Snapshot onTrailManager_Add_V2IV2CIFBB(On.Celeste.TrailManager.orig_Add_Vector2_Image_PlayerHair_Vector2_Color_int_float_bool_bool orig,
             Vector2 position, Image image, PlayerHair hair, Vector2 scale, Color color, int depth, float duration, bool frozenUpdate, bool useRawDeltaTime) {
 
-            color = TrailsRecolor(color, image, hair);
-            return orig(position, image, hair, scale, color, depth, duration, frozenUpdate, useRawDeltaTime);
+
+            return orig(position, image, hair, scale, (TrailsRecolor(image, hair) ?? color), depth, duration, frozenUpdate, useRawDeltaTime);
         }
 
-        public static Color TrailsRecolor(Color color, Image sprite, PlayerHair hair) {
+        public static Color? TrailsRecolor(Image sprite, PlayerHair hair) {
             if (hair != null && hair.Sprite?.Mode != PlayerSpriteMode.Badeline) {
-                return color; // Exclude players and silhouette.
+                return null; // Exclude players and silhouette.
             }
 
             string TrailsColor = CharacterConfig.For(sprite).TrailsColor;
 
-            if (RGB_IsMatch(TrailsColor)) {
+            if (RGB_IsMatch(TrailsColor))
                 return Calc.HexToColor(TrailsColor);
-            } else if (TrailsColor == "HairColor" && hair != null) {
+            if (TrailsColor == "HairColor" && hair != null)
                 return hair.Color;
-            }
-            return color;
+            return null;
         }
         #endregion
     }

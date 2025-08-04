@@ -570,12 +570,6 @@ namespace Celeste.Mod.SkinModHelper {
 
         private static void PlayerHairUpdateHook(On.Celeste.PlayerHair.orig_Update orig, PlayerHair self) {
             DynamicData.For(self).Set("HairColorGrading", null);
-
-            if (self.Entity is Player player && player.StateMachine.State == 14) {
-                int? dashes = GetDashCount(player, self.Sprite);
-                if (dashes != null && HairConfig.For(self).Safe_GetHairColor((int)dashes, out Color color))
-                    self.Color = color;
-            }
             orig(self);
         }
 
@@ -745,6 +739,7 @@ namespace Celeste.Mod.SkinModHelper {
         public static bool actualBackpack(int mode) {
             return !(GetPlayerSkinName(mode)?.EndsWith("_NB") ?? mode == 1 || mode == 4);
         }
+
         public static int GetStartedDashingCount(Player player) {
             return DynamicData.For(player).Get<int?>("TrailDashCount") ?? SetStartedDashingCount(player);
         }
