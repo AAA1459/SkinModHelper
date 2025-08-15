@@ -522,12 +522,13 @@ namespace Celeste.Mod.SkinModHelper {
             if (Engine.Scene != null) {
                 foreach (Player player in Engine.Scene.Tracker.GetEntities<Player>()) {
                     if (player.Center + player.deadOffset == position) {
+                        Sprite sprite = player.Sprite; // CelesteTAS hooked here. dont move it.
 
-                        string scolor = CharacterConfig.For(player.Sprite).DeathParticleColor;
+                        string scolor = CharacterConfig.For(sprite).DeathParticleColor;
                         if (RGB_IsMatch(scolor)) {
                             color = Calc.HexToColor(scolor);
                         } else {
-                            int? dashes = PlayerSkinSystem.GetDashCount(player, player.Sprite);
+                            int? dashes = PlayerSkinSystem.GetDashCount(player, (PlayerSprite)sprite);
                             if (dashes != null && HairConfig.For(player.Hair).Safe_GetHairColor((int)dashes, out Color color2)) {
                                 color = color2;
                             }
@@ -536,7 +537,7 @@ namespace Celeste.Mod.SkinModHelper {
                         string overridePath = OtherSpriteSkins.GetSkinWithPath(GFX.Game, "death_particle");
                         if (overridePath != "death_particle") {
                             texture = GFX.Game[overridePath];
-                        } else if (GetTextureOnSprite(player.Sprite, "death_particle", out var texture2)) {
+                        } else if (GetTextureOnSprite(sprite, "death_particle", out var texture2)) {
                             texture = texture2;
                         }
                         break;
