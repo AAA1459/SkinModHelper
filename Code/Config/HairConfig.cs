@@ -102,6 +102,8 @@ namespace Celeste.Mod.SkinModHelper {
         /// <summary>The <see cref="Vector2"/> here mean both root and end scales, not x,y.</summary>
         [YamlIgnore]
         public Dictionary<(int, int?), Vector2> ActualHairScales;
+
+        private Dictionary<(int, int?), Vector2> hairScales_Cache;
         #endregion
 
         #region Configurable values

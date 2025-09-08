@@ -722,6 +722,8 @@ namespace Celeste.Mod.SkinModHelper {
                     return Math.Max(player2.lastDashes, 0);
                 case PlayerPlayback:
                     return null;
+                case PlayerDummy player3:
+                    return player3.Dashes;
             }
             return sprite?.Mode == (PlayerSpriteMode)2 ? 0 : null;
         }
