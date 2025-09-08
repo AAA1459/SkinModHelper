@@ -102,8 +102,6 @@ namespace Celeste.Mod.SkinModHelper {
         /// <summary>The <see cref="Vector2"/> here mean both root and end scales, not x,y.</summary>
         [YamlIgnore]
         public Dictionary<(int, int?), Vector2> ActualHairScales;
-
-        private Dictionary<(int, int?), Vector2> hairScales_Cache;
         #endregion
 
         #region Configurable values
@@ -414,7 +412,7 @@ namespace Celeste.Mod.SkinModHelper {
                 }
                 // float2.X mean the root scale, float2.Y mean the end scale.
                 float num = vector.Y + (1f - (float)index / (float)(attached.Sprite.HairCount)) * (vector.X - vector.Y);
-                scale = new Vector2(num * Math.Abs(attached.Sprite.Scale.X), num);
+                scale = new Vector2(float.Round(num * Math.Abs(attached.Sprite.Scale.X), 2), float.Round(num, 2));
                 return true;
             }
             scale = Vector2.Zero;
