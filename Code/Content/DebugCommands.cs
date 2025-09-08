@@ -22,7 +22,7 @@ using System.IO;
 namespace Celeste.Mod.SkinModHelper {
     public static class DebugCommands {
 
-        public const string HelpInfo = "SubCommands list: player(p), spriteidpath(sip), loglevel, settings, session, g_loadingicon, hairprotoff";
+        public const string HelpInfo = "SubCommands list: player(p), spriteidpath(sip), loglevel, settings, session, g_loadingicon, hairprotoff, refresh_xml, g_dummy";
         private const string Error = "Error";
 
 
@@ -250,9 +250,31 @@ namespace Celeste.Mod.SkinModHelper {
                     }
                     VanillaCharacterTextures.Clear();
                     return;
+                case "refresh_xml":
+                    if (TrueHelp) {
+                        message = "Enable build warnings (not only error) for skin xmls and immediate refreshs";
+                        break;
+                    }
+                    message = "Refreshed the skin xmls, check log.txt for more.";
+                    build_warning = true;
+                    RefreshSkins(true, true);
+                    break;
+                case "g_dummy":
+                    if (TrueHelp) {
+                        message = "Generates a dummy with the player's current frame at current position of level" +
+                            "\n  full commands: g_dummy [spriteName] [id] [frame]";
+                    } else if (_Player != null) {
+                        Monocle.Commands.Clear();
+                        _Player.Scene.Add(new PlayerDummy(_Player, command2, command3, command4));
+                        return;
+                    } else {
+                        message = "findn't player";
+                    }
+                    break;
             }
             Send(message);
         }
+
 #pragma warning restore CS0618
         private static bool TryParseToBoolen(string str, out bool boolen) {
             switch (str) {
@@ -290,6 +312,7 @@ namespace Celeste.Mod.SkinModHelper {
         #region send message
         private static void Send(string text) {
             Engine.Commands.Log(text);
+            Logger.Debug("SkinModHelper_commands", text);
         }
         #endregion
     }

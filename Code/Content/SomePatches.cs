@@ -513,7 +513,7 @@ namespace Celeste.Mod.SkinModHelper {
             };
         }
         #endregion
-
+        
         #region DeathEffect other
         // Although in "DeathEffectRenderHook", we blocked the original method. but only Player will still run this...
         private static void DeathEffectDrawHook(On.Celeste.DeathEffect.orig_Draw orig, Vector2 position, Color color, float ease) {
