@@ -27,7 +27,7 @@ namespace Celeste.Mod.SkinModHelper {
         public static CharacterConfig For(Image target) {
             DynamicData selfData = DynamicData.For(target);
             CharacterConfig config = selfData.Get<CharacterConfig>(_DynamicDataKey);
-
+            
             string rootPath = getAnimationRootPath(target);
 
             if (config == null || config.SourcePath != rootPath) {

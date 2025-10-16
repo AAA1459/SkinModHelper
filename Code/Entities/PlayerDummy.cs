@@ -19,6 +19,7 @@ namespace Celeste.Mod.SkinModHelper {
     public class PlayerDummy : BadelineDummy {
 
         public int Dashes = 1;
+        private MirrorReflection reflection;
         public PlayerDummy(Player player, string spriteName, string id, string frame)
             : base(player.Position) {
 
@@ -42,6 +43,11 @@ namespace Celeste.Mod.SkinModHelper {
             Sprite.SetAnimationFrame(int.TryParse(frame, out int f) ? f : player.Sprite.CurrentAnimationFrame);
 
             Sprite.Animating = false;
+
+            Light.StartRadius = player.Light.StartRadius;
+            Light.EndRadius = player.Light.EndRadius;
+            Light.Color = Color.White;
+            Add(reflection = new MirrorReflection());
         }
 
 

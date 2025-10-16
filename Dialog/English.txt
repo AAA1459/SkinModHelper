@@ -29,7 +29,7 @@ SkinModHelper_MORE_OPTIONS= Advanced Options
 SkinModHelper_Settings_ShowOtherSelfVariants= Show Otherself variant
 SkinModHelper_Settings_ShowOtherSelfVariants_desc= for the player skins menu. If off it will sync to the player variant changes.
 
-SkinModHelper_Settings_ShowSkinSourceInAllCategory= Show player skin from where
+SkinModHelper_Settings_ShowSkinSourceInAllCategory= Show where the player skin from
 SkinModHelper_Settings_ShowSkinSourceInAllCategory_desc= for the all category of player skins menu
 
 

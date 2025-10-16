@@ -25,6 +25,7 @@ namespace Celeste.Mod.SkinModHelper {
         public const string HelpInfo = "SubCommands list: player(p), spriteidpath(sip), loglevel, settings, session, g_loadingicon, hairprotoff, refresh_xml, g_dummy";
         private const string Error = "Error";
 
+        internal static bool debugging = false;
 
         [Command("skinmodhelper", HelpInfo)]
         #region Process
@@ -53,6 +54,7 @@ namespace Celeste.Mod.SkinModHelper {
 
             switch (command) {
                 case "test":
+                    debugging = !debugging;
                     return;
                 case "settings":
                     if (help2) {

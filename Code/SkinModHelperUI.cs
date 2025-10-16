@@ -498,6 +498,7 @@ namespace Celeste.Mod.SkinModHelper
                 subMenu.Add(needReloadMenu_desc2);
                 sssiac.OnEnter += () => needReloadMenu_desc2.FadeVisible = true;
                 sssiac.OnLeave += () => needReloadMenu_desc2.FadeVisible = false;
+
             });
         }
         #endregion
@@ -766,7 +767,7 @@ namespace Celeste.Mod.SkinModHelper
     #region Submenu System (from ExtendedVariant)
     public static class CommonExtensions
     {
-        public static EaseInSubMenu Apply<EaseInSubMenu>(this EaseInSubMenu obj, Action<EaseInSubMenu> action)
+        internal static TextMenuExt.SubMenu Apply(this TextMenuExt.SubMenu obj, Action<TextMenuExt.SubMenu> action)
         {
             action(obj);
             return obj;
