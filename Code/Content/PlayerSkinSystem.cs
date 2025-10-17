@@ -239,7 +239,7 @@ namespace Celeste.Mod.SkinModHelper {
             HairConfig hairConfig = HairConfig.For(self.Hair);
             int dashCount = GetStartedDashingCount(self);
 
-            if (hairConfig.Safe_GetHairColor(dashCount, out Color color))
+            if (hairConfig.Safe_GetHairColor(HairConfig.TrailSegment, dashCount, out Color color))
                 return color;
             return orig(self, wasDashB);
         }
@@ -250,7 +250,7 @@ namespace Celeste.Mod.SkinModHelper {
                 HairConfig hairConfig = HairConfig.For(p.Hair);
                 int dashCount = GetStartedDashingCount(p);
 
-                if (hairConfig.Safe_GetHairColor(dashCount, out Color color)) {
+                if (hairConfig.Safe_GetHairColor(HairConfig.DashPtclSegment, dashCount, out Color color)) {
                     orig = new(orig);
                     orig.Color = color;
                     orig.Color2 = Color.Lerp(color, Color.White, 0.4f);
@@ -625,6 +625,9 @@ namespace Celeste.Mod.SkinModHelper {
 
             if (hairConfig.ActualHairColors != null && dashes != null && (self.Entity is not Player || self.Color != Color.White || hairConfig.HairFlash == false)) {
                 if (hairConfig.Safe_GetHairColor(index, (int)dashes, out Color color)) {
+
+                    Log($"{color}");
+
                     return ColorBlend(color * self.Alpha, DynamicData.For(self).Get("HairColorGrading"));
                 }
             }
@@ -703,7 +706,7 @@ namespace Celeste.Mod.SkinModHelper {
                     return badelineOldsite.index;
                 case Player player:
                     if (player.StateMachine.State == Player.StStarFly)
-                        return HairConfig.FeatherIndexInAttrs;
+                        return HairConfig.FeatherIndex;
 
                     // DJMapHelper's MaxDashesTrigger setting OverrideHairColor for 0 dashes blue hair, so let's skin also get 0 dashes.
                     if (player.OverrideHairColor == Player.UsedHairColor)
@@ -714,7 +717,7 @@ namespace Celeste.Mod.SkinModHelper {
                 case PlayerDeadBody playerBody:
                     Player player2 = playerBody.player;
                     if (player2.StateMachine.State == Player.StStarFly)
-                        return HairConfig.FeatherIndexInAttrs;
+                        return HairConfig.FeatherIndex;
                     if (player2.OverrideHairColor == Player.UsedHairColor)
                         return 0;
                     if (player2.lastDashes == 0 && player2.MaxDashes <= 0)

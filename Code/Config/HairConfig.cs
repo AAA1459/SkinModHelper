@@ -21,8 +21,15 @@ namespace Celeste.Mod.SkinModHelper {
         internal const string _DynamicDataKey = "smh_hairConfig";
         internal const string _ConfigName = "skinConfig/HairConfig";
 
-        public const int FeatherIndexInAttrs = -1;
-        public const int GeneralSegmentIndex = 100;
+        // Some special states that can attach HairAttrs with it than dashes.
+        public const int FeatherIndex = -1;
+
+        // the hair segment. and some others segment...
+        public const int GeneralSegment = 100;
+        public const int TrailSegment = 101;
+        public const int DashPtclSegment = 102;
+
+        public static Color C_EmptyS = new(255, 255, 255, 0);
 
         public HairConfig() {
         }
@@ -84,6 +91,7 @@ namespace Celeste.Mod.SkinModHelper {
 
         private int _HairLengthsMaxNum = 2;
         private int _HairScalesMaxNum = 2;
+        private int _HairColorsMaxNum = 2;
 
         private List<SkinModHelperOldConfig.HairColor> oldHairColors;
 
@@ -91,7 +99,10 @@ namespace Celeste.Mod.SkinModHelper {
         public List<MTexture> new_hairs;
 
         [YamlIgnore]
-        public Dictionary<int, List<Color>> ActualHairColors;
+        public Dictionary<(int, int), Color> ActualHairColors;
+        // public Dictionary<int, List<Color>> ActualHairColors;
+
+
         [YamlIgnore]
         public Dictionary<int, int> ActualHairLengths;
         [YamlIgnore]
@@ -101,7 +112,7 @@ namespace Celeste.Mod.SkinModHelper {
 
         /// <summary>The <see cref="Vector2"/> here mean both root and end scales, not x,y.</summary>
         [YamlIgnore]
-        public Dictionary<(int, int?), Vector2> ActualHairScales;
+        public Dictionary<(int, int), Vector2> ActualHairScales;
         #endregion
 
         #region Configurable values
@@ -151,6 +162,7 @@ namespace Celeste.Mod.SkinModHelper {
             public List<SegmentAttr> SegmentAttrs { get; set; }
             public class SegmentAttr {
                 public int Segment { get; set; }
+
                 public float? Scale { get; set; }
                 public string Color { get; set; }
             }
@@ -228,159 +240,132 @@ namespace Celeste.Mod.SkinModHelper {
 
         #region InitAttrsWithDashes
         public void InitAttrsWithDashes() {
-            int ColorsMaxNum = 2;
-            Dictionary<int, Color> Colors = new();
-            Dictionary<int, int> Lengths = new();
 
-            // The Vector2 here mean both root and end scales, not x,y.
-            Dictionary<(int, int?), Vector2> Scales = new();
+            void InitHairColor() {
+                ActualHairColors ??= new Dictionary<(int, int), Color>() {
+                    [(0, GeneralSegment)] = _ZeroDashesColor,
+                    [(1, GeneralSegment)] = _OneDashesColor,
+                    [(2, GeneralSegment)] = _TwoDashesColor
+                };
+            }
+            if (HairFlash == false || AssetExists<AssetTypeDirectory>(GFX.Game.RelativeDataPath + getAnimationRootPath(attached.Sprite, "idle") + "ColorGrading"))
+                InitHairColor();
+
 
             foreach (AttrWithDashes attr in _HairAttrWithDashes.Values) {
-                if (attr.Dashes >= 0 && RGB_IsMatch(attr.Color)) {
-                    Colors[attr.Dashes] = Calc.HexToColor(attr.Color);
-                    if (ColorsMaxNum < attr.Dashes)
-                        ColorsMaxNum = attr.Dashes;
+                #region ProcessHairColors
+                bool isC_EmptyS;
+                if ((isC_EmptyS = attr.Color == "orig") || RGB_IsMatch(attr.Color)) {
+                    InitHairColor();
+
+                    ActualHairColors[(attr.Dashes, GeneralSegment)] = isC_EmptyS ? C_EmptyS : Calc.HexToColor(attr.Color);
+
+                    if (attr.SegmentAttrs != null)
+                        foreach (var c_attr in attr.SegmentAttrs ?? new()) {
+                            if (c_attr.Segment != GeneralSegment && ((isC_EmptyS = c_attr.Color == "orig") || RGB_IsMatch(c_attr.Color))) {
+                                ActualHairColors[(attr.Dashes, c_attr.Segment)] = isC_EmptyS ? C_EmptyS : Calc.HexToColor(c_attr.Color);
+                            }
+                        };
+                    if (_HairColorsMaxNum < attr.Dashes) { _HairColorsMaxNum = attr.Dashes; }
                 }
+                #endregion
+
+                #region ProcessHairLengths
                 if (attr.Length != null) {
-                    Lengths[attr.Dashes] = Math.Clamp(attr.Length.Value, 1, MAX_HAIRLENGTH);
+                    ActualHairLengths ??= new();
+
+                    ActualHairLengths[attr.Dashes] = Math.Clamp(attr.Length.Value, 1, MAX_HAIRLENGTH);
                     if (attr.Dashes > _HairLengthsMaxNum) { _HairLengthsMaxNum = attr.Dashes; }
                 }
+                #endregion
+
+                #region ProcessHairScales
                 if (attr.Scale != null) {
                     string[] scales = attr.Scale.Split(',', 2, StringSplitOptions.TrimEntries);
                     if (float.TryParse(scales[0], out float scale)) {
+                        ActualHairScales ??= new();
+
                         if (scales.Length < 2 || !float.TryParse(scales[1], out float scale2)) {
                             scale2 = scale;
                         }
-                        Scales[(attr.Dashes, null)] = new(scale, scale2);
-                        if (attr.SegmentAttrs != null) {
-                            foreach (SegmentAttr attr2 in attr.SegmentAttrs) {
-                                if (attr2.Scale is float f) {
-                                    Scales[(attr.Dashes, attr2.Segment)] = new(f, f);
+                        // The Vector2 here mean both root and end scales, not x,y.
+                        ActualHairScales[(attr.Dashes, GeneralSegment)] = new(scale, scale2);
+
+                        if (attr.SegmentAttrs != null)
+                            foreach (var c_attr in attr.SegmentAttrs ?? new()) {
+                                if (c_attr.Scale is float f) {
+                                    ActualHairScales[(attr.Dashes, c_attr.Segment)] = new(f, f);
                                 }
-                            }
-                        }
+                            };
                         if (attr.Dashes > _HairScalesMaxNum) { _HairScalesMaxNum = attr.Dashes; }
                     }
                 }
+                #endregion
             }
-            bool ForceColors = HairFlash == false || AssetExists<AssetTypeDirectory>(GFX.Game.RelativeDataPath + getAnimationRootPath(attached.Sprite, "idle") + "ColorGrading");
-            if ((Colors.Count > 0 || ForceColors))
-                HairColorsProcess(Colors, ColorsMaxNum);
-            if (Lengths.Count > 0)
-                ActualHairLengths = Lengths;
-            if (Scales.Count > 0)
-                ActualHairScales = Scales;
-        }
-
-        #region ProcessHairColors...
-        private void HairColorsProcess(Dictionary<int, Color> Colors, int maxCount) {
-            // Default colors taken from vanilla
-            List<Color> GeneratedHairColors = new List<Color>(new Color[maxCount + 1]) {
-                [0] = _ZeroDashesColor,
-                [1] = _OneDashesColor,
-                [2] = _TwoDashesColor
-            };
-            foreach (var keyValue in Colors) {
-                GeneratedHairColors[keyValue.Key] = keyValue.Value;
-            }
-
-            // 0~99 as specify-segment Hair's color.
-            // -100~-1 as reverse-order of hair.
-            Dictionary<int, List<Color>> hairColors = new() {
-                [100] = GeneratedHairColors // 100 as each-segment Hair's Default color, or as Player's Dash Color and Silhouette color.
-            };
-            foreach (AttrWithDashes attr in _HairAttrWithDashes.Values) {
-                if (!Colors.ContainsKey(attr.Dashes)) {
-                    continue;
-                }
-                if (attr.SegmentAttrs != null) {
-                    foreach (SegmentAttr attr2 in attr.SegmentAttrs) {
-                        if (attr2.Segment <= MAX_HAIRLENGTH && RGB_IsMatch(attr2.Color)) {
-
-                            if (!hairColors.ContainsKey(attr2.Segment)) {
-                                hairColors[attr2.Segment] = new(GeneratedHairColors); // i never knew this work like a the variable or entity of static,  clone it.
-                            }
-                            hairColors[attr2.Segment][attr.Dashes] = Calc.HexToColor(attr2.Color);
-                        }
-                    }
-                }
-            }
-            foreach (List<Color> hairColor in hairColors.Values) {
-                // Fill upper dash range with the last customized dash color
-                for (int i = 3; i < hairColor.Count; i++) {
-                    if (!Colors.ContainsKey(i)) {
-                        hairColor[i] = hairColor[i - 1];
-                    }
-                }
-            }
-            ActualHairColors = hairColors;
         }
         public static readonly Color _ZeroDashesColor = Calc.HexToColor("44B7FF");
         public static readonly Color _OneDashesColor = Calc.HexToColor("AC3232");
         public static readonly Color _TwoDashesColor = Calc.HexToColor("FF6DEF");
         #endregion
 
-        #endregion
         #region Build Old Skins Hair Colors
         public void Old_BuildHairColors() {
-            Dictionary<int, Color> changed = new();
+            ActualHairColors = new Dictionary<(int, int), Color>() {
+                [(0, GeneralSegment)] = _ZeroDashesColor,
+                [(1, GeneralSegment)] = _OneDashesColor,
+                [(2, GeneralSegment)] = _TwoDashesColor
+            };
 
-            int maxCount = 2;
             if (oldHairColors != null) {
                 for (int i = 0; i < oldHairColors.Count; i++) {
                     SkinModHelperOldConfig.HairColor hairColor = oldHairColors[i];
                     if (hairColor.Dashes >= 0 && RGB_IsMatch(hairColor.Color)) {
-                        changed[hairColor.Dashes] = Calc.HexToColor(hairColor.Color);
-                        if (maxCount < hairColor.Dashes)
-                            maxCount = hairColor.Dashes;
+                        ActualHairColors[(hairColor.Dashes, GeneralSegment)] = Calc.HexToColor(hairColor.Color);
+
+                        if (_HairColorsMaxNum < hairColor.Dashes)
+                            _HairColorsMaxNum = hairColor.Dashes;
                     }
                 }
             }
-
-            // Default colors taken from vanilla
-            List<Color> GeneratedHairColors = new List<Color>(new Color[maxCount + 1]) {
-                [0] = Calc.HexToColor("44B7FF"),
-                [1] = Calc.HexToColor("AC3232"),
-                [2] = Calc.HexToColor("FF6DEF")
-            };
-            foreach (var keyValue in changed) {
-                GeneratedHairColors[keyValue.Key] = keyValue.Value;
-            }
-
-            // Fill upper dash range with the last customized dash color
-            for (int i = 3; i < GeneratedHairColors.Count; i++) {
-                if (!changed.ContainsKey(i)) {
-                    GeneratedHairColors[i] = GeneratedHairColors[i - 1];
-                }
-            }
-
-            Dictionary<int, List<Color>> HairColors = new() {
-                [100] = GeneratedHairColors
-            };
-            ActualHairColors = HairColors;
         }
         #endregion
 
         #region Method
         public bool Safe_GetHairColor(int dashes, out Color color) {
-            if (ActualHairColors == null || !ColorsActive || dashes < 0) {
+            if (ActualHairColors == null || !ColorsActive) {
                 color = new();
                 return false;
             }
-            var colors = ActualHairColors[100];
-            color = colors[Calc.Clamp(dashes, 0, colors.Count - 1)];
-            return true;
+            dashes = Math.Min(_HairColorsMaxNum, dashes);
+        loop:
+            if (ActualHairColors.TryGetValue((dashes, GeneralSegment), out color)) {
+                return color != C_EmptyS;
+
+            } else if (dashes <= 0) {
+                return false;
+            }
+            dashes--;
+            goto loop;
         }
         public bool Safe_GetHairColor(int index, int dashes, out Color color) {
-            if (ActualHairColors == null || !ColorsActive || dashes < 0) {
+            if (ActualHairColors == null || !ColorsActive) {
                 color = new();
                 return false;
             }
-            if (!ActualHairColors.TryGetValue(index - attached.Sprite.HairCount, out var colors) && !ActualHairColors.TryGetValue(index, out colors)) {
-                colors = ActualHairColors[100];
+            dashes = Math.Min(_HairColorsMaxNum, dashes);
+        loop:
+            if (ActualHairColors.TryGetValue((dashes, GeneralSegment), out color)) {
+                if ((index <= GeneralSegment && ActualHairColors.TryGetValue((dashes, index - attached.Sprite.HairCount), out Color color2))
+                    || ActualHairColors.TryGetValue((dashes, index), out color2)) {
+                    color = color2;
+                }
+                return color != C_EmptyS;
+
+            } else if (dashes <= 0) {
+                return false;
             }
-            color = colors[Calc.Clamp(dashes, 0, colors.Count - 1)];
-            return true;
+            dashes--;
+            goto loop;
         }
 
         public int? GetHairLength(int? get_dashes) {
@@ -389,13 +374,14 @@ namespace Celeste.Mod.SkinModHelper {
             }
             // dashes is -1 for when player into flyFeathers state.
             int dashes = Math.Min(_HairLengthsMaxNum, get_dashes.Value);
-            while (dashes > 2 && !ActualHairLengths.ContainsKey(dashes)) {
-                dashes--;
-            }
+        loop:
             if (ActualHairLengths.TryGetValue(dashes, out var length)) {
                 return length;
+            } else if (dashes <= 2) {
+                return null;
             }
-            return null;
+            dashes--;
+            goto loop;
         }
         public bool GetHairScale(int index, int dashes, out Vector2 scale) {
             if (ActualHairScales == null || index == 0) {
@@ -403,21 +389,23 @@ namespace Celeste.Mod.SkinModHelper {
                 return false;
             }
             dashes = Math.Min(_HairScalesMaxNum, dashes);
-            while (dashes > 2 && !ActualHairScales.ContainsKey((dashes, null))) {
-                dashes--;
-            }
-            if (ActualHairScales.TryGetValue((dashes, null), out Vector2 vector)) {
-                if (ActualHairScales.TryGetValue((dashes, index - attached.Sprite.HairCount), out Vector2 vectorAlt) || ActualHairScales.TryGetValue((dashes, index), out vectorAlt)) {
-                    vector = vectorAlt;
+        loop:
+            if (ActualHairScales.TryGetValue((dashes, GeneralSegment), out scale)) {
+                if (ActualHairScales.TryGetValue((dashes, index - attached.Sprite.HairCount), out Vector2 vector) || ActualHairScales.TryGetValue((dashes, index), out vector)) {
+                    scale = vector;
                 }
                 // float2.X mean the root scale, float2.Y mean the end scale.
-                float num = vector.Y + (1f - (float)index / (float)(attached.Sprite.HairCount)) * (vector.X - vector.Y);
+                float num = scale.Y + (1f - (float)index / (float)(attached.Sprite.HairCount)) * (scale.X - scale.Y);
                 scale = new Vector2(float.Round(num * Math.Abs(attached.Sprite.Scale.X), 2), float.Round(num, 2));
                 return true;
+
+            } else if (dashes <= 2) {
+                return false;
             }
-            scale = Vector2.Zero;
-            return false;
+            dashes--;
+            goto loop;
         }
+
         public Vector2 FlipHair(Vector2 scale, int index) {
             if (index > 0) {
                 switch (HairFlipMode) {

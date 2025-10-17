@@ -11,7 +11,7 @@ You need to create a file named "SkinModHelperConfig.yaml" in your mod root (nex
 Here is a skeleton of a SkinModHelperConfig.yaml file.
 Each of the fields will be explained below.
 ```yaml
-- SkinName: [the unique name]
+- SkinName: [an SkinName that is required]
 
   # ---Player skin---
   Player_List: [true/false]

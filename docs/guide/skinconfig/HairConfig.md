@@ -55,7 +55,8 @@ HairAttrWithDashes:
  
   Length: [integers from 1 to 99]
 ```  
-* If there is a set with `Dashes` is -1, its value will work on the player feather state except for color.
+* If there is a set with `Dashes` is -1, its value will work on the player feather state.
+  * but color won't affect the body color during feather. because the colored feathers state from modded.
 * The default scale is `1, 0.25`
 * The default length is `4`, `5`, `7` for normal, two-dashes, feather.
 
@@ -67,7 +68,7 @@ If you want to go a step further, set attr ​​for individual segments, so use
     Scale: [floats]
 ```
 * Make the value of the segments work require set the corresponding value of the parent set also.
-
+* if color value is "orig". so the corresponding segment color will keep in vanilla. not the colors from the parent set.
 
 ---
 ### HairFlipMode
