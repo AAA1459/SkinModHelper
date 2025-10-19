@@ -586,6 +586,7 @@ namespace Celeste.Mod.SkinModHelper {
             }
             return c1;
         }
+        
         #endregion
         #region Method #2
         public static string getAnimationRootPath(object type) {

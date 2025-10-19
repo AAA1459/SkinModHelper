@@ -7,6 +7,8 @@ The content here involves a new config, its structure and function is like this
 HairAttrWithDashes:
 - < AttrWithDashes >  # color, lengths, scale.
 
+OutlineColor: [use six digit RGB hex code]
+
 HairFlipMode: [None/SyncBangs/FacingBangs/FacingPrevHair]
 
 BangsOrigin: [x],[y]
@@ -15,7 +17,6 @@ HairOrigin: [x],[y]
 HairFlash: [true/false]
 HairFloatingDashCount: [number]
   
-OutlineColor: [use six digit RGB hex code]
 ```
 You don’t have to include all of them until you see what you want.
 
@@ -68,7 +69,20 @@ If you want to go a step further, set attr ​​for individual segments, so use
     Scale: [floats]
 ```
 * Make the value of the segments work require set the corresponding value of the parent set also.
-* if color value is "orig". so the corresponding segment color will keep in vanilla. not the colors from the parent set.
+* if color value is "orig". so the corresponding segment color will keep in its original color. can used for the colored feathers
+* We have some "unique" segments. they will change color in other stuff than hair.
+  * the segment 101, used for dash trail color.
+  * the segment 102, used for dash particle color.
+  * the segment -101, used for hair border color.
+
+---
+### OutlineColor
+If you need to recolor the hair border for target, use:
+```
+OutlineColor: [use six digit RGB hex code]     # default color is "000000"
+```
+You may have noticed that [HairAttrWithDashes](/docs/guide/skinconfig/HairConfig.md#hairattrwithdashes)] can also recolor the OutlineColor. 
+But the OutlineColor color set here will be used as the default hair border color. used when any dashes
 
 ---
 ### HairFlipMode
@@ -110,14 +124,6 @@ By default, the player's hair floating when have at least 2 dashes. If you want 
 HairFloatingDashCount: [any number]
   # using "0" to make it always floating.
   # using "-1" to make it never floating.
-```
-
-
----
-### OutlineColor
-If you need to recolor the hair border for target, use:
-```
-OutlineColor: [use six digit RGB hex code]     # default color is "000000"
 ```
 
 ---

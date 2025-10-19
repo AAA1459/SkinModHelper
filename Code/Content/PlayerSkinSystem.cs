@@ -574,24 +574,27 @@ namespace Celeste.Mod.SkinModHelper {
         }
 
         private static void PlayerHairRenderHook(On.Celeste.PlayerHair.orig_Render orig, PlayerHair self) {
-            if (self.Active) {
-                DynamicData selfData = DynamicData.For(self);
-                HairConfig hairConfig = HairConfig.For(self);
+            DynamicData selfData = DynamicData.For(self);
+            HairConfig hairConfig = HairConfig.For(self);
 
-                int? get_dashCount = GetDashCount(self.Entity, self.Sprite);
-                if (get_dashCount != null && (self.Entity is not Player || self.Color != Color.White || hairConfig.HairFlash == false) && hairConfig.Safe_GetHairColor((int)get_dashCount, out Color color))
+            Color border = self.Border;
+            self.Border = ColorBlend(self.Border, selfData.Get("HairColorGrading"));
+
+            int? get_dashCount = GetDashCount(self.Entity, self.Sprite);
+            if (get_dashCount is int dashes) {
+                if ((self.Entity is not Player || self.Color != Color.White || hairConfig.HairFlash == false) && hairConfig.Safe_GetHairColor(dashes, out Color color)) {
                     self.Color = color;
-
-                Color border = self.Border;
-                self.Border = ColorBlend(self.Border, selfData.Get("HairColorGrading"));
-                if (CharacterConfig.For(self.Sprite).SilhouetteMode == true) {
-                    self.Border = ColorBlend(self.Border, self.Color);
                 }
-                orig(self);
-                self.Border = border;
-                return;
+                if (hairConfig.GetHairColorWithSpecified(HairConfig.OutlineSegment, dashes, out color)) {
+                    self.Border = color;
+                }
+            }
+
+            if (CharacterConfig.For(self.Sprite).SilhouetteMode == true) {
+                self.Border = ColorBlend(self.Border, self.Color);
             }
             orig(self);
+            self.Border = border;
         }
 
         private static MTexture PlayerHairGetHairTextureHook(On.Celeste.PlayerHair.orig_GetHairTexture orig, PlayerHair self, int index) {
@@ -625,9 +628,6 @@ namespace Celeste.Mod.SkinModHelper {
 
             if (hairConfig.ActualHairColors != null && dashes != null && (self.Entity is not Player || self.Color != Color.White || hairConfig.HairFlash == false)) {
                 if (hairConfig.Safe_GetHairColor(index, (int)dashes, out Color color)) {
-
-                    Log($"{color}");
-
                     return ColorBlend(color * self.Alpha, DynamicData.For(self).Get("HairColorGrading"));
                 }
             }

@@ -66,7 +66,7 @@ namespace Celeste.Mod.SkinModHelper.Interop {
             return null;
         }
         public static Color? GetHairColor(PlayerHair hair, int dashes, int index) {
-            if (HairConfig.For(hair).Safe_GetHairColor(dashes, index, out Color color)) {
+            if (HairConfig.For(hair).Safe_GetHairColor(index, dashes, out Color color)) {
                 return color;
             }
             return null;

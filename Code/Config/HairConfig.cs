@@ -28,6 +28,7 @@ namespace Celeste.Mod.SkinModHelper {
         public const int GeneralSegment = 100;
         public const int TrailSegment = 101;
         public const int DashPtclSegment = 102;
+        public const int OutlineSegment = -101;
 
         public static Color C_EmptyS = new(255, 255, 255, 0);
 
@@ -117,6 +118,7 @@ namespace Celeste.Mod.SkinModHelper {
 
         #region Configurable values
         public string OutlineColor { get; set; }
+
         public bool HairFlash { get; set; } = true;
         public int? HairFloatingDashCount { get; set; }
         public enum HairFlipModes { None, SyncBangs, FacingBangs, FacingPrevHair }
@@ -355,13 +357,29 @@ namespace Celeste.Mod.SkinModHelper {
             dashes = Math.Min(_HairColorsMaxNum, dashes);
         loop:
             if (ActualHairColors.TryGetValue((dashes, GeneralSegment), out color)) {
-                if ((index <= GeneralSegment && ActualHairColors.TryGetValue((dashes, index - attached.Sprite.HairCount), out Color color2))
+                if ((index < GeneralSegment && ActualHairColors.TryGetValue((dashes, index - attached.Sprite.HairCount), out Color color2))
                     || ActualHairColors.TryGetValue((dashes, index), out color2)) {
                     color = color2;
                 }
                 return color != C_EmptyS;
 
-            } else if (dashes <= 0) {
+            } else if (dashes <= 2) {
+                return false;
+            }
+            dashes--;
+            goto loop;
+        }
+        public bool GetHairColorWithSpecified(int index, int dashes, out Color color) {
+            if (ActualHairColors == null || !ColorsActive) {
+                color = new();
+                return false;
+            }
+            dashes = Math.Min(_HairColorsMaxNum, dashes);
+        loop:
+            if (ActualHairColors.TryGetValue((dashes, index), out color)) {
+                return color != C_EmptyS;
+
+            } else if (dashes <= 2) {
                 return false;
             }
             dashes--;
