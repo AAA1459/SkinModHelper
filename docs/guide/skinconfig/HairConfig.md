@@ -56,7 +56,7 @@ HairAttrWithDashes:
  
   Length: [integers from 1 to 99]
 ```  
-* If there is a set with `Dashes` is -1, its value will work on the player feather state.
+* If there is a set with `Dashes` is `-1`, its value will work on the player feather state.
   * but color won't affect the body color during feather. because the colored feathers state from modded.
 * The default scale is `1, 0.25`
 * The default length is `4`, `5`, `7` for normal, two-dashes, feather.
@@ -69,11 +69,12 @@ If you want to go a step further, set attr ​​for individual segments, so use
     Scale: [floats]
 ```
 * Make the value of the segments work require set the corresponding value of the parent set also.
-* if color value is "orig". so the corresponding segment color will keep in its original color. can used for the colored feathers
+* if `Color` value is `orig`. so the corresponding segment will keep in original color... e.g... the colored feathers
 * We have some "unique" segments. they will change color in other stuff than hair.
-  * the segment 101, used for dash trail color.
-  * the segment 102, used for dash particle color.
-  * the segment -101, used for hair border color.
+  * the segment `101`, used for dash trail color.
+  * the segment `102`, used for dash particle color.
+  * the segment `-101`, used for hair border color.
+  * the segment `-102`, used for hair flashes color.
 
 ---
 ### OutlineColor
@@ -81,8 +82,8 @@ If you need to recolor the hair border for target, use:
 ```
 OutlineColor: [use six digit RGB hex code]     # default color is "000000"
 ```
-You may have noticed that [HairAttrWithDashes](/docs/guide/skinconfig/HairConfig.md#hairattrwithdashes)] can also recolor the OutlineColor. 
-But the OutlineColor color set here will be used as the default hair border color. used when any dashes
+You may have noticed that [[HairAttrWithDashes](/docs/guide/skinconfig/HairConfig.md#hairattrwithdashes)] can also recolor the OutlineColor. 
+But the OutlineColor set here will be used as the default hair border color. used when any dashes
 
 ---
 ### HairFlipMode

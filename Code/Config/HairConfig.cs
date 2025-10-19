@@ -29,6 +29,7 @@ namespace Celeste.Mod.SkinModHelper {
         public const int TrailSegment = 101;
         public const int DashPtclSegment = 102;
         public const int OutlineSegment = -101;
+        public const int HairFlashSegment = -102;
 
         public static Color C_EmptyS = new(255, 255, 255, 0);
 
@@ -110,6 +111,7 @@ namespace Celeste.Mod.SkinModHelper {
         public bool ColorsActive = true;
         [YamlIgnore]
         public bool LengthsActive = true;
+        public bool HairFlashing { get => HairFlash && lastEntity is Player player && player.Dashes != 0 && player.hairFlashTimer > 0f; }
 
         /// <summary>The <see cref="Vector2"/> here mean both root and end scales, not x,y.</summary>
         [YamlIgnore]
