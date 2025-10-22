@@ -26,12 +26,13 @@ namespace Celeste.Mod.SkinModHelper.Interop {
             typeof(SkinModHelperInterop).ModInterop();
         }
 
-        public static string GetHairConfig_DynamicDataKey() {
-            return HairConfig._DynamicDataKey;
+        public static HairConfig GetHairConfig(PlayerHair hair) {
+            return HairConfig.For(hair);
         }
-        public static string GetCharacterConfig_DynamicDataKey() {
-            return CharacterConfig._DynamicDataKey;
+        public static CharacterConfig GetCharacterConfig(Image image) {
+            return CharacterConfig.For(image);
         }
+
 
         // We used some hooks to figure out which entity called ParticleSystem.Emit and reskin particle there. but it may not be accurate... This can be used to avoid it.
         /// <summary> Check and get if your static particles are modified in the skin of the specify entity </summary>
@@ -49,7 +50,7 @@ namespace Celeste.Mod.SkinModHelper.Interop {
 
 
         public static string GetPlayerSkinNameForGlobal() {
-            return SkinModHelperModule.GetPlayerSkinName(Player_Skinid_verify);
+            return GetPlayerSkinName(Player_Skinid_verify);
         }
 
 
@@ -67,6 +68,12 @@ namespace Celeste.Mod.SkinModHelper.Interop {
         }
         public static Color? GetHairColor(PlayerHair hair, int dashes, int index) {
             if (HairConfig.For(hair).Safe_GetHairColor(index, dashes, out Color color)) {
+                return color;
+            }
+            return null;
+        }
+        public static Color? GetHairColorWithSpecified(PlayerHair hair, int dashes, int index) {
+            if (HairConfig.For(hair).GetHairColorWithSpecified(index, dashes, out Color color)) {
                 return color;
             }
             return null;
@@ -91,8 +98,25 @@ namespace Celeste.Mod.SkinModHelper.Interop {
             return null;
         }
 
+        /// <summary>
+        /// type a texture path, atlas[texture]. to make it skinnable for SMH skins. <br/><br/>
+        /// `isStatic` means whether the texture is animated.<br/><br/>
+        /// 
+        /// `optionsId` means in the precisely skin choose menu of the advanced options. a options to onoff only the parts of skin that related to this.<br/>
+        /// </summary>
+        public static void AddSkinnableCompatibilityFor(Atlas atlas, string texture, bool isStatic, string optionsId) {
+            
+            var manager = SkinsSystem.OtherSpriteSkins;
+            nonBankReskin.SpriteInfo.Add((optionsId, atlas, texture, isStatic));
 
+            if (!Dialog.Has($"SkinModHelper_{manager.O_DescriptionPrefix}__{optionsId}")) {
+                Logger.Log(LogLevel.Warn, "SkinModHelper", $"Added skinnable compatibility for [{atlas.RelativeDataPath}{texture}]... " +
+                    $"but the dialogID [SkinModHelper_{manager.O_DescriptionPrefix}__{optionsId}] used for its options in 'Precisely skin choose' menu does not exist");
 
+            } else {
+                Logger.Log(LogLevel.Verbose, "SkinModHelper", $"Added skinnable compatibility for [{atlas.RelativeDataPath}{texture}]");
+            }
+        }
 
 
 
@@ -112,10 +136,10 @@ namespace Celeste.Mod.SkinModHelper.Interop {
 
 
         public static void SetColorGrade(Sprite to, MTexture mTexture) {
-            DynamicData spriteData = DynamicData.For(to);
+            CharacterConfig config_ofTo = CharacterConfig.For(to);
 
-            spriteData.Set("ColorGrade_Path", mTexture?.AtlasPath);
-            spriteData.Set("ColorGrade_Atlas", mTexture?.Atlas);
+            config_ofTo.ColorGrade_Atlas = mTexture?.Atlas;
+            config_ofTo.ColorGrade_Path = mTexture?.AtlasPath;
         }
         public static void CopyColorGrades(Sprite from, Sprite to) {
             SyncColorGrade(to, from);

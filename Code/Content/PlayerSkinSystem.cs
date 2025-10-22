@@ -309,7 +309,7 @@ namespace Celeste.Mod.SkinModHelper {
                 }
 
                 if (ModeConfig.LowStaminaFlashHair || (ModeConfig.SilhouetteMode == true)) {
-                    DynamicData.For(p.Hair).Set("HairColorGrading", backup ?? color);
+                    HairConfig.For(p.Hair).HairColorGrading = backup ?? color;
                 }
                 return color;
             };
@@ -376,17 +376,17 @@ namespace Celeste.Mod.SkinModHelper {
         #region ColorGrade
         private static Dictionary<string, int> _ColorGradeMaxNum = new();
         private static void PlayerHairRenderHook_ColorGrade(On.Celeste.PlayerHair.orig_Render orig, PlayerHair self) {
-            DynamicData selfData = DynamicData.For(self.Sprite);
+            CharacterConfig config = CharacterConfig.For(self.Sprite);
 
-            // Save colorgrade in typeof(Image).
+            // Save colorgrade in the sprite instance.
             // For make typeof(PlayerDeadBody) inherited typeof(Player)'s colorgrade, or similar situations.
-            Atlas atlas = selfData.Get<Atlas>("ColorGrade_Atlas") ?? GFX.Game;
-            string colorGrade_Path = selfData.Get<string>("ColorGrade_Path");
+            Atlas atlas = config.ColorGrade_Atlas ?? GFX.Game;
+            string colorGrade_Path = config.ColorGrade_Path;
             if (!self.Active)
                 goto goto_one;
 
             #region
-            if (!selfData.TryGet("ColorGrade_Path", out colorGrade_Path)) {
+            if (colorGrade_Path == null) {
                 colorGrade_Path = getAnimationRootPath(self.Sprite, "idle") + "ColorGrading/";
 
                 //Check if config from v0.7 Before---
@@ -396,8 +396,8 @@ namespace Celeste.Mod.SkinModHelper {
                 }
                 //---
 
-                selfData.Set("ColorGrade_Atlas", atlas);
-                selfData.Set("ColorGrade_Path", colorGrade_Path);
+                config.ColorGrade_Atlas = atlas;
+                config.ColorGrade_Path = colorGrade_Path;
             }
 
             string dir = getAnimationRootPath(colorGrade_Path);
@@ -423,14 +423,14 @@ namespace Celeste.Mod.SkinModHelper {
                     get_dashCount = 1;
                 else
                     get_dashCount = Math.Max(player.lastDashes, 0);
-            } else if (selfData.Get("isGhost") != null && SMH_NetHelper.TryGetDashes(self.Entity, out int dashes)) {
+            } else if (DynamicData.For(self.Sprite).Get("isGhost") != null && SMH_NetHelper.TryGetDashes(self.Entity, out int dashes)) {
                 get_dashCount = dashes;
             } else {
                 get_dashCount = self.Entity is PlayerDeadBody ? null : GetDashCount(self.Entity, self.Sprite);
             }
 
             if (HairConfig.For(self).HairFlashing && atlas.Has(dir + "flash")) {
-                selfData.Set("ColorGrade_Path", colorGrade_Path = dir + "flash");
+                config.ColorGrade_Path = colorGrade_Path = dir + "flash";
 
             } else if (get_dashCount != null) {
                 colorGrade_Path = dir + "dash";
@@ -438,7 +438,7 @@ namespace Celeste.Mod.SkinModHelper {
                 while (dashCount > 2 && !atlas.Has(colorGrade_Path + dashCount)) {
                     dashCount--;
                 }
-                selfData.Set("ColorGrade_Path", colorGrade_Path += dashCount);
+                config.ColorGrade_Path = (colorGrade_Path += dashCount);
             }
         #endregion
         goto_one:
@@ -447,7 +447,7 @@ namespace Celeste.Mod.SkinModHelper {
                 Effect colorGradeEffect = FxColorGrading_SMH;
 
                 colorGradeEffect.CurrentTechnique = colorGradeEffect.Techniques[
-                    CharacterConfig.For(self.Sprite).ColorGradingAfterColored ? "ColorGradeAftColored" : "ColorGrade"
+                    config.ColorGradingAfterColored ? "ColorGradeAftColored" : "ColorGrade"
                     ];
                 Engine.Graphics.GraphicsDevice.Textures[1] = atlas[colorGrade_Path].Texture.Texture_Safe;
 
@@ -463,17 +463,18 @@ namespace Celeste.Mod.SkinModHelper {
             orig(self);
         }
         private static void SpriteRenderHook_ColorGrade(Action<Sprite> orig, Sprite self) {
-            DynamicData selfData = DynamicData.For(self);
-            string colorGrade_Path = selfData.Get<string>("ColorGrade_Path");
+            CharacterConfig config = CharacterConfig.For(self);
+
+            string colorGrade_Path = config.ColorGrade_Path;
 
             if (colorGrade_Path != null) {
-                Atlas atlas = selfData.Get<Atlas>("ColorGrade_Atlas") ?? GFX.Game;
+                Atlas atlas = config.ColorGrade_Atlas ?? GFX.Game;
 
                 if (atlas.Has(colorGrade_Path)) {
                     Effect colorGradeEffect = FxColorGrading_SMH;
 
                     colorGradeEffect.CurrentTechnique = colorGradeEffect.Techniques[
-                        CharacterConfig.For(self).ColorGradingAfterColored ? "ColorGradeAftColored" : "ColorGrade"
+                        config.ColorGradingAfterColored ? "ColorGradeAftColored" : "ColorGrade"
                         ];
                     Engine.Graphics.GraphicsDevice.Textures[1] = atlas[colorGrade_Path].Texture.Texture_Safe;
 
@@ -571,12 +572,11 @@ namespace Celeste.Mod.SkinModHelper {
 
 
         private static void PlayerHairUpdateHook(On.Celeste.PlayerHair.orig_Update orig, PlayerHair self) {
-            DynamicData.For(self).Set("HairColorGrading", null);
+            HairConfig.For(self).HairColorGrading = null;
             orig(self);
         }
 
         private static void PlayerHairRenderHook(On.Celeste.PlayerHair.orig_Render orig, PlayerHair self) {
-            DynamicData selfData = DynamicData.For(self);
             HairConfig hairConfig = HairConfig.For(self);
 
             Color border = self.Border;
@@ -590,7 +590,7 @@ namespace Celeste.Mod.SkinModHelper {
                     self.Border = color;
                 }
             }
-            self.Border = ColorBlend(self.Border, selfData.Get("HairColorGrading"));
+            self.Border = ColorBlend(self.Border, hairConfig.HairColorGrading);
             if (get_dashCount != HairConfig.FeatherIndex && CharacterConfig.For(self.Sprite).SilhouetteMode == true) {
                 self.Border = ColorBlend(self.Border, self.Color);
             }
@@ -629,10 +629,10 @@ namespace Celeste.Mod.SkinModHelper {
 
             if (hairConfig.ActualHairColors != null && dashes != null && !hairConfig.HairFlashing) {
                 if (hairConfig.Safe_GetHairColor(index, (int)dashes, out Color color)) {
-                    return ColorBlend(color * self.Alpha, DynamicData.For(self).Get("HairColorGrading"));
+                    return ColorBlend(color * self.Alpha, hairConfig.HairColorGrading);
                 }
             }
-            return ColorBlend(orig(self, index), DynamicData.For(self).Get("HairColorGrading"));
+            return ColorBlend(orig(self, index), hairConfig.HairColorGrading);
         }
         private static Vector2 PlayerHairGetHairScaleHook(On.Celeste.PlayerHair.orig_GetHairScale orig, PlayerHair self, int index) {
             HairConfig hairConfig = HairConfig.For(self);

@@ -14,12 +14,14 @@ using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.PlayerSkinSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 using static Celeste.Mod.SkinModHelper.HairConfig.AttrWithDashes;
+using System.Runtime.CompilerServices;
 
 namespace Celeste.Mod.SkinModHelper {
     public class HairConfig {
         #region Ctor / Initialization
-        internal const string _DynamicDataKey = "smh_hairConfig";
         internal const string _ConfigName = "skinConfig/HairConfig";
+
+        private static ConditionalWeakTable<PlayerHair, HairConfig> _Instance = new();
 
         // Some special states that can attach HairAttrs with it than dashes.
         public const int FeatherIndex = -1;
@@ -36,12 +38,9 @@ namespace Celeste.Mod.SkinModHelper {
         public HairConfig() {
         }
         public static HairConfig For(PlayerHair target) {
-            DynamicData selfData = DynamicData.For(target);
-            HairConfig config = selfData.Get<HairConfig>(_DynamicDataKey);
-
             string rootPath = getAnimationRootPath(target.Sprite);
 
-            if (config == null || config.SourcePath != rootPath) {
+            if (!_Instance.TryGetValue(target, out HairConfig config) || config.SourcePath != rootPath) {
 
                 if (OldConfigCheck(target.Sprite, out string isOld)) {
                     config = new();
@@ -76,7 +75,9 @@ namespace Celeste.Mod.SkinModHelper {
                     config.InitAttrsWithDashes();
                 }
                 target.Border = RGBA_IsMatch(config.OutlineColor) ? Calc.HexToColorWithAlpha(config.OutlineColor) : Color.Black;
-                selfData.Set("smh_hairConfig", config);
+
+                _Instance.Remove(target);
+                _Instance.TryAdd(target, config);
             }
             if (target.Entity != config.lastEntity) {
                 config.lastEntity = target.Entity;
@@ -90,6 +91,9 @@ namespace Celeste.Mod.SkinModHelper {
         private Entity lastEntity;
         private ModAsset Source;
         private string SourcePath;
+
+        // may be a float. may be a Color.
+        public object HairColorGrading;
 
         private int _HairLengthsMaxNum = 2;
         private int _HairScalesMaxNum = 2;

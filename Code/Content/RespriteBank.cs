@@ -226,23 +226,28 @@ namespace Celeste.Mod.SkinModHelper {
                 PathSpriteId[atlas.RelativeDataPath + orig_path] = new(atlas, orig_path, storageId);
         }
 
+        public static List<(string, Atlas, string, bool)> SpriteInfo = new() {
+            ("death_particle", GFX.Game, "death_particle", true),
+            ("dreamblock_particles", GFX.Game, "objects/dreamblock/particles", true),
+            ("feather_particles", GFX.Game, "particles/feather", true),
+
+            ("Mountain_marker", MTN.Mountain, "marker/runBackpack", false),
+            ("Mountain_marker", MTN.Mountain, "marker/runNoBackpack", false),
+            ("Mountain_marker", MTN.Mountain, "marker/Fall", false),
+
+            ("Interact_icons", GFX.Gui, "hover/idle", true),
+            ("Interact_icons", GFX.Gui, "hover/highlight", true)
+        };
+
         public override void ClearRecord() {
             SkinsRecords.Clear();
             SkinIdPath.Clear();
             PathSpriteId.Clear();
             PathStaticSpriteId.Clear();
 
-            // evil...
-            AddSpriteInfo("death_particle", GFX.Game, "death_particle");
-            AddSpriteInfo("dreamblock_particles", GFX.Game, "objects/dreamblock/particles");
-            AddSpriteInfo("feather_particles", GFX.Game, "particles/feather");
-
-            AddSpriteInfo("Mountain_marker", MTN.Mountain, "marker/runBackpack", false);
-            AddSpriteInfo("Mountain_marker", MTN.Mountain, "marker/runNoBackpack", false);
-            AddSpriteInfo("Mountain_marker", MTN.Mountain, "marker/Fall", false);
-
-            AddSpriteInfo("Interact_icons", GFX.Gui, "hover/idle");
-            AddSpriteInfo("Interact_icons", GFX.Gui, "hover/highlight");
+            foreach ((string, Atlas, string, bool) set in SpriteInfo) {
+                AddSpriteInfo(set.Item1, set.Item2, set.Item3, set.Item4);
+            }
         }
         public override void DoRecord(string skinId, string directory, string cipher) {
             if (string.IsNullOrEmpty(skinId))

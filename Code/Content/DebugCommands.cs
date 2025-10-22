@@ -55,7 +55,8 @@ namespace Celeste.Mod.SkinModHelper {
             switch (command) {
                 case "test":
                     debugging = !debugging;
-                    return;
+                    message = ($"Sprite,{(Engine.Scene as Level)?.Tracker?.GetComponents<Sprite>().Count}. debugging: {debugging}");
+                    break;
                 case "settings":
                     if (help2) {
                         message = "Quick changes SkinModHelper setting. and available subcommands are \n  saving, backpack, PlayerSkinXmlGreatestPriority(psgp)";
@@ -114,9 +115,9 @@ namespace Celeste.Mod.SkinModHelper {
                         #region
                         switch (command2) {
                             case "cg" or "colorgrade":
-                                DynamicData spriteData = DynamicData.For(sprite);
-                                Atlas atlas = spriteData.Get<Atlas>("ColorGrade_Atlas") ?? GFX.Game;
-                                string path = spriteData.Get<string>("ColorGrade_Path");
+                                CharacterConfig config = CharacterConfig.For(sprite);
+                                Atlas atlas = config.ColorGrade_Atlas ?? GFX.Game;
+                                string path = config.ColorGrade_Path;
 
                                 message = $"The current colorgrade: {atlas.RelativeDataPath}{path}";
                                 if (path == null || !atlas.Has(path))

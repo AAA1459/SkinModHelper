@@ -17,6 +17,7 @@ using System.Linq;
 using System.Diagnostics;
 
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
+using System.Runtime.CompilerServices;
 
 namespace Celeste.Mod.SkinModHelper {
     public static class SkinsSystem {
@@ -38,9 +39,8 @@ namespace Celeste.Mod.SkinModHelper {
 
         public static void Unload() {
             Everest.Content.OnUpdate -= EverestContentUpdateHook;
-
             On.Celeste.Player.Update -= PlayerUpdateHook;
-
+            
             On.Monocle.SpriteBank.Create -= SpriteBankCreateHook;
             On.Monocle.SpriteBank.CreateOn -= SpriteBankCreateOnHook;
             On.Monocle.Atlas.GetAtlasSubtextures -= GetAtlasSubtexturesHook;
@@ -63,6 +63,8 @@ namespace Celeste.Mod.SkinModHelper {
 
         public static Dictionary<string, SkinModHelperConfig> OtherskinConfigs = new(StringComparer.OrdinalIgnoreCase);
         public static Dictionary<string, SkinModHelperOldConfig> OtherskinOldConfig = new(StringComparer.OrdinalIgnoreCase);
+
+        private static ConditionalWeakTable<Sprite, SpriteData> SpriteDataCache = new();
 
         public static readonly int MAX_HAIRLENGTH = 99;
         public static readonly string playercipher = "_+";
@@ -280,9 +282,7 @@ namespace Celeste.Mod.SkinModHelper {
             }
             Sprite sprite = orig(self, id);
             if (sprite != null) {
-                DynamicData spriteData = DynamicData.For(sprite);
-                spriteData.Set("smh_spriteName", id);
-                spriteData.Set("smh_spriteData", self.SpriteData[id]);
+                SpriteDataCache.TryAdd(sprite, self.SpriteData[id]);
             }
             return sprite;
         }
@@ -306,9 +306,8 @@ namespace Celeste.Mod.SkinModHelper {
                     OnceLog(LogLevel.Warn, $"PlayerSprite used '{id}' but that from the custom SpriteBank/Xml... Cannot CreateFramesMetadata and fill it with the possible animations");
                 }
             }
-            DynamicData spriteData = DynamicData.For(sprite);
-            spriteData.Set("smh_spriteName", id);
-            spriteData.Set("smh_spriteData", self.SpriteData[id]);
+            SpriteDataCache.Remove(sprite);
+            SpriteDataCache.TryAdd(sprite, self.SpriteData[id]);
             return orig(self, sprite, id);
         }
         #endregion
@@ -505,18 +504,16 @@ namespace Celeste.Mod.SkinModHelper {
                 if (config.HoldableFacingFlipable) {
                     Holdable holdable = self.Entity.Get<Holdable>();
                     if (holdable != null) {
-
-                        DynamicData entityData = DynamicData.For(self.Entity);
                         Vector2 speed = holdable.Holder?.Speed ?? holdable.GetSpeed();
 
                         if (Math.Abs(speed.X) < 15f) {
-                            if (entityData.TryGet("smh_facingBack", out bool? front))
-                                if (front == false ? self.Scale.X < 0f : self.Scale.X > 0f)
+                            if (config.HoldableFacingIsFront is bool front)
+                                if (!front ? self.Scale.X < 0f : self.Scale.X > 0f)
                                     self.Scale.X *= -1f;
 
                         } else if ((speed.X > 0f && self.Scale.X < 0f) || (speed.X < 0f && self.Scale.X > 0f)) {
                             self.Scale.X *= -1f;
-                            entityData.Set("smh_facingBack", self.Scale.X < 0f);
+                            config.HoldableFacingIsFront = self.Scale.X < 0f;
                         }
                     }
                 }
@@ -594,14 +591,14 @@ namespace Celeste.Mod.SkinModHelper {
                 return null;
             }
             if (type is Sprite sprite) {
-                var data = DynamicData.For(sprite).Get<SpriteData>("smh_spriteData");
+                SpriteData data = SpriteDataCache.TryGetValue(sprite, out var value) ? value : null;
                 if (data?.Sources != null) {
                     return data.Sources[0].OverridePath ?? data.Sources[0].Path;
                 }
                 return getAnimationRootPath($"{(sprite.Has("idle") ? sprite.GetFrame("idle", 0) : sprite.Texture ?? sprite.Animations.Values.FirstOrDefault()?.Frames?.FirstOrDefault())}");
             } 
             if (type is Image image) {
-                return getAnimationRootPath(image.Texture.ToString());
+                return getAnimationRootPath(image.Texture?.ToString());
             }
             return getAnimationRootPath(type.ToString());
         }
@@ -667,7 +664,7 @@ namespace Celeste.Mod.SkinModHelper {
         /// </summary>
         public static bool GetTexturesOnSprite(Image sprite, string filename, out List<MTexture> textures) {
             textures = null;
-            var data = DynamicData.For(sprite).Get<SpriteData>("smh_spriteData");
+            SpriteData data = sprite is Sprite sprite2 && SpriteDataCache.TryGetValue(sprite2, out var value) ? value : null;
             Atlas atlas = data?.Atlas ?? GFX.Game;
 
             if (data?.Sources == null || data.Sources.Count == 0) {
@@ -695,7 +692,7 @@ namespace Celeste.Mod.SkinModHelper {
         /// </summary>
         public static bool GetTextureOnSprite(Image sprite, string filename, out MTexture texture) {
             texture = null;
-            var data = DynamicData.For(sprite).Get<SpriteData>("smh_spriteData");
+            SpriteData data = sprite is Sprite sprite2 && SpriteDataCache.TryGetValue(sprite2, out var value) ? value : null;
             Atlas atlas = data?.Atlas ?? GFX.Game;
 
             if (data?.Sources == null || data.Sources.Count == 0) {
@@ -722,7 +719,7 @@ namespace Celeste.Mod.SkinModHelper {
         /// Find out if specified assets exists under the sprite's inherited path or own path
         /// </summary>
         public static ModAsset GetAssetOnSprite<T>(Image sprite, string filename) {
-            var data = DynamicData.For(sprite).Get<SpriteData>("smh_spriteData");
+            SpriteData data = sprite is Sprite sprite2 && SpriteDataCache.TryGetValue(sprite2, out var value) ? value : null;
             if (data?.Sources == null || data.Sources.Count == 0) {
                 if (Everest.Content.TryGet((data?.Atlas ?? GFX.Game).RelativeDataPath + getAnimationRootPath(sprite) + filename, out var asset) && asset.Type == typeof(T))
                     return asset;
@@ -760,14 +757,15 @@ namespace Celeste.Mod.SkinModHelper {
         public static void SyncColorGrade(Sprite to, Sprite from) {
             if (to == null)
                 return;
-            DynamicData toData = DynamicData.For(to);
+            CharacterConfig config_ofTo = CharacterConfig.For(from);
             if (from != null) {
-                DynamicData fromData = DynamicData.For(from);
-                toData.Set("ColorGrade_Path", fromData.Get<string>("ColorGrade_Path"));
-                toData.Set("ColorGrade_Atlas", fromData.Get<Atlas>("ColorGrade_Atlas"));
+                CharacterConfig config_ofFr = CharacterConfig.For(from);
+
+                config_ofTo.ColorGrade_Atlas = config_ofFr.ColorGrade_Atlas;
+                config_ofTo.ColorGrade_Path = config_ofFr.ColorGrade_Path;
             } else {
-                toData.Set("ColorGrade_Path", null);
-                toData.Set("ColorGrade_Atlas", null);
+                config_ofTo.ColorGrade_Atlas = null;
+                config_ofTo.ColorGrade_Path = null;
             }
         }
         #endregion

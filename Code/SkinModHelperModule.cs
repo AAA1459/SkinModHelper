@@ -65,6 +65,7 @@ namespace Celeste.Mod.SkinModHelper {
 
             SkinModHelperInterop.Load();
             InputSearchUI.Load();
+            
         }
         public override void Initialize() {
             base.Initialize();

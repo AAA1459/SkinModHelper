@@ -14,23 +14,22 @@ using Celeste.Mod.Helpers;
 using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.PlayerSkinSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
+using System.Runtime.CompilerServices;
 
 namespace Celeste.Mod.SkinModHelper {
     public class CharacterConfig {
         #region Ctor / Initialization
-        internal const string _DynamicDataKey = "smh_characterConfig";
         internal const string _ConfigName = "skinConfig/CharacterConfig";
+
+        private static ConditionalWeakTable<Image, CharacterConfig> _Instance = new();
 
         public CharacterConfig() {
         }
 
         public static CharacterConfig For(Image target) {
-            DynamicData selfData = DynamicData.For(target);
-            CharacterConfig config = selfData.Get<CharacterConfig>(_DynamicDataKey);
-            
             string rootPath = getAnimationRootPath(target);
+            if (!_Instance.TryGetValue(target, out CharacterConfig config) || config.SourcePath != rootPath) {
 
-            if (config == null || config.SourcePath != rootPath) {
                 ModAsset asset = GetAssetOnSprite<AssetTypeYaml>(target, _ConfigName);
                 config = AssetIntoConfig<CharacterConfig>(asset) ?? new();
                 config.Source = asset;
@@ -41,7 +40,8 @@ namespace Celeste.Mod.SkinModHelper {
                     config.ModeInitialize(playerSprite.Mode);
                 config.ParticleModifierInit();
 
-                selfData.Set("smh_characterConfig", config);
+                _Instance.Remove(target);
+                _Instance.TryAdd(target, config);
             }
             if (target.Entity != config.lastEntity) {
                 config.lastEntity = target.Entity;
@@ -49,8 +49,8 @@ namespace Celeste.Mod.SkinModHelper {
                 if (target is Sprite sprite && sprite == target.Entity?.Get<Sprite>())
                     config.ParticleModifyRefresh();
 
-                    if (config.EntityTweaks != null)
-                        config.ValuesTweak(target.Entity, config.EntityTweaks, config.TweaksTEST);
+                if (config.EntityTweaks != null)
+                    config.ValuesTweak(target.Entity, config.EntityTweaks, config.TweaksTEST);
             }
             return config;
         }
@@ -65,6 +65,11 @@ namespace Celeste.Mod.SkinModHelper {
         private Entity lastEntity;
         private ModAsset Source;
         private string SourcePath;
+
+        public string ColorGrade_Path;
+        public Atlas ColorGrade_Atlas;
+
+        public bool? HoldableFacingIsFront;
 
         [YamlIgnore]
         public Chooser<string> IdleColdOptions;
