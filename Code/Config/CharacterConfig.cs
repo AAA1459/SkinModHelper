@@ -40,8 +40,7 @@ namespace Celeste.Mod.SkinModHelper {
                     config.ModeInitialize(playerSprite.Mode);
                 config.ParticleModifierInit();
 
-                _Instance.Remove(target);
-                _Instance.TryAdd(target, config);
+                _Instance.AddOrUpdate(target, config);
             }
             if (target.Entity != config.lastEntity) {
                 config.lastEntity = target.Entity;

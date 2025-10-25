@@ -572,7 +572,8 @@ namespace Celeste.Mod.SkinModHelper {
 
 
         private static void PlayerHairUpdateHook(On.Celeste.PlayerHair.orig_Update orig, PlayerHair self) {
-            HairConfig.For(self).HairColorGrading = null;
+            HairConfig hairConfig = HairConfig.For(self);
+            hairConfig.OnHairUpdate?.Invoke();
             orig(self);
         }
 

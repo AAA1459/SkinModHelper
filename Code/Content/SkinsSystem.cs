@@ -282,7 +282,7 @@ namespace Celeste.Mod.SkinModHelper {
             }
             Sprite sprite = orig(self, id);
             if (sprite != null) {
-                SpriteDataCache.TryAdd(sprite, self.SpriteData[id]);
+                SpriteDataCache.AddOrUpdate(sprite, self.SpriteData[id]);
             }
             return sprite;
         }
@@ -306,8 +306,7 @@ namespace Celeste.Mod.SkinModHelper {
                     OnceLog(LogLevel.Warn, $"PlayerSprite used '{id}' but that from the custom SpriteBank/Xml... Cannot CreateFramesMetadata and fill it with the possible animations");
                 }
             }
-            SpriteDataCache.Remove(sprite);
-            SpriteDataCache.TryAdd(sprite, self.SpriteData[id]);
+            SpriteDataCache.AddOrUpdate(sprite, self.SpriteData[id]);
             return orig(self, sprite, id);
         }
         #endregion
