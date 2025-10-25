@@ -499,6 +499,14 @@ namespace Celeste.Mod.SkinModHelper
                 sssiac.OnEnter += () => needReloadMenu_desc2.FadeVisible = true;
                 sssiac.OnLeave += () => needReloadMenu_desc2.FadeVisible = false;
 
+
+                TextMenu.OnOff bhgm = new TextMenu.OnOff(Dialog.Clean("SkinModHelper_Settings_BetterHairGrowsMotion"), Settings.BetterHairMotionOnGrows);
+                bhgm.Change(OnOff => {
+                    Settings.BetterHairMotionOnGrows = OnOff;
+                });
+                subMenu.Add(bhgm);
+                bhgm.AddDescription(subMenu, menu, Dialog.Clean("SkinModHelper_Settings_BetterHairGrowsMotion_desc"));
+
             });
         }
         #endregion

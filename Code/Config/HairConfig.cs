@@ -107,6 +107,7 @@ namespace Celeste.Mod.SkinModHelper {
 
         // may be a float. may be a Color.
         public object HairColorGrading;
+        public int lastHairCount;
 
         public List<MTexture> new_bangs;
         public List<MTexture> new_hairs;

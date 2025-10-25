@@ -54,6 +54,9 @@ namespace Celeste.Mod.SkinModHelper {
         [SettingIgnore]
         public bool ShowSkinSourceInAllCategory { get; set; } = true;
 
+        [SettingIgnore]
+        public bool BetterHairMotionOnGrows { get; set; } = true;
+
 
         [SettingIgnore]
         public Dictionary<string, bool> ExtraXmlList {

@@ -535,6 +535,22 @@ namespace Celeste.Mod.SkinModHelper {
             }
             cursor.Emit(OpCodes.Ldarg_0);
             cursor.EmitDelegate(SetHairLength);
+
+            void hairGrowsOptimize(PlayerHair hair) {
+                if (!smh_Settings.BetterHairMotionOnGrows)
+                    return;
+                HairConfig config = HairConfig.For(hair);
+                
+                // Make the hair spread out from the ends as it grows longer
+                for (int i = Math.Max(config.lastHairCount, 2); i < hair.Sprite.HairCount; i++) {
+                    hair.Nodes[i] = hair.Nodes[i - 1] + new Vector2((float)(0 - hair.Facing) * 0.5f, 0f);
+                }
+                config.lastHairCount = hair.Sprite.HairCount;
+            }
+            if (cursor.TryGotoNext(MoveType.Before, instr => instr.OpCode == OpCodes.Ret)) {
+                cursor.Emit(OpCodes.Ldarg_0);
+                cursor.EmitDelegate(hairGrowsOptimize);
+            }
         }
         private static void il_PlayerHair_Render(ILContext il) {
             ILCursor cursor = new ILCursor(il);
