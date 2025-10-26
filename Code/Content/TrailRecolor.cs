@@ -45,8 +45,12 @@ namespace Celeste.Mod.SkinModHelper {
 
             if (RGB_IsMatch(TrailsColor))
                 return Calc.HexToColor(TrailsColor);
-            if (TrailsColor == "HairColor" && hair != null)
-                return hair.Color;
+            if (hair != null) {
+                if (PlayerSkinSystem.GetDashCount(hair.Entity, hair.Sprite) is int dashes && HairConfig.For(hair).Safe_GetHairColor(dashes, HairConfig.TrailSegment, out Color color))
+                    return color;
+                if (TrailsColor == "HairColor")
+                    return hair.Color;
+            }
             return null;
         }
         #endregion
