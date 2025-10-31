@@ -235,8 +235,6 @@ namespace Celeste.Mod.SkinModHelper {
 
             // For silhouette sync.
             int dashCount = (int)(hairConfig.lastDashes = GetDashCount(self, self.Sprite));
-            // todo: il UpdateHair to make flash works on 0 dashes
-
             hairConfig.HairFlashing = hairConfig.HairFlash && self.hairFlashTimer > 0f && (hairConfig.HasZeroDashFlash || dashCount != 0);
 
             if (hairConfig.GetHairColorWithSpecified((int)(hairConfig.HairFlashing ? HairConfig.SpecialSegment.Flash : HairConfig.SpecialSegment.General), dashCount, out Color color)) {
@@ -555,7 +553,8 @@ namespace Celeste.Mod.SkinModHelper {
             ILCursor cursor = new ILCursor(il);
 
             void SetHairLength(PlayerHair hair) {
-                if (hair.Entity is not Player && HairConfig.For(hair).lastDashes is int length) {
+                HairConfig config = HairConfig.For(hair);
+                if (hair.Entity is not Player && config.GetHairLength(config.lastDashes) is int length) {
                     hair.Sprite.HairCount = length;
                 }
             }
