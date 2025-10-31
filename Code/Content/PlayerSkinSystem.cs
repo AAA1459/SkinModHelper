@@ -33,6 +33,8 @@ namespace Celeste.Mod.SkinModHelper {
                 On.Celeste.Player.Update += PlayerUpdateHook;
             }
             On.Celeste.Player.UpdateHair += PlayerUpdateHairHook;
+            IL.Celeste.Player.UpdateHair += ilPlayerUpdateHairHook;
+
             On.Celeste.Player.GetTrailColor += PlayerGetTrailColorHook;
             On.Celeste.Player.StartDash += PlayerStartDashHook;
             IL.Celeste.Player.DashUpdate += PlayerDashUpdateIlHook;
@@ -82,6 +84,8 @@ namespace Celeste.Mod.SkinModHelper {
 
             On.Celeste.Player.Update -= PlayerUpdateHook;
             On.Celeste.Player.UpdateHair -= PlayerUpdateHairHook;
+            IL.Celeste.Player.UpdateHair -= ilPlayerUpdateHairHook;
+
             On.Celeste.Player.StartDash -= PlayerStartDashHook;
             On.Celeste.Player.GetTrailColor -= PlayerGetTrailColorHook;
             IL.Celeste.Player.DashUpdate -= PlayerDashUpdateIlHook;
@@ -208,7 +212,9 @@ namespace Celeste.Mod.SkinModHelper {
                 DynamicData.For(self.Sprite).Set("smh_AnimPrefix", smh_Session?.Player_animPrefixAddOn);
             }
             HairConfig hairConfig = HairConfig.For(self.Hair);
-            int dashCount = (int)GetDashCount(self, self.Sprite);
+
+            int dashCount = hairConfig.lastDashes ?? 1;
+
             if (self.StateMachine.State != Player.StRedDash && hairConfig.GetHairLength(dashCount) is int length) {
                 self.Sprite.HairCount = length;
             }
@@ -218,7 +224,7 @@ namespace Celeste.Mod.SkinModHelper {
                 return;
             }
             // For resync about above
-            if (hairConfig.GetHairColorWithSpecified((hairConfig.HairFlashing ? HairConfig.HairFlashSegment : HairConfig.GeneralSegment), dashCount, out Color color)) {
+            if (hairConfig.GetHairColorWithSpecified((int)(hairConfig.HairFlashing ? HairConfig.SpecialSegment.Flash : HairConfig.SpecialSegment.General), dashCount, out Color color)) {
                 self.Hair.Color = color;
             }
         }
@@ -226,12 +232,32 @@ namespace Celeste.Mod.SkinModHelper {
             orig(self, applyGravity);
 
             HairConfig hairConfig = HairConfig.For(self.Hair);
-            int dashCount = (int)GetDashCount(self, self.Sprite);
+
             // For silhouette sync.
-            if (hairConfig.GetHairColorWithSpecified((hairConfig.HairFlashing ? HairConfig.HairFlashSegment : HairConfig.GeneralSegment), (int)dashCount, out Color color)) {
+            int dashCount = (int)(hairConfig.lastDashes = GetDashCount(self, self.Sprite));
+            // todo: il UpdateHair to make flash works on 0 dashes
+
+            hairConfig.HairFlashing = hairConfig.HairFlash && self.hairFlashTimer > 0f && (hairConfig.HasZeroDashFlash || dashCount != 0);
+
+            if (hairConfig.GetHairColorWithSpecified((int)(hairConfig.HairFlashing ? HairConfig.SpecialSegment.Flash : HairConfig.SpecialSegment.General), dashCount, out Color color)) {
                 self.Hair.Color = color;
             }
         }
+        private static void ilPlayerUpdateHairHook(ILContext il) {
+            ILCursor cursor = new(il);
+
+            bool ZaroDashesFlash(bool orig, Player p) {
+                if (!orig && HairConfig.For(p.Hair).HasZeroDashFlash && (p.lastDashes != 0 || p.hairFlashTimer > 0f)) {
+                    return true;
+                }
+                return orig;
+            }
+            if (cursor.TryGotoNext(MoveType.Before, instr => instr.Match(OpCodes.Brtrue))) {
+                cursor.Emit(OpCodes.Ldarg_0);
+                cursor.EmitDelegate(ZaroDashesFlash);
+            }
+        }
+
 
         private static int PlayerStartDashHook(On.Celeste.Player.orig_StartDash orig, Player self) {
             SetStartedDashingCount(self);
@@ -241,7 +267,7 @@ namespace Celeste.Mod.SkinModHelper {
             HairConfig hairConfig = HairConfig.For(self.Hair);
             int dashCount = GetStartedDashingCount(self);
 
-            if (hairConfig.Safe_GetHairColor(HairConfig.TrailSegment, dashCount, out Color color))
+            if (hairConfig.Safe_GetHairColor((int)HairConfig.SpecialSegment.Trail, dashCount, out Color color))
                 return color;
             return orig(self, wasDashB);
         }
@@ -252,7 +278,7 @@ namespace Celeste.Mod.SkinModHelper {
                 HairConfig hairConfig = HairConfig.For(p.Hair);
                 int dashCount = GetStartedDashingCount(p);
 
-                if (hairConfig.Safe_GetHairColor(HairConfig.DashPtclSegment, dashCount, out Color color)) {
+                if (hairConfig.Safe_GetHairColor((int)HairConfig.SpecialSegment.DashPtcl, dashCount, out Color color)) {
                     orig = new(orig);
                     orig.Color = color;
                     orig.Color2 = Color.Lerp(color, Color.White, 0.4f);
@@ -529,7 +555,7 @@ namespace Celeste.Mod.SkinModHelper {
             ILCursor cursor = new ILCursor(il);
 
             void SetHairLength(PlayerHair hair) {
-                if (hair.Entity is not Player && HairConfig.For(hair).GetHairLength(GetDashCount(hair.Entity, hair.Sprite)) is int length) {
+                if (hair.Entity is not Player && HairConfig.For(hair).lastDashes is int length) {
                     hair.Sprite.HairCount = length;
                 }
             }
@@ -598,17 +624,16 @@ namespace Celeste.Mod.SkinModHelper {
 
             Color border = self.Border;
 
-            int? get_dashCount = GetDashCount(self.Entity, self.Sprite);
-            if (get_dashCount is int dashes) {
+            if (hairConfig.lastDashes is int dashes) {
                 if (!hairConfig.HairFlashing && hairConfig.Safe_GetHairColor(dashes, out Color color)) {
                     self.Color = color;
                 }
-                if (hairConfig.GetHairColorWithSpecified(HairConfig.OutlineSegment, dashes, out color)) {
+                if (hairConfig.GetHairColorWithSpecified((int)HairConfig.SpecialSegment.Outline, dashes, out color)) {
                     self.Border = color;
                 }
             }
             self.Border = ColorBlend(self.Border, hairConfig.HairColorGrading);
-            if (get_dashCount != HairConfig.FeatherIndex && CharacterConfig.For(self.Sprite).SilhouetteMode == true) {
+            if (hairConfig.lastDashes != HairConfig.FeatherIndex && CharacterConfig.For(self.Sprite).SilhouetteMode == true) {
                 self.Border = ColorBlend(self.Border, self.Color);
             }
             orig(self);
@@ -642,10 +667,9 @@ namespace Celeste.Mod.SkinModHelper {
         }
         private static Color PlayerHairGetHairColorHook(On.Celeste.PlayerHair.orig_GetHairColor orig, PlayerHair self, int index) {
             HairConfig hairConfig = HairConfig.For(self);
-            int? dashes = GetDashCount(self.Entity, self.Sprite);
 
-            if (hairConfig.ActualHairColors != null && dashes != null && !hairConfig.HairFlashing) {
-                if (hairConfig.Safe_GetHairColor(index, (int)dashes, out Color color)) {
+            if (hairConfig.ActualHairColors != null && hairConfig.lastDashes is int dashes && !hairConfig.HairFlashing) {
+                if (hairConfig.Safe_GetHairColor(index, dashes, out Color color)) {
                     return ColorBlend(color * self.Alpha, hairConfig.HairColorGrading);
                 }
             }
@@ -653,9 +677,8 @@ namespace Celeste.Mod.SkinModHelper {
         }
         private static Vector2 PlayerHairGetHairScaleHook(On.Celeste.PlayerHair.orig_GetHairScale orig, PlayerHair self, int index) {
             HairConfig hairConfig = HairConfig.For(self);
-            int? dashes = GetDashCount(self.Entity, self.Sprite);
 
-            if (dashes == null || !hairConfig.GetHairScale(index, dashes.Value, out Vector2 scale)) {
+            if (hairConfig.lastDashes is not int dashes || !hairConfig.GetHairScale(index, dashes, out Vector2 scale)) {
                 scale = orig(self, index);
             }
             return hairConfig.FlipHair(scale, index);

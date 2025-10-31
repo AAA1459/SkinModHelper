@@ -70,11 +70,11 @@ If you want to go a step further, set attr ​​for individual segments, so use
 ```
 * Make the value of the segments work require set the corresponding value of the parent set also.
 * if `Color` value is `orig`. so the corresponding segment will keep in original color... e.g... the colored feathers
-* We have some "unique" segments. they will change color in other stuff than hair.
-  * the segment `101`, used for dash trail color.
-  * the segment `102`, used for dash particle color.
-  * the segment `-101`, used for hair border color.
-  * the segment `-102`, used for hair flashes color.
+* We have some "unique" segments. when `segment` self are special values. they will change specific things.
+  * the segment `Trail`, used for dash trail color.
+  * the segment `DashPtcl`, used for dash particle color.
+  * the segment `Outline`, used for hair border color.
+  * the segment `Flash`, used for hair flashes color.
 
 ---
 ### OutlineColor
