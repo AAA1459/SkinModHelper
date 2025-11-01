@@ -87,7 +87,6 @@ Certain entities will generate trails at times... such as bird, oshiro boss, see
 if you want to recolor these trails, use this:
 ```yaml
 TrailsColor: [use six digit RGB hex code]
-  # If the target is Badeline Chaser, you can set this to a special "HairColor"
 ```
 NOTE: this is not applicable for players or silhouettes.
 

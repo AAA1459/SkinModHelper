@@ -16,6 +16,8 @@ using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 using static Celeste.Mod.SkinModHelper.HairConfig.AttrWithDashes;
 using System.Runtime.CompilerServices;
 using System.Collections;
+using YamlDotNet.Core.Tokens;
+using System.Diagnostics;
 
 namespace Celeste.Mod.SkinModHelper {
     public class HairConfig {
@@ -116,8 +118,6 @@ namespace Celeste.Mod.SkinModHelper {
         /// <summary>The <see cref="Vector2"/> here mean both root and end scales, not x,y.</summary>
         public Dictionary<(int, int), Vector2> ActualHairScales;
 
-        public Dictionary<(int, int), float> ActualHairSpeeds; // todo
-
         [YamlIgnore]
         public bool ColorsActive = true;
         [YamlIgnore]
@@ -173,20 +173,20 @@ namespace Celeste.Mod.SkinModHelper {
             public string Color { get; set; }
             public int? Length { get; set; }
             public string Scale { get; set; }
-            public float? Speed { get; set; }
 
             public List<SegmentAttr> SegmentAttrs { get; set; } = new();
             public class SegmentAttr {
 
                 [YamlMember(Alias = "Segment")]
                 public string _Segment {
-                    get => null; set {
+                    get => Segment.ToString(); set {
                         if (int.TryParse(value, out int i))
                             Segment = i;
                         else if (Enum.TryParse<SpecialSegment>(value, true, out var result))
                             Segment = (int)result;
                     }
                 }
+                [YamlIgnore]
                 public int Segment { get; private set; }
 
                 public float? Scale { get; set; }
@@ -305,18 +305,6 @@ namespace Celeste.Mod.SkinModHelper {
                 }
                 #endregion
 
-                #region ProcessHairSpeeds
-                if (attr.Speed is float speed) {
-                    (ActualHairSpeeds ??= new())[(attr.Dashes, (int)SpecialSegment.General)] = speed;
-
-                    foreach (var c_attr in attr.SegmentAttrs) {
-                        if (c_attr.Speed is float c_speed) {
-                            ActualHairSpeeds[(attr.Dashes, c_attr.Segment)] = c_speed;
-                        }
-                    };
-                    isValid = true;
-                }
-                #endregion
                 if (isValid && attr.Dashes > _AttrDasheslimit) { _AttrDasheslimit = attr.Dashes; }
             }
             HasZeroDashFlash = ActualHairColors?.ContainsKey((0, (int)SpecialSegment.Flash)) ?? false;
@@ -434,40 +422,6 @@ namespace Celeste.Mod.SkinModHelper {
                 scale = new Vector2(float.Round(num * Math.Abs(attached.Sprite.Scale.X), 2), float.Round(num, 2));
                 return true;
 
-            } else if (dashes <= 2) {
-                return false;
-            }
-            dashes--;
-            goto loop;
-        }
-        public bool GetHairAttrValue<T>(Dictionary<int, T> onAttr, int dashes, out T value) {
-            if (onAttr == null) {
-                value = default;
-                return false;
-            }
-            dashes = Math.Min(_AttrDasheslimit, dashes);
-        loop:
-            if (onAttr.TryGetValue(dashes, out value)) {
-                return true;
-
-            } else if (dashes <= 2) {
-                return false;
-            }
-            dashes--;
-            goto loop;
-        }
-        public bool GetHairAttrValue<T>(Dictionary<(int, int), T> onAttr, int index, int dashes, out T value) {
-            if (onAttr == null) {
-                value = default;
-                return false;
-            }
-            dashes = Math.Min(_AttrDasheslimit, dashes);
-        loop:
-            if (onAttr.TryGetValue((index, dashes), out value)) {
-                if (onAttr.TryGetValue((dashes, index - attached.Sprite.HairCount), out T value2) || onAttr.TryGetValue((dashes, index), out value2)) {
-                    value = value2;
-                }
-                return true;
             } else if (dashes <= 2) {
                 return false;
             }

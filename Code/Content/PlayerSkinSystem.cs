@@ -405,26 +405,27 @@ namespace Celeste.Mod.SkinModHelper {
             // Save colorgrade in the sprite instance.
             // For make typeof(PlayerDeadBody) inherited typeof(Player)'s colorgrade, or similar situations.
             Atlas atlas = config.ColorGrade_Atlas ?? GFX.Game;
-            string colorGrade_Path = config.ColorGrade_Path;
             if (!self.Active)
                 goto goto_one;
 
             #region
-            if (colorGrade_Path == null) {
-                colorGrade_Path = getAnimationRootPath(self.Sprite, "idle") + "ColorGrading/";
+            string path = config.ColorGrade_Path;
+
+            if (path == null) {
+                path = getAnimationRootPath(self.Sprite, "idle") + "ColorGrading/";
 
                 //Check if config from v0.7 Before---
                 if (self.Entity is Player && OldConfigCheck(self.Sprite, out string isOld)) {
                     atlas = GFX.ColorGrades;
-                    colorGrade_Path = OtherskinConfigs[isOld].OtherSprite_ExPath + '/';
+                    path = OtherskinConfigs[isOld].OtherSprite_ExPath + '/';
                 }
                 //---
 
                 config.ColorGrade_Atlas = atlas;
-                config.ColorGrade_Path = colorGrade_Path;
+                config.ColorGrade_Path = path;
             }
 
-            string dir = getAnimationRootPath(colorGrade_Path);
+            string dir = getAnimationRootPath(path);
             string fullDir = atlas.RelativeDataPath + dir;
             if (!_ColorGradeMaxNum.TryGetValue(fullDir, out int maxNum)) {
                 if (AssetExists<AssetTypeDirectory>(fullDir, out ModAsset dir2)) {
@@ -454,26 +455,34 @@ namespace Celeste.Mod.SkinModHelper {
             }
 
             if (HairConfig.For(self).HairFlashing && atlas.Has(dir + "flash")) {
-                config.ColorGrade_Path = colorGrade_Path = dir + "flash";
+                config.ColorGrade_Path = dir + "flash";
 
-            } else if (get_dashCount != null) {
-                colorGrade_Path = dir + "dash";
-                int dashCount = Calc.Clamp(get_dashCount.Value, 0, maxNum);
-                while (dashCount > 2 && !atlas.Has(colorGrade_Path + dashCount)) {
-                    dashCount--;
+            } else if (get_dashCount is int dashes) {
+                path = dir + "dash";
+                dashes = Calc.Clamp(dashes, 0, maxNum);
+                while (dashes > 2 && !atlas.Has(path + dashes))
+                    dashes--;
+
+                if (HairConfig.For(self).HairFlashing) {
+                    if (atlas.Has(dir + "flash" + dashes)) {
+                        path = dir + "flash";
+                    } else if (atlas.Has(dir + "flash")) {
+                        config.ColorGrade_Path = dir + "flash";
+                        goto goto_one;
+                    }
                 }
-                config.ColorGrade_Path = (colorGrade_Path += dashCount);
+                config.ColorGrade_Path = path + dashes;
             }
         #endregion
         goto_one:
 
-            if (colorGrade_Path != null && atlas.Has(colorGrade_Path)) {
+            if (config.ColorGrade_Path != null && atlas.Has(config.ColorGrade_Path)) {
                 Effect colorGradeEffect = FxColorGrading_SMH;
 
                 colorGradeEffect.CurrentTechnique = colorGradeEffect.Techniques[
                     config.ColorGradingAfterColored ? "ColorGradeAftColored" : "ColorGrade"
                     ];
-                Engine.Graphics.GraphicsDevice.Textures[1] = atlas[colorGrade_Path].Texture.Texture_Safe;
+                Engine.Graphics.GraphicsDevice.Textures[1] = atlas[config.ColorGrade_Path].Texture.Texture_Safe;
 
                 Matrix matrix = DynamicData.For(Draw.SpriteBatch).Get<Matrix>("transformMatrix");
 

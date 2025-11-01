@@ -16,7 +16,7 @@ If you want to set color grades works for your target, To do follow these steps:
    
 --- 
 ### "Flash" ColorGrade
-For player. If a color grade named `flash.png` near `dash[X].png`. Then it will override `dash[X].png` to applying when the player's hair flashes.
+For player. If a color grade named `flash[X].png` or `flash.png` near `dash[X].png`. Then it will override `dash[X].png` to applying when the player's hair flashes.
 
 
 ---

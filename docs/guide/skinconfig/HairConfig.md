@@ -74,7 +74,7 @@ If you want to go a step further, set attr ​​for individual segments, so use
   * the segment `Trail`, used for dash trail color.
   * the segment `DashPtcl`, used for dash particle color.
   * the segment `Outline`, used for hair border color.
-  * the segment `Flash`, used for hair flashes color.
+  * the segment `Flash`, used for hair flashes color. can works at dashes 0 btw :)
 
 ---
 ### OutlineColor
