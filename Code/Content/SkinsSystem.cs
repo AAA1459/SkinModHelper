@@ -756,7 +756,7 @@ namespace Celeste.Mod.SkinModHelper {
         public static void SyncColorGrade(Sprite to, Sprite from) {
             if (to == null)
                 return;
-            CharacterConfig config_ofTo = CharacterConfig.For(from);
+            CharacterConfig config_ofTo = CharacterConfig.For(to);
             if (from != null) {
                 CharacterConfig config_ofFr = CharacterConfig.For(from);
 

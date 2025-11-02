@@ -100,7 +100,7 @@ namespace Celeste.Mod.SkinModHelper.Interop {
 
         /// <summary>
         /// type a texture path, atlas[texture]. to make it skinnable for SMH skins. <br/><br/>
-        /// `isStatic` means whether the texture is animated.<br/><br/>
+        /// `isStatic` means whether the texture is not animated.<br/><br/>
         /// 
         /// `optionsId` means in the precisely skin choose menu of the advanced options. a options to onoff only the parts of skin that related to this.<br/>
         /// </summary>
