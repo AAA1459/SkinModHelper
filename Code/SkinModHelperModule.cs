@@ -14,6 +14,7 @@ using Mono.Cecil.Cil;
 using Celeste.Mod.UI;
 using System.Xml;
 using System.Linq;
+using MonoMod.ModInterop;
 
 using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using Celeste.Mod.SkinModHelper.Interop;
@@ -124,6 +125,9 @@ namespace Celeste.Mod.SkinModHelper {
             FxColorGrading_SMH = new Effect(graphicsDeviceService.GraphicsDevice, asset.Data);
 
             SkinsSystem.LoadContent(firstLoad);
+
+            typeof(Imports.SaveLoadExports).ModInterop();
+            Imports.SaveLoadExports.LoadContent(firstLoad);
         }
         #endregion
 

@@ -24,7 +24,7 @@ namespace Celeste.Mod.SkinModHelper {
         #region Ctor / Initialization
         internal const string _ConfigName = "skinConfig/HairConfig";
 
-        private static ConditionalWeakTable<PlayerHair, HairConfig> _Instance = new();
+        internal static ConditionalWeakTable<PlayerHair, HairConfig> _Instance = new();
 
         // Some special states that can attach HairAttrs with it than dashes.
         public const int FeatherIndex = -1;

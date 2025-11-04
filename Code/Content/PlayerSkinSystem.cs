@@ -574,9 +574,10 @@ namespace Celeste.Mod.SkinModHelper {
                 if (!smh_Settings.BetterHairMotionOnGrows)
                     return;
                 HairConfig config = HairConfig.For(hair);
-                
+                int hairCount = Math.Min(hair.Sprite.HairCount, hair.Nodes.Count);
+
                 // Make the hair spread out from the ends as it grows longer
-                for (int i = Math.Max(config.lastHairCount, 2); i < hair.Sprite.HairCount; i++) {
+                for (int i = Math.Max(config.lastHairCount, 2); i < hairCount; i++) {
                     hair.Nodes[i] = hair.Nodes[i - 1] + new Vector2((float)(0 - hair.Facing) * 0.5f, 0f);
                 }
                 config.lastHairCount = hair.Sprite.HairCount;

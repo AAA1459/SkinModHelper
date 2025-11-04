@@ -18,6 +18,7 @@ using System.Diagnostics;
 
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 using System.Runtime.CompilerServices;
+using System.IO;
 
 namespace Celeste.Mod.SkinModHelper {
     public static class SkinsSystem {
@@ -64,8 +65,8 @@ namespace Celeste.Mod.SkinModHelper {
         public static Dictionary<string, SkinModHelperConfig> OtherskinConfigs = new(StringComparer.OrdinalIgnoreCase);
         public static Dictionary<string, SkinModHelperOldConfig> OtherskinOldConfig = new(StringComparer.OrdinalIgnoreCase);
 
-        private static ConditionalWeakTable<Sprite, SpriteData> SpriteDataCache = new();
-
+        internal static ConditionalWeakTable<Sprite, SpriteData> SpriteDataCache = new();
+        
         public static readonly int MAX_HAIRLENGTH = 99;
         public static readonly string playercipher = "_+";
 
@@ -668,13 +669,18 @@ namespace Celeste.Mod.SkinModHelper {
 
             if (data?.Sources == null || data.Sources.Count == 0) {
                 string path = getAnimationRootPath(sprite) + filename;
-                if (atlas.HasAtlasSubtextures(path)) {
+
+                    Log($"{path}");
+
+                    if (atlas.HasAtlasSubtextures(path)) {
                     textures = atlas.GetAtlasSubtextures(path);
                 }
                 return textures != null;
             }
             for (int i = 0; i < data.Sources.Count; i++) {
                 SpriteDataSource source = data.Sources[i];
+                Log($"{source.OverridePath} : {source.Path} : {i}");
+
                 if (!string.IsNullOrEmpty(source.OverridePath) && atlas.HasAtlasSubtextures(source.OverridePath + filename)) {
                     textures = atlas.GetAtlasSubtextures(source.OverridePath + filename);
                     return true;

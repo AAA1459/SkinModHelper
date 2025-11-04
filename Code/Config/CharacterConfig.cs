@@ -21,7 +21,7 @@ namespace Celeste.Mod.SkinModHelper {
         #region Ctor / Initialization
         internal const string _ConfigName = "skinConfig/CharacterConfig";
 
-        private static ConditionalWeakTable<Image, CharacterConfig> _Instance = new();
+        internal static ConditionalWeakTable<Image, CharacterConfig> _Instance = new();
 
         public CharacterConfig() {
         }
