@@ -17,11 +17,9 @@ namespace Celeste.Mod.SkinModHelper.Imports {
                 RegisterStaticTypes?.Invoke(typeof(SkinsSystem), new string[] { nameof(SkinsSystem.SpriteDataCache) });
 
             if (AddCustomDeepCloneProcessor != null && DeepClone != null) {
-                Logger.Info("SkinModHelper", "AddCustomDeepCloneProcessor & DeepClone");
 
                 AddCustomDeepCloneProcessor.Invoke(sourceObj => {
                     if (sourceObj == SkinsSystem.SpriteDataCache && sourceObj is ConditionalWeakTable<Sprite, SpriteData> cache) {
-                        Logger.Info("SkinModHelper", "cloned spriteData");
 
                         Dictionary<Sprite, SpriteData> clone = new();
                         foreach (var set in cache) {

@@ -592,8 +592,8 @@ namespace Celeste.Mod.SkinModHelper {
             }
             if (type is Sprite sprite) {
                 SpriteData data = SpriteDataCache.TryGetValue(sprite, out var value) ? value : null;
-                if (data?.Sources != null) {
-                    return data.Sources[0].OverridePath ?? data.Sources[0].Path;
+                if (data?.Sources?.FirstOrDefault() is { } source) {
+                    return source.OverridePath ?? source.Path;
                 }
                 return getAnimationRootPath($"{(sprite.Has("idle") ? sprite.GetFrame("idle", 0) : sprite.Texture ?? sprite.Animations.Values.FirstOrDefault()?.Frames?.FirstOrDefault())}");
             } 
@@ -669,9 +669,6 @@ namespace Celeste.Mod.SkinModHelper {
 
             if (data?.Sources == null || data.Sources.Count == 0) {
                 string path = getAnimationRootPath(sprite) + filename;
-
-                    Log($"{path}");
-
                     if (atlas.HasAtlasSubtextures(path)) {
                     textures = atlas.GetAtlasSubtextures(path);
                 }
@@ -679,8 +676,6 @@ namespace Celeste.Mod.SkinModHelper {
             }
             for (int i = 0; i < data.Sources.Count; i++) {
                 SpriteDataSource source = data.Sources[i];
-                Log($"{source.OverridePath} : {source.Path} : {i}");
-
                 if (!string.IsNullOrEmpty(source.OverridePath) && atlas.HasAtlasSubtextures(source.OverridePath + filename)) {
                     textures = atlas.GetAtlasSubtextures(source.OverridePath + filename);
                     return true;
