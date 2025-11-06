@@ -15,30 +15,11 @@ namespace Celeste.Mod.SkinModHelper.Imports {
                 return;
             }
                 RegisterStaticTypes?.Invoke(typeof(SkinsSystem), new string[] { nameof(SkinsSystem.SpriteDataCache) });
-
-            if (AddCustomDeepCloneProcessor != null && DeepClone != null) {
-
-                AddCustomDeepCloneProcessor.Invoke(sourceObj => {
-                    if (sourceObj == SkinsSystem.SpriteDataCache && sourceObj is ConditionalWeakTable<Sprite, SpriteData> cache) {
-
-                        Dictionary<Sprite, SpriteData> clone = new();
-                        foreach (var set in cache) {
-                            clone[(Sprite)DeepClone.Invoke(set.Key)] = (SpriteData)DeepClone.Invoke(set.Value);
-                        }
-                        foreach (var set in clone) {
-                            cache.AddOrUpdate(set.Key, set.Value);
-                        }
-                        return cache;
-                    }
-                    return null;
-                }
-                );
-            }
         }
-        public static Action<Func<object, object>> AddCustomDeepCloneProcessor;
+        //public static Action<Func<object, object>> AddCustomDeepCloneProcessor;
 
         public static Func<Type, string[], object> RegisterStaticTypes;
 
-        public static Func<object, object> DeepClone;
+        //public static Func<object, object> DeepClone;
     }
 }
