@@ -229,14 +229,13 @@ namespace Celeste.Mod.SkinModHelper {
             }
         }
         private static void PlayerUpdateHairHook(On.Celeste.Player.orig_UpdateHair orig, Player self, bool applyGravity) {
-            orig(self, applyGravity);
-
             HairConfig hairConfig = HairConfig.For(self.Hair);
+            hairConfig.HairFlashing = false;
+
+            orig(self, applyGravity);
 
             // For silhouette sync.
             int dashCount = (int)(hairConfig.lastDashes = GetDashCount(self, self.Sprite));
-            hairConfig.HairFlashing = hairConfig.HairFlash && self.hairFlashTimer > 0f && (hairConfig.HasZeroDashFlash || dashCount != 0);
-
             if (hairConfig.GetHairColorWithSpecified((int)(hairConfig.HairFlashing ? HairConfig.SpecialSegment.Flash : HairConfig.SpecialSegment.General), dashCount, out Color color)) {
                 self.Hair.Color = color;
             }
@@ -250,9 +249,16 @@ namespace Celeste.Mod.SkinModHelper {
                 }
                 return orig;
             }
+            void HairFlashing(Player p) {
+                HairConfig.For(p.Hair).HairFlashing = true;
+            }
             if (cursor.TryGotoNext(MoveType.Before, instr => instr.Match(OpCodes.Brtrue))) {
                 cursor.Emit(OpCodes.Ldarg_0);
                 cursor.EmitDelegate(ZaroDashesFlash);
+            }
+            while (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdsfld<Player>("FlashHairColor"))) {
+                cursor.Emit(OpCodes.Ldarg_0);
+                cursor.EmitDelegate(HairFlashing);
             }
         }
 
