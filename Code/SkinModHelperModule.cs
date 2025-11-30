@@ -70,7 +70,7 @@ namespace Celeste.Mod.SkinModHelper {
         }
         public override void Initialize() {
             base.Initialize();
-            MaddieHelpingHandInstalled = Everest.Loader.DependencyLoaded(new EverestModuleMetadata { Name = "MaxHelpingHand", Version = new Version(1, 17, 3) });
+            MaddieHelpingHandInstalled = Everest.Loader.DependencyLoaded(new EverestModuleMetadata { Name = "MaxHelpingHand", Version = new Version(1, 39, 0) });
             SomePatches.LazyLoad();
         }
 

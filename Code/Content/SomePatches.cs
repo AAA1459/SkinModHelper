@@ -68,10 +68,8 @@ namespace Celeste.Mod.SkinModHelper {
                     Assembly assembly = Everest.Modules.Where(m => m.Metadata?.Name == "MaxHelpingHand").First().GetType().Assembly;
                     Type madelineSilhouetteTrigger = assembly.GetType("Celeste.Mod.MaxHelpingHand.Triggers.MadelineSilhouetteTrigger");
 
-                    doneILHooks.Add(new ILHook(madelineSilhouetteTrigger.GetNestedType("<>c", BindingFlags.NonPublic)
-                                .GetMethod("<patchPlayerRender>b__4_1", BindingFlags.NonPublic | BindingFlags.Instance), hookMadelineIsSilhouette));
-                    doneILHooks.Add(new ILHook(madelineSilhouetteTrigger.GetNestedType("<>c", BindingFlags.NonPublic)
-                        .GetMethod("<patchPlayerRender>b__4_3", BindingFlags.NonPublic | BindingFlags.Instance), hookMadelineIsSilhouette));
+                    doneILHooks.Add(new ILHook(madelineSilhouetteTrigger.GetMethod("overrideBlinking", BindingFlags.NonPublic | BindingFlags.Static), hookMadelineIsSilhouette));
+                    doneILHooks.Add(new ILHook(madelineSilhouetteTrigger.GetMethod("overrideBodyColorWithHairColor", BindingFlags.NonPublic | BindingFlags.Static), hookMadelineIsSilhouette));
                 }
             }
         }
