@@ -98,9 +98,6 @@ namespace Celeste.Mod.SkinModHelper {
                     PatchSprite(origSpriteData.Sprite, newSpriteData.Sprite);
 
                     string newSpriteId = spriteId + skinId + cipher;
-
-                    foreach (SpriteDataSource source in origSpriteData.Sources)
-                        newSpriteData.Sources.Add(source);
                     Basebank.SpriteData[newSpriteId] = newSpriteData;
 
                     OnCombine?.Invoke(newSpriteId, newSpriteData);

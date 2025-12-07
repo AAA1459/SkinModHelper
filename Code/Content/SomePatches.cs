@@ -83,7 +83,7 @@ namespace Celeste.Mod.SkinModHelper {
             On.Celeste.Player.SuperJump -= PlayerSuperJumpHook;
             On.Celeste.Player.SuperWallJump -= PlayerSuperWallJumpHook;
             IL.Celeste.Player.Render -= PlayerRenderIlHook_Sprite;
-
+            
             IL.Celeste.FancyText.Parse -= ilFancyTextParse;
             IL.Celeste.CS06_Campfire.Question.ctor -= CampfireQuestionHook;
 
