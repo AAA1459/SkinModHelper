@@ -65,7 +65,7 @@ namespace Celeste.Mod.SkinModHelper {
         public static Dictionary<string, SkinModHelperConfig> OtherskinConfigs = new(StringComparer.OrdinalIgnoreCase);
         public static Dictionary<string, SkinModHelperOldConfig> OtherskinOldConfig = new(StringComparer.OrdinalIgnoreCase);
 
-        internal static ConditionalWeakTable<Sprite, SpriteData> SpriteDataCache = new();
+        internal static ConditionalWeakTable<Sprite, List<object>> SpriteDataCache = new();
         
         public static readonly int MAX_HAIRLENGTH = 99;
         public static readonly string playercipher = "_+";
@@ -283,7 +283,14 @@ namespace Celeste.Mod.SkinModHelper {
             }
             Sprite sprite = orig(self, id);
             if (sprite != null) {
-                SpriteDataCache.AddOrUpdate(sprite, self.SpriteData[id]);
+                var data = self.SpriteData[id];
+                List<object> objs = new() { data.Atlas };
+                for (int i = 0; i < data.Sources.Count; i++) {
+                    SpriteDataSource source = data.Sources[i];
+                    objs.Add(source.OverridePath);
+                    objs.Add(source.Path);
+                }
+                SpriteDataCache.AddOrUpdate(sprite, objs);
             }
             return sprite;
         }
@@ -307,7 +314,14 @@ namespace Celeste.Mod.SkinModHelper {
                     OnceLog(LogLevel.Warn, $"PlayerSprite used '{id}' but that from the custom SpriteBank/Xml... Cannot CreateFramesMetadata and fill it with the possible animations");
                 }
             }
-            SpriteDataCache.AddOrUpdate(sprite, self.SpriteData[id]);
+            var data = self.SpriteData[id];
+            List<object> objs = new() { data.Atlas };
+            for (int i = 0; i < data.Sources.Count; i++) {
+                SpriteDataSource source = data.Sources[i];
+                objs.Add(source.OverridePath);
+                objs.Add(source.Path);
+            }
+            SpriteDataCache.AddOrUpdate(sprite, objs);
             return orig(self, sprite, id);
         }
         #endregion
@@ -591,9 +605,8 @@ namespace Celeste.Mod.SkinModHelper {
                 return null;
             }
             if (type is Sprite sprite) {
-                SpriteData data = SpriteDataCache.TryGetValue(sprite, out var value) ? value : null;
-                if (data?.Sources?.FirstOrDefault() is { } source) {
-                    return source.OverridePath ?? source.Path;
+                if (SpriteDataCache.TryGetValue(sprite, out var data) && data.Count > 2) {
+                    return $"{data[1] ?? data[2]}";
                 }
                 return getAnimationRootPath($"{(sprite.Has("idle") ? sprite.GetFrame("idle", 0) : sprite.Texture ?? sprite.Animations.Values.FirstOrDefault()?.Frames?.FirstOrDefault())}");
             } 
@@ -664,24 +677,21 @@ namespace Celeste.Mod.SkinModHelper {
         /// </summary>
         public static bool GetTexturesOnSprite(Image sprite, string filename, out List<MTexture> textures) {
             textures = null;
-            SpriteData data = sprite is Sprite sprite2 && SpriteDataCache.TryGetValue(sprite2, out var value) ? value : null;
-            Atlas atlas = data?.Atlas ?? GFX.Game;
 
-            if (data?.Sources == null || data.Sources.Count == 0) {
+            var data = sprite is Sprite sprite2 && SpriteDataCache.TryGetValue(sprite2, out var value) ? value : new();
+            Atlas atlas = (data.FirstOrDefault() ?? GFX.Game) as Atlas;
+            
+            if (data.Count < 2) {
                 string path = getAnimationRootPath(sprite) + filename;
                     if (atlas.HasAtlasSubtextures(path)) {
                     textures = atlas.GetAtlasSubtextures(path);
                 }
                 return textures != null;
             }
-            for (int i = 0; i < data.Sources.Count; i++) {
-                SpriteDataSource source = data.Sources[i];
-                if (!string.IsNullOrEmpty(source.OverridePath) && atlas.HasAtlasSubtextures(source.OverridePath + filename)) {
-                    textures = atlas.GetAtlasSubtextures(source.OverridePath + filename);
-                    return true;
-                }
-                if (atlas.HasAtlasSubtextures(source.Path + filename)) {
-                    textures = atlas.GetAtlasSubtextures(source.Path + filename);
+            for (int i = 1; i < data.Count; i++) {
+                string path = data[i] as string;
+                if (!string.IsNullOrEmpty(path) && atlas.HasAtlasSubtextures(path + filename)) {
+                    textures = atlas.GetAtlasSubtextures(path + filename);
                     return true;
                 }
             }
@@ -692,24 +702,20 @@ namespace Celeste.Mod.SkinModHelper {
         /// </summary>
         public static bool GetTextureOnSprite(Image sprite, string filename, out MTexture texture) {
             texture = null;
-            SpriteData data = sprite is Sprite sprite2 && SpriteDataCache.TryGetValue(sprite2, out var value) ? value : null;
-            Atlas atlas = data?.Atlas ?? GFX.Game;
+            var data = sprite is Sprite sprite2 && SpriteDataCache.TryGetValue(sprite2, out var value) ? value : new();
+            Atlas atlas = (data.FirstOrDefault() ?? GFX.Game) as Atlas;
 
-            if (data?.Sources == null || data.Sources.Count == 0) {
+            if (data.Count < 2) {
                 string path = getAnimationRootPath(sprite) + filename;
                 if (atlas.Has(path)) {
                     texture = atlas[path];
                 }
                 return texture != null;
             }
-            for (int i = 0; i < data.Sources.Count; i++) {
-                SpriteDataSource source = data.Sources[i];
-                if (!string.IsNullOrEmpty(source.OverridePath) && atlas.Has(source.OverridePath + filename)) {
-                    texture = atlas[source.OverridePath + filename];
-                    return true;
-                }
-                if (atlas.Has(source.Path + filename)) {
-                    texture = atlas[source.Path + filename];
+            for (int i = 1; i < data.Count; i++) {
+                string path = data[i] as string;
+                if (!string.IsNullOrEmpty(path) && atlas.Has(path + filename)) {
+                    texture = atlas[path + filename];
                     return true;
                 }
             }
@@ -719,19 +725,17 @@ namespace Celeste.Mod.SkinModHelper {
         /// Find out if specified assets exists under the sprite's inherited path or own path
         /// </summary>
         public static ModAsset GetAssetOnSprite<T>(Image sprite, string filename) {
-            SpriteData data = sprite is Sprite sprite2 && SpriteDataCache.TryGetValue(sprite2, out var value) ? value : null;
-            if (data?.Sources == null || data.Sources.Count == 0) {
-                if (Everest.Content.TryGet((data?.Atlas ?? GFX.Game).RelativeDataPath + getAnimationRootPath(sprite) + filename, out var asset) && asset.Type == typeof(T))
+            var data = sprite is Sprite sprite2 && SpriteDataCache.TryGetValue(sprite2, out var value) ? value : new();
+
+            if (data.Count < 2) {
+                if (Everest.Content.TryGet(((data.FirstOrDefault() ?? GFX.Game) as Atlas).RelativeDataPath + getAnimationRootPath(sprite) + filename, out var asset) && asset.Type == typeof(T))
                     return asset;
                 return null;
             }
-            string path = (data.Atlas ?? GFX.Game).RelativeDataPath;
-            for (int i = 0; i < data.Sources.Count; i++) {
-                SpriteDataSource source = data.Sources[i];
-                if (!string.IsNullOrEmpty(source.OverridePath) && Everest.Content.TryGet(path + source.OverridePath + filename, out var asset2) && asset2.Type == typeof(T)) {
-                    return asset2;
-                }
-                if (Everest.Content.TryGet(path + source.Path + filename, out asset2) && asset2.Type == typeof(T)) {
+            string path = ((data.FirstOrDefault() ?? GFX.Game) as Atlas).RelativeDataPath;
+            for (int i = 1; i < data.Count; i++) {
+                string subpath = data[i] as string;
+                if (!string.IsNullOrEmpty(subpath) && Everest.Content.TryGet(path + subpath + filename, out var asset2) && asset2.Type == typeof(T)) {
                     return asset2;
                 }
             }
