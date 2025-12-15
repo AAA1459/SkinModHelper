@@ -14,7 +14,7 @@ namespace Celeste.Mod.SkinModHelper.Imports {
             if (!firstLoad) {
                 return;
             }
-                RegisterStaticTypes?.Invoke(typeof(SkinsSystem), new string[] { nameof(SkinsSystem.SpriteDataCache) });
+            RegisterStaticTypes?.Invoke(typeof(SkinsSystem), new string[] { nameof(SkinsSystem.SpriteDataCache) });
         }
         //public static Action<Func<object, object>> AddCustomDeepCloneProcessor;
 
