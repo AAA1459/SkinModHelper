@@ -201,10 +201,11 @@ namespace Celeste.Mod.SkinModHelper {
 
             List<string> ids = new();
             foreach (var values in patchPlayerSprite_List) {
+                if (values.Item2.Values.Contains(id) || id == values.Item1)
+                    return;
+
                 if (!values.Item2.TryGetValue(id, out string patchId))
                     patchId = values.Item1;
-                if (id == patchId || id == values.Item1)
-                    return;
                 ids.Add(patchId);
             }
             var sprite = GFX.SpriteBank.SpriteData[id].Sprite;
