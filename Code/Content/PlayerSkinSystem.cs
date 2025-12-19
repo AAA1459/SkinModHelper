@@ -201,7 +201,15 @@ namespace Celeste.Mod.SkinModHelper {
             if (GFX.SpriteBank.SpriteData.TryGetValue("SkinModHelper_PlayerAnimFill", out var fills)) {
                 PatchSprite(fills.Sprite, GFX.SpriteBank.SpriteData[id].Sprite);
             }
+            foreach (var values in patchPlayerSprite_List) { 
+                if (!values.Item2.TryGetValue(id, out string patchId)) {
+                    patchId = values.Item1;
+                }
+                Logger.Log(LogLevel.Verbose, "SkinModHelper", $"PatchPlayerSprite `{id}` with `{patchId}`");
+                PatchSprite(GFX.SpriteBank.SpriteData[patchId].Sprite, GFX.SpriteBank.SpriteData[id].Sprite);
+            }
         }
+        internal static HashSet<(string, Dictionary<string, string>)> patchPlayerSprite_List = new();
         #endregion
 
         #region Player On

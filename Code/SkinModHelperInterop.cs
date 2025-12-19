@@ -105,7 +105,7 @@ namespace Celeste.Mod.SkinModHelper.Interop {
         /// `optionsId` means in the precisely skin choose menu of the advanced options. a options to onoff only the parts of skin that related to this.<br/>
         /// </summary>
         public static void AddSkinnableCompatibilityFor(Atlas atlas, string texture, bool isStatic, string optionsId) {
-            
+
             var manager = SkinsSystem.OtherSpriteSkins;
             nonBankReskin.SpriteInfo.Add((optionsId, atlas, texture, isStatic));
 
@@ -116,6 +116,22 @@ namespace Celeste.Mod.SkinModHelper.Interop {
             } else {
                 Logger.Log(LogLevel.Verbose, "SkinModHelper", $"Added skinnable compatibility for [{atlas.RelativeDataPath}{texture}]");
             }
+        }
+
+
+        /// <summary>
+        /// Patch/Combines the animations of sprite from GFX.SpriteBank into player sprites.<br/><br/>
+        /// 
+        /// 'id' is a default sprite you want its animations to be combined into all player sprites.<br/><br/>
+        /// 
+        /// 'array' is used adds the difference animation to the difference player sprites. a sprite(first param)'s animations to be combined into the player sprite(second param).
+        /// </summary>
+        public static void AddPlayerSpritePatch(string id, (string, string)[] array) {
+            Dictionary<string, string> dict = new(StringComparer.OrdinalIgnoreCase);
+            foreach (var str in array) {
+                dict[str.Item1] = str.Item2;
+            }
+            patchPlayerSprite_List.Add((id, dict));
         }
 
 
