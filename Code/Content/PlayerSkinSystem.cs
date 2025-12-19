@@ -198,15 +198,21 @@ namespace Celeste.Mod.SkinModHelper {
                 IDHasHairMetadate.Clear();
             }
             IDHasHairMetadate.Add(id);
-            if (GFX.SpriteBank.SpriteData.TryGetValue("SkinModHelper_PlayerAnimFill", out var fills)) {
-                PatchSprite(fills.Sprite, GFX.SpriteBank.SpriteData[id].Sprite);
-            }
-            foreach (var values in patchPlayerSprite_List) { 
-                if (!values.Item2.TryGetValue(id, out string patchId)) {
+
+            List<string> ids = new();
+            foreach (var values in patchPlayerSprite_List) {
+                if (!values.Item2.TryGetValue(id, out string patchId))
                     patchId = values.Item1;
-                }
-                Logger.Log(LogLevel.Verbose, "SkinModHelper", $"PatchPlayerSprite `{id}` with `{patchId}`");
-                PatchSprite(GFX.SpriteBank.SpriteData[patchId].Sprite, GFX.SpriteBank.SpriteData[id].Sprite);
+                if (id == patchId || id == values.Item1)
+                    return;
+                ids.Add(patchId);
+            }
+            var sprite = GFX.SpriteBank.SpriteData[id].Sprite;
+            if (GFX.SpriteBank.SpriteData.TryGetValue("SkinModHelper_PlayerAnimFill", out var fills)) {
+                PatchSprite(fills.Sprite, sprite);
+            }
+            foreach (var patchId in ids) {
+                PatchSprite(GFX.SpriteBank.SpriteData[patchId].Sprite, sprite);
             }
         }
         internal static HashSet<(string, Dictionary<string, string>)> patchPlayerSprite_List = new();
