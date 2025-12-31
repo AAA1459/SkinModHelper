@@ -32,6 +32,9 @@ SkinModHelper_Settings_ShowOtherSelfVariants_desc= for the player skins menu. If
 SkinModHelper_Settings_ShowSkinSourceInAllCategory= Show where the player skin from
 SkinModHelper_Settings_ShowSkinSourceInAllCategory_desc= for the all category of player skins menu
 
+SkinModHelper_Settings_BetterHairGrowsMotion= Better hair motion on grows
+SkinModHelper_Settings_BetterHairGrowsMotion_desc= Optimize the inconsistent curve of the hair ends when grows.
+
 
 ##---Precisely skin choose---
 
@@ -47,6 +50,7 @@ SkinModHelper_NewSubMenu_OtherExtra= Other Skin
 SkinModHelper_anyXmls_Original= " Original "
 SkinModHelper_anyXmls_Default= " Default / Current "
 SkinModHelper_anyXmls_LockedToPlayer= " Locked to Player Skin "
+SkinModHelper_Other__Loading_icon_random= " Random "
 
 SkinModHelper_Other__death_particle= Particles when player dies
 SkinModHelper_Other__dreamblock_particles= Particles inside DreamBlock
@@ -54,6 +58,7 @@ SkinModHelper_Other__feather_particles= Particles when get flyFeather
 SkinModHelper_Other__Mountain_marker= Mountain climber mark
 SkinModHelper_Other__Interact_icons= Interact icons
 
+SkinModHelper_Other__Loading_icon= Game loading icon
 
 
 ##---Description---
