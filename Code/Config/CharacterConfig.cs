@@ -25,7 +25,7 @@ namespace Celeste.Mod.SkinModHelper {
         internal static ConditionalWeakTable<Image, CharacterConfig> _Instance = new();
 
         public enum MaskModes {
-            Red = 0, Green = 1, Bule = 2, Grayscale = 3
+            Red = 0, Green = 1, Blue = 2, Grayscale = 3
         }
 
         public CharacterConfig() {
@@ -489,4 +489,5 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
     }
+
 }
