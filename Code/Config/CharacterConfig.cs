@@ -489,5 +489,4 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
     }
-
 }

@@ -16,7 +16,6 @@ using System.Text.RegularExpressions;
 using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 using Celeste.Mod.SkinModHelper.CelesteNet;
-using static Celeste.Mod.SkinModHelper.CharacterConfig;
 
 namespace Celeste.Mod.SkinModHelper {
     public static class PlayerSkinSystem {
@@ -675,13 +674,13 @@ namespace Celeste.Mod.SkinModHelper {
                 }
             }
             if (character.TintMaskWithHair) {
-                float f = self.Border.R + self.Border.G + self.Border.B;
+                int i = self.Border.R + self.Border.G + self.Border.B;
                 if (character._MaskMode > 2) {
-                    if (f == self.Border.B * 3) {
+                    if (self.Border.R == self.Border.B && self.Border.R == self.Border.G) {
                         self.Border = ColorBlend(self.Border, self.Color);
                     }
-                } else if (f == (new float[3] { self.Border.R, self.Border.G, self.Border.B })[character._MaskMode]) {
-                    self.Border = ColorBlend(new Color(f, f, f), self.Color);
+                } else if (i == (new int[3] { self.Border.R, self.Border.G, self.Border.B })[character._MaskMode]) {
+                    self.Border = ColorBlend(new Color(i, i, i), self.Color);
                 }
 
                 self.Border = ColorBlend(self.Border, self.Color);

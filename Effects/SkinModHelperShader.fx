@@ -34,10 +34,10 @@ float4 DoCG_NoAlpha(float4 pixel : COLOR0) : COLOR0
 }
 float4 MixHair(float4 pixel : COLOR0) : COLOR0
 {
-    float f = pixel.r + pixel.g + pixel.b;
-	if (pixel.r * 3 == f && maskMode == 4) {
-	   return pixel * haircolor;
+	if (maskMode > 2) {
+	   return pixel.r == pixel.b && pixel.r == pixel.g ? pixel * haircolor : pixel;
 	} 
+	float f = pixel.r + pixel.g + pixel.b;
     if ((f == pixel[maskMode])) {
 	   return float4(f,f,f,pixel.a) * haircolor;
     }
