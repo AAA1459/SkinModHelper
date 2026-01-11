@@ -265,7 +265,8 @@ namespace Celeste.Mod.SkinModHelper {
                 return orig;
             }
             void HairFlashing(Player p) {
-                HairConfig.For(p.Hair).HairFlashing = true;
+                HairConfig config = HairConfig.For(p.Hair);
+                config.HairFlashing = config.HairFlash;
             }
             if (cursor.TryGotoNext(MoveType.Before, instr => instr.Match(OpCodes.Brtrue))) {
                 cursor.Emit(OpCodes.Ldarg_0);
@@ -826,4 +827,5 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
     }
+
 }
