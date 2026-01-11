@@ -1,24 +1,16 @@
-using FMOD.Studio;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Mono.Cecil;
+using Mono.Cecil.Cil;
 using Monocle;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
-using MonoMod.Utils;
 using System;
 using System.Collections.Generic;
-using System.Reflection;
-using System.Text.RegularExpressions;
-using Mono.Cecil.Cil;
-using Celeste.Mod.UI;
-using System.Xml;
-using System.Linq;
 using System.Diagnostics;
-
-using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
+using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.IO;
+using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 
 namespace Celeste.Mod.SkinModHelper {
     public static class SkinsSystem {
@@ -41,7 +33,7 @@ namespace Celeste.Mod.SkinModHelper {
         public static void Unload() {
             Everest.Content.OnUpdate -= EverestContentUpdateHook;
             On.Celeste.Player.Update -= PlayerUpdateHook;
-            
+
             On.Monocle.SpriteBank.Create -= SpriteBankCreateHook;
             On.Monocle.SpriteBank.CreateOn -= SpriteBankCreateOnHook;
             On.Monocle.Atlas.GetAtlasSubtextures -= GetAtlasSubtexturesHook;
@@ -66,7 +58,7 @@ namespace Celeste.Mod.SkinModHelper {
         public static Dictionary<string, SkinModHelperOldConfig> OtherskinOldConfig = new(StringComparer.OrdinalIgnoreCase);
 
         internal static ConditionalWeakTable<Sprite, List<object>> SpriteDataCache = new();
-        
+
         public static readonly int MAX_HAIRLENGTH = 99;
         public static readonly string playercipher = "_+";
 
@@ -379,7 +371,7 @@ namespace Celeste.Mod.SkinModHelper {
                 Logger.Log(LogLevel.Error, "SkinModHelper", $"The xmls directory of '{skinId}' does not exist: {dir}");
                 return null;
 
-            } 
+            }
             if (AssetExists<AssetTypeXml>(xmlPath)) {
                 try {
                     SpriteBank newBank_2 = new SpriteBank(origBank?.Atlas ?? GFX.Game, xmlPath);
@@ -597,7 +589,7 @@ namespace Celeste.Mod.SkinModHelper {
             }
             return c1;
         }
-        
+
         #endregion
         #region Method #2
         public static string getAnimationRootPath(object type) {
@@ -609,7 +601,7 @@ namespace Celeste.Mod.SkinModHelper {
                     return $"{data[1] ?? data[2]}";
                 }
                 return getAnimationRootPath($"{(sprite.Has("idle") ? sprite.GetFrame("idle", 0) : sprite.Texture ?? sprite.Animations.Values.FirstOrDefault()?.Frames?.FirstOrDefault())}");
-            } 
+            }
             if (type is Image image) {
                 return getAnimationRootPath(image.Texture?.ToString());
             }
@@ -679,11 +671,11 @@ namespace Celeste.Mod.SkinModHelper {
             textures = null;
 
             var data = sprite is Sprite sprite2 && SpriteDataCache.TryGetValue(sprite2, out var value) ? value : new();
-            Atlas atlas = (data.FirstOrDefault() ?? GFX.Game) as Atlas;
-            
+            Atlas atlas = data.Count < 1 ? GFX.Game : (data[0] as Atlas);
+
             if (data.Count < 2) {
                 string path = getAnimationRootPath(sprite) + filename;
-                    if (atlas.HasAtlasSubtextures(path)) {
+                if (atlas.HasAtlasSubtextures(path)) {
                     textures = atlas.GetAtlasSubtextures(path);
                 }
                 return textures != null;
@@ -703,7 +695,7 @@ namespace Celeste.Mod.SkinModHelper {
         public static bool GetTextureOnSprite(Image sprite, string filename, out MTexture texture) {
             texture = null;
             var data = sprite is Sprite sprite2 && SpriteDataCache.TryGetValue(sprite2, out var value) ? value : new();
-            Atlas atlas = (data.FirstOrDefault() ?? GFX.Game) as Atlas;
+            Atlas atlas = data.Count < 1 ? GFX.Game : (data[0] as Atlas);
 
             if (data.Count < 2) {
                 string path = getAnimationRootPath(sprite) + filename;
@@ -726,13 +718,14 @@ namespace Celeste.Mod.SkinModHelper {
         /// </summary>
         public static ModAsset GetAssetOnSprite<T>(Image sprite, string filename) {
             var data = sprite is Sprite sprite2 && SpriteDataCache.TryGetValue(sprite2, out var value) ? value : new();
+            Atlas atlas = data.Count < 1 ? GFX.Game : (data[0] as Atlas);
 
             if (data.Count < 2) {
-                if (Everest.Content.TryGet(((data.FirstOrDefault() ?? GFX.Game) as Atlas).RelativeDataPath + getAnimationRootPath(sprite) + filename, out var asset) && asset.Type == typeof(T))
+                if (Everest.Content.TryGet(atlas.RelativeDataPath + getAnimationRootPath(sprite) + filename, out var asset) && asset.Type == typeof(T))
                     return asset;
                 return null;
             }
-            string path = ((data.FirstOrDefault() ?? GFX.Game) as Atlas).RelativeDataPath;
+            string path = atlas.RelativeDataPath;
             for (int i = 1; i < data.Count; i++) {
                 string subpath = data[i] as string;
                 if (!string.IsNullOrEmpty(subpath) && Everest.Content.TryGet(path + subpath + filename, out var asset2) && asset2.Type == typeof(T)) {
