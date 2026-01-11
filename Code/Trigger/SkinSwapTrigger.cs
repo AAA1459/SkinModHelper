@@ -30,8 +30,8 @@ namespace Celeste.Mod.SkinModHelper {
 
             if (string.IsNullOrEmpty(skinId)) {
                 skinId = "Null";
-            } else if (skinId.EndsWith("_NB") && skinConfigs.ContainsKey(skinId.Remove(-1, 3))) {
-                skinId = skinId.Remove(-1, 3);
+            } else if (skinId.EndsWith("_NB") && skinConfigs.ContainsKey(skinId.Remove(skinId.Length - 3))) {
+                skinId = skinId.Remove(skinId.Length - 3);
             }
         }
 
