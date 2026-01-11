@@ -16,6 +16,7 @@ using System.Text.RegularExpressions;
 using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 using Celeste.Mod.SkinModHelper.CelesteNet;
+using static Celeste.Mod.SkinModHelper.CharacterConfig;
 
 namespace Celeste.Mod.SkinModHelper {
     public static class PlayerSkinSystem {
@@ -499,7 +500,7 @@ namespace Celeste.Mod.SkinModHelper {
         goto_one:
 
             MTexture cg = config.ColorGrade_Path != null && atlas.Has(config.ColorGrade_Path) ? atlas[config.ColorGrade_Path] : null;
-            if (config.TintGrayscaleWithHair) {
+            if (config.TintMaskWithHair) {
                 config.effect_hairColor = self.Color;
             }
 
@@ -513,6 +514,7 @@ namespace Celeste.Mod.SkinModHelper {
                     colorGradeEffect.CurrentTechnique = colorGradeEffect.Techniques["NoColorGrade"];
                 }
                 colorGradeEffect.Parameters["haircolor"].SetValue(Color.White.ToVector4());// You know. don't tint hair second.
+                colorGradeEffect.Parameters["maskMode"].SetValue(config._MaskMode);
 
                 Matrix matrix = DynamicData.For(Draw.SpriteBatch).Get<Matrix>("transformMatrix");
                 GameplayRenderer.End();
@@ -530,7 +532,7 @@ namespace Celeste.Mod.SkinModHelper {
             Atlas atlas = config.ColorGrade_Atlas ?? GFX.Game;
             MTexture cg = config.ColorGrade_Path != null && atlas.Has(config.ColorGrade_Path) ? atlas[config.ColorGrade_Path] : null;
 
-            if (cg != null || config.TintGrayscaleWithHair) {
+            if (cg != null || config.TintMaskWithHair) {
                 Effect colorGradeEffect = FxColorGrading_SMH;
 
                 if (cg != null) {
@@ -541,6 +543,7 @@ namespace Celeste.Mod.SkinModHelper {
                     colorGradeEffect.CurrentTechnique = colorGradeEffect.Techniques["NoColorGrade"];
                 }
                 colorGradeEffect.Parameters["haircolor"].SetValue((config.effect_hairColor != self.Color ? config.effect_hairColor : Color.White).ToVector4());// Feather
+                colorGradeEffect.Parameters["maskMode"].SetValue(config._MaskMode);
 
                 Matrix matrix = DynamicData.For(Draw.SpriteBatch).Get<Matrix>("transformMatrix");
                 GameplayRenderer.End();
@@ -671,7 +674,16 @@ namespace Celeste.Mod.SkinModHelper {
                     self.Border = color;
                 }
             }
-            if (character.TintGrayscaleWithHair && self.Border.R == self.Border.G && self.Border.G == self.Border.B) {
+            if (character.TintMaskWithHair) {
+                float f = self.Border.R + self.Border.G + self.Border.B;
+                if (character._MaskMode > 2) {
+                    if (f == self.Border.B * 3) {
+                        self.Border = ColorBlend(self.Border, self.Color);
+                    }
+                } else if (f == (new float[3] { self.Border.R, self.Border.G, self.Border.B })[character._MaskMode]) {
+                    self.Border = ColorBlend(new Color(f, f, f), self.Color);
+                }
+
                 self.Border = ColorBlend(self.Border, self.Color);
             }
             self.Border = ColorBlend(self.Border, hairConfig.HairColorGrading);

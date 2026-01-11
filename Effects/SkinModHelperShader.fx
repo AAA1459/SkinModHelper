@@ -12,6 +12,7 @@ DECLARE_TEXTURE(sprite, 0); //Declares "text" as the screen to be postprocessed
 DECLARE_TEXTURE(colorgrade, 1);
 
 float4 haircolor;
+int maskMode;
 
 
 float4 DoCG_NoAlpha(float4 pixel : COLOR0) : COLOR0
@@ -33,9 +34,14 @@ float4 DoCG_NoAlpha(float4 pixel : COLOR0) : COLOR0
 }
 float4 MixHair(float4 pixel : COLOR0) : COLOR0
 {
-	if (pixel.a > 0 && pixel.r == pixel.g && pixel.g == pixel.b) {
+    float f = pixel.r + pixel.g + pixel.b;
+	if (pixel.r * 3 == f && maskMode == 4) {
 	   return pixel * haircolor;
-	}
+	} 
+    if ((f == pixel[maskMode])) {
+	   return float4(f,f,f,pixel.a) * haircolor;
+    }
+	
     return pixel;
 }
 

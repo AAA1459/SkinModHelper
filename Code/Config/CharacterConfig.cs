@@ -15,6 +15,7 @@ using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.PlayerSkinSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 using System.Runtime.CompilerServices;
+using static Celeste.Mod.SkinModHelper.CharacterConfig;
 
 namespace Celeste.Mod.SkinModHelper {
     public class CharacterConfig {
@@ -22,6 +23,10 @@ namespace Celeste.Mod.SkinModHelper {
         internal const string _ConfigName = "skinConfig/CharacterConfig";
 
         internal static ConditionalWeakTable<Image, CharacterConfig> _Instance = new();
+
+        public enum MaskModes {
+            Red = 0, Green = 1, Bule = 2, Grayscale = 3
+        }
 
         public CharacterConfig() {
         }
@@ -40,7 +45,7 @@ namespace Celeste.Mod.SkinModHelper {
                     config.ModeInitialize(playerSprite.Mode);
 
                 // SilhouetteMode and TintGrayscaleWithHair are the almost same and conflicting. only the latter work when
-                if (config.TintGrayscaleWithHair) {
+                if (config.TintMaskWithHair) {
                     config.SilhouetteMode = false;
 
                 } else if (config.SilhouetteMode == true) {
@@ -65,6 +70,15 @@ namespace Celeste.Mod.SkinModHelper {
             BadelineMode ??= mode == (PlayerSpriteMode)2 || mode == (PlayerSpriteMode)3;
             SilhouetteMode ??= mode == (PlayerSpriteMode)4;
         }
+
+        public void RefreshConflict() {
+            if (TintMaskWithHair) {
+                SilhouetteMode = false;
+
+            } else if (SilhouetteMode == true) {
+                LowStaminaFlashHair = true;
+            }
+        }
         #endregion
 
         #region Values 
@@ -73,7 +87,7 @@ namespace Celeste.Mod.SkinModHelper {
         private ModAsset Source;
         private string SourcePath;
 
-        /// <summary> uses when TintGrayscaleWithHair is true </summary>
+        /// <summary> uses when TintMaskWithHair is true </summary>
         internal Color effect_hairColor = Color.White;
         public string ColorGrade_Path;
         public Atlas ColorGrade_Atlas;
@@ -89,9 +103,12 @@ namespace Celeste.Mod.SkinModHelper {
         #region Configurable values
         public bool? BadelineMode { get; set; }
 
-        /// <summary> Always false when TintGrayscaleWithHair </summary>
+        /// <summary> Always false when TintMaskWithHair </summary>
         public bool? SilhouetteMode { get; set; }
-        public bool TintGrayscaleWithHair { get; set; }
+        public bool TintMaskWithHair { get; set; }
+        public MaskModes MaskMode { get; set; }
+        public int _MaskMode => (int)MaskMode;
+
 
         /// <summary> Always true when SilhouetteMode </summary>
         public bool LowStaminaFlashHair { get; set; }

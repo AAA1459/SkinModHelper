@@ -134,9 +134,20 @@ namespace Celeste.Mod.SkinModHelper.Interop {
             patchPlayerSprite_List.Add((id, dict));
         }
 
+        /// <summary>
+        /// Enable TintMaskWithHair from SMH for your sprite.    don't call this for player
+        /// 
+        /// mode 0 is red as the mask, 1 is green, 2 is blue. 3 is grayscale
+        /// </summary>
+        public static void TintMaskWith(Sprite sprite, int mode, Color color) {
+            CharacterConfig character = CharacterConfig.For(sprite);
 
+            character.TintMaskWithHair = true;
+            character.MaskMode = (CharacterConfig.MaskModes)mode;
+            character.effect_hairColor = color;
 
-
+            character.RefreshConflict();
+        }
 
 
 
