@@ -258,11 +258,7 @@ namespace Celeste.Mod.SkinModHelper {
                 #region ProcessHairColors
                 bool isValid = false;
                 bool isC_EmptyS;
-                foreach (var c_attr in attr.SegmentAttrs) {
 
-
-
-                }
                 if ((isC_EmptyS = attr.Color == "orig") || RGB_IsMatch(attr.Color)) {
                     InitHairColor();
                     ActualHairColors[(attr.Dashes, (int)SpecialSegment.General)] = isC_EmptyS ? C_EmptyS : Calc.HexToColor(attr.Color);

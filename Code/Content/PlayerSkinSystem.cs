@@ -344,7 +344,7 @@ namespace Celeste.Mod.SkinModHelper {
             Color _pLowStaminaFlash(Color color, Player p) {
                 CharacterConfig ModeConfig = CharacterConfig.For(p.Sprite);
 
-                object backup = null;
+                object backup = Color.Red;
                 if (RGB_IsMatch(ModeConfig.LowStaminaFlashColor)) {
                     backup = color = Calc.HexToColor(ModeConfig.LowStaminaFlashColor);
                     if (ModeConfig.SilhouetteMode == true) {
@@ -354,7 +354,7 @@ namespace Celeste.Mod.SkinModHelper {
                     color = ColorBlend(p.Hair.Color, (backup = 0.4f));
                 }
 
-                if (ModeConfig.LowStaminaFlashHair || (ModeConfig.SilhouetteMode == true)) {
+                if (ModeConfig.LowStaminaFlashHair) {
                     HairConfig.For(p.Hair).HairColorGrading = backup ?? color;
                 }
                 return color;
@@ -498,16 +498,23 @@ namespace Celeste.Mod.SkinModHelper {
         #endregion
         goto_one:
 
-            if (config.ColorGrade_Path != null && atlas.Has(config.ColorGrade_Path)) {
+            MTexture cg = config.ColorGrade_Path != null && atlas.Has(config.ColorGrade_Path) ? atlas[config.ColorGrade_Path] : null;
+            if (config.TintGrayscaleWithHair) {
+                config.effect_hairColor = self.Color;
+            }
+
+            if (cg != null) {
                 Effect colorGradeEffect = FxColorGrading_SMH;
 
-                colorGradeEffect.CurrentTechnique = colorGradeEffect.Techniques[
-                    config.ColorGradingAfterColored ? "ColorGradeAftColored" : "ColorGrade"
-                    ];
-                Engine.Graphics.GraphicsDevice.Textures[1] = atlas[config.ColorGrade_Path].Texture.Texture_Safe;
+                if (cg != null) {
+                    Engine.Graphics.GraphicsDevice.Textures[1] = cg.Texture.Texture_Safe;
+                    colorGradeEffect.CurrentTechnique = colorGradeEffect.Techniques[config.ColorGradingAfterColored ? "ColorGradeAftColored" : "ColorGrade"];
+                } else {
+                    colorGradeEffect.CurrentTechnique = colorGradeEffect.Techniques["NoColorGrade"];
+                }
+                colorGradeEffect.Parameters["haircolor"].SetValue(Color.White.ToVector4());// You know. don't tint hair second.
 
                 Matrix matrix = DynamicData.For(Draw.SpriteBatch).Get<Matrix>("transformMatrix");
-
                 GameplayRenderer.End();
                 Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, colorGradeEffect, matrix);
                 orig(self);
@@ -520,28 +527,28 @@ namespace Celeste.Mod.SkinModHelper {
         private static void SpriteRenderHook_ColorGrade(Action<Sprite> orig, Sprite self) {
             CharacterConfig config = CharacterConfig.For(self);
 
-            string colorGrade_Path = config.ColorGrade_Path;
+            Atlas atlas = config.ColorGrade_Atlas ?? GFX.Game;
+            MTexture cg = config.ColorGrade_Path != null && atlas.Has(config.ColorGrade_Path) ? atlas[config.ColorGrade_Path] : null;
 
-            if (colorGrade_Path != null) {
-                Atlas atlas = config.ColorGrade_Atlas ?? GFX.Game;
+            if (cg != null || config.TintGrayscaleWithHair) {
+                Effect colorGradeEffect = FxColorGrading_SMH;
 
-                if (atlas.Has(colorGrade_Path)) {
-                    Effect colorGradeEffect = FxColorGrading_SMH;
-
-                    colorGradeEffect.CurrentTechnique = colorGradeEffect.Techniques[
-                        config.ColorGradingAfterColored ? "ColorGradeAftColored" : "ColorGrade"
-                        ];
-                    Engine.Graphics.GraphicsDevice.Textures[1] = atlas[colorGrade_Path].Texture.Texture_Safe;
-
-                    Matrix matrix = DynamicData.For(Draw.SpriteBatch).Get<Matrix>("transformMatrix");
-
-                    GameplayRenderer.End();
-                    Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, colorGradeEffect, matrix);
-                    orig(self);
-                    GameplayRenderer.End();
-                    Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, null, matrix);
-                    return;
+                if (cg != null) {
+                    Engine.Graphics.GraphicsDevice.Textures[1] = cg.Texture.Texture_Safe;
+                    colorGradeEffect.CurrentTechnique = colorGradeEffect.Techniques[config.ColorGradingAfterColored ? "ColorGradeAftColored" : "ColorGrade"];
+                } else {
+                    //Engine.Graphics.GraphicsDevice.Textures[1] = GFX.ColorGrades["none"].Texture.Texture_Safe;
+                    colorGradeEffect.CurrentTechnique = colorGradeEffect.Techniques["NoColorGrade"];
                 }
+                colorGradeEffect.Parameters["haircolor"].SetValue((config.effect_hairColor != self.Color ? config.effect_hairColor : Color.White).ToVector4());// Feather
+
+                Matrix matrix = DynamicData.For(Draw.SpriteBatch).Get<Matrix>("transformMatrix");
+                GameplayRenderer.End();
+                Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, colorGradeEffect, matrix);
+                orig(self);
+                GameplayRenderer.End();
+                Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, null, matrix);
+                return;
             }
             orig(self);
         }
@@ -652,6 +659,7 @@ namespace Celeste.Mod.SkinModHelper {
 
         private static void PlayerHairRenderHook(On.Celeste.PlayerHair.orig_Render orig, PlayerHair self) {
             HairConfig hairConfig = HairConfig.For(self);
+            CharacterConfig character = CharacterConfig.For(self.Sprite);
 
             Color border = self.Border;
 
@@ -663,9 +671,13 @@ namespace Celeste.Mod.SkinModHelper {
                     self.Border = color;
                 }
             }
-            self.Border = ColorBlend(self.Border, hairConfig.HairColorGrading);
-            if (hairConfig.lastDashes != HairConfig.FeatherIndex && CharacterConfig.For(self.Sprite).SilhouetteMode == true) {
+            if (character.TintGrayscaleWithHair && self.Border.R == self.Border.G && self.Border.G == self.Border.B) {
                 self.Border = ColorBlend(self.Border, self.Color);
+            }
+            self.Border = ColorBlend(self.Border, hairConfig.HairColorGrading);
+
+            if (character.SilhouetteMode == true && hairConfig.lastDashes != HairConfig.FeatherIndex) {
+               self.Border = ColorBlend(self.Border, self.Color);
             }
             orig(self);
             self.Border = border;
@@ -827,5 +839,4 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
     }
-
 }

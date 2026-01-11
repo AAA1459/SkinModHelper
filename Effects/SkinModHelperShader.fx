@@ -1,5 +1,6 @@
-
+// ShaderCompiler SkinModHelperShader.fx SkinModHelperShader.cso
 // Compilation tool URL: https://github.com/lordseanington/ShaderCompiler/releases/
+
 
 #define DECLARE_TEXTURE(Name, index) \
     texture Name: register(t##index); \
@@ -10,13 +11,12 @@
 DECLARE_TEXTURE(sprite, 0); //Declares "text" as the screen to be postprocessed
 DECLARE_TEXTURE(colorgrade, 1);
 
+float4 haircolor;
 
-float4 PS_Colorgrade(float4 inPosition : SV_Position, float4 spriteColor : COLOR0, float2 uv : TEXCOORD0) : COLOR0
+
+float4 DoCG_NoAlpha(float4 pixel : COLOR0) : COLOR0
 {
-    // get sprite color
-    float4 pixel = SAMPLE_TEXTURE(sprite, uv);
-    
-	// unmultiply the alpha before the colorgrade, which is the whole damn reason this shader exists.
+    // unmultiply the alpha before the colorgrade, which is the whole damn reason this shader exists.
 	float4 color = pixel * (1.0 / max(pixel.a, 1/256.0));
 	   
 	// Combine int conversion and +0.5 for rounding.
@@ -27,34 +27,47 @@ float4 PS_Colorgrade(float4 inPosition : SV_Position, float4 spriteColor : COLOR
 	// extract the coordinates and lock them with +0.5, make sure it doesn't mix with adjacent colors.
 	float Y = (y + 0.5) / 16.0;
 	float XZ = (x + (z * 16) + 0.5) / 256.0;
-	   
-	color = SAMPLE_TEXTURE(colorgrade, float2(XZ, Y));
-	   
+	
 	// don't forgot to multiply back in the alpha
-	return color * pixel.a * spriteColor;
+	return SAMPLE_TEXTURE(colorgrade, float2(XZ, Y)) * pixel.a;
+}
+float4 MixHair(float4 pixel : COLOR0) : COLOR0
+{
+	if (pixel.a > 0 && pixel.r == pixel.g && pixel.g == pixel.b) {
+	   return pixel * haircolor;
+	}
+    return pixel;
 }
 
 
+
+float4 PS_NoColorgrade(float4 inPosition : SV_Position, float4 spriteColor : COLOR0, float2 uv : TEXCOORD0) : COLOR0
+{
+    return MixHair(SAMPLE_TEXTURE(sprite, uv)) * spriteColor;
+}
+
+float4 PS_Colorgrade(float4 inPosition : SV_Position, float4 spriteColor : COLOR0, float2 uv : TEXCOORD0) : COLOR0
+{
+    float4 pixel = SAMPLE_TEXTURE(sprite, uv);
+	return MixHair(DoCG_NoAlpha(pixel)) * spriteColor;
+}
 float4 PS_ColorgradeAftColored(float4 inPosition : SV_Position, float4 spriteColor : COLOR0, float2 uv : TEXCOORD0) : COLOR0
 {
-    float4 pixel = SAMPLE_TEXTURE(sprite, uv) * spriteColor;
-
-	float4 color = pixel * (1.0 / max(pixel.a, 1/256.0));
-	   
-	int x = color.r * 15.0 + 0.5;
-	int z = color.b * 15.0 + 0.5;
-	int y = color.g * 15.0 + 0.5;
-	   
-	float Y = (y + 0.5) / 16.0;
-	float XZ = (x + (z * 16) + 0.5) / 256.0;
-	color = SAMPLE_TEXTURE(colorgrade, float2(XZ, Y));
-	return color * pixel.a;
+    float4 pixel = MixHair(SAMPLE_TEXTURE(sprite, uv)) * spriteColor;
+	return DoCG_NoAlpha(pixel);
 }
 
 //-----------------------------------------------------------------------------
 // Techniques.
 //-----------------------------------------------------------------------------
 
+technique NoColorGrade
+{
+    pass
+    {
+        PixelShader = compile ps_2_0 PS_NoColorgrade();
+    }
+}
 technique ColorGrade
 {
     pass

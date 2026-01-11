@@ -38,6 +38,14 @@ namespace Celeste.Mod.SkinModHelper {
 
                 if (target is PlayerSprite playerSprite)
                     config.ModeInitialize(playerSprite.Mode);
+
+                // SilhouetteMode and TintGrayscaleWithHair are the almost same and conflicting. only the latter work when
+                if (config.TintGrayscaleWithHair) {
+                    config.SilhouetteMode = false;
+
+                } else if (config.SilhouetteMode == true) {
+                    config.LowStaminaFlashHair = true;
+                }
                 config.ParticleModifierInit();
 
                 _Instance.AddOrUpdate(target, config);
@@ -65,6 +73,8 @@ namespace Celeste.Mod.SkinModHelper {
         private ModAsset Source;
         private string SourcePath;
 
+        /// <summary> uses when TintGrayscaleWithHair is true </summary>
+        internal Color effect_hairColor = Color.White;
         public string ColorGrade_Path;
         public Atlas ColorGrade_Atlas;
 
@@ -78,10 +88,15 @@ namespace Celeste.Mod.SkinModHelper {
 
         #region Configurable values
         public bool? BadelineMode { get; set; }
-        public bool? SilhouetteMode { get; set; }
 
-        public string LowStaminaFlashColor { get; set; }
+        /// <summary> Always false when TintGrayscaleWithHair </summary>
+        public bool? SilhouetteMode { get; set; }
+        public bool TintGrayscaleWithHair { get; set; }
+
+        /// <summary> Always true when SilhouetteMode </summary>
         public bool LowStaminaFlashHair { get; set; }
+        public string LowStaminaFlashColor { get; set; }
+
         public bool HoldableFacingFlipable { get; set; }
 
         public string TrailsColor { get; set; }
