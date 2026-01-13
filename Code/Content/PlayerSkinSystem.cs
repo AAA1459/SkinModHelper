@@ -559,13 +559,13 @@ namespace Celeste.Mod.SkinModHelper {
         #region ColorGrade Other
         private static void LookoutUpdateHook_ColorGrade(On.Celeste.Lookout.orig_Update orig, Lookout self) {
             Player player = Engine.Scene?.Tracker.GetEntity<Player>();
-            SyncColorGrade(self.sprite, player?.Sprite);
+            CopyCharacterEffect(self.sprite, player?.Sprite);
             orig(self);
         }
         private static void PayphoneUpdateHook_ColorGrade(On.Celeste.Payphone.orig_Update orig, Payphone self) {
             // player's dashes is usually fixed at 1 for payphone cutscenes... so probably this no real works.
             Player player = Engine.Scene?.Tracker.GetEntity<Player>();
-            SyncColorGrade(self.Sprite, player?.Sprite);
+            CopyCharacterEffect(self.Sprite, player?.Sprite);
             orig(self);
         }
         #endregion

@@ -750,8 +750,8 @@ namespace Celeste.Mod.SkinModHelper {
         }
         #endregion
 
-        #region ColorGrade
-        public static void SyncColorGrade(Sprite to, Sprite from) {
+        #region CopyCharacterEffect
+        public static void CopyCharacterEffect(Sprite to, Sprite from) {
             if (to == null)
                 return;
             CharacterConfig config_ofTo = CharacterConfig.For(to);
@@ -760,10 +760,15 @@ namespace Celeste.Mod.SkinModHelper {
 
                 config_ofTo.ColorGrade_Atlas = config_ofFr.ColorGrade_Atlas;
                 config_ofTo.ColorGrade_Path = config_ofFr.ColorGrade_Path;
+                config_ofTo.TintMaskWithHair = config_ofFr.TintMaskWithHair;
+                config_ofTo.MaskMode = config_ofFr.MaskMode;
             } else {
                 config_ofTo.ColorGrade_Atlas = null;
                 config_ofTo.ColorGrade_Path = null;
+                config_ofTo.TintMaskWithHair = false;
+                config_ofTo.MaskMode = CharacterConfig.MaskModes.Red;
             }
+            config_ofTo.RefreshConflict();
         }
         #endregion
 

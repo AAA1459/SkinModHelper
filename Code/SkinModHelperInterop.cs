@@ -169,7 +169,7 @@ namespace Celeste.Mod.SkinModHelper.Interop {
             config_ofTo.ColorGrade_Path = mTexture?.AtlasPath;
         }
         public static void CopyColorGrades(Sprite from, Sprite to) {
-            SyncColorGrade(to, from);
+            CopyCharacterEffect(to, from);
         }
 
         public static void SessionSet_PlayerSkin(string newSkinId) {
