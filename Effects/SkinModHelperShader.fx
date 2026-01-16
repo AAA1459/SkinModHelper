@@ -13,6 +13,7 @@ DECLARE_TEXTURE(colorgrade, 1);
 
 float4 haircolor;
 int maskMode;
+bool DoMixHair;
 
 
 float4 DoCG_NoAlpha(float4 pixel : COLOR0) : COLOR0
@@ -34,6 +35,9 @@ float4 DoCG_NoAlpha(float4 pixel : COLOR0) : COLOR0
 }
 float4 MixHair(float4 pixel : COLOR0) : COLOR0
 {
+    if (!DoMixHair) {
+	   return pixel;
+	}
 	if (maskMode > 2) {
 	   return pixel.r == pixel.b && pixel.r == pixel.g ? pixel * haircolor : pixel;
 	} 
@@ -41,7 +45,6 @@ float4 MixHair(float4 pixel : COLOR0) : COLOR0
     if ((f == pixel[maskMode])) {
 	   return float4(f,f,f,pixel.a) * haircolor;
     }
-	
     return pixel;
 }
 

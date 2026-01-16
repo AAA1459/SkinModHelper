@@ -506,14 +506,9 @@ namespace Celeste.Mod.SkinModHelper {
             if (cg != null) {
                 Effect colorGradeEffect = FxColorGrading_SMH;
 
-                if (cg != null) {
-                    Engine.Graphics.GraphicsDevice.Textures[1] = cg.Texture.Texture_Safe;
-                    colorGradeEffect.CurrentTechnique = colorGradeEffect.Techniques[config.ColorGradingAfterColored ? "ColorGradeAftColored" : "ColorGrade"];
-                } else {
-                    colorGradeEffect.CurrentTechnique = colorGradeEffect.Techniques["NoColorGrade"];
-                }
-                colorGradeEffect.Parameters["haircolor"].SetValue(Color.White.ToVector4());// You know. don't tint hair second.
-                colorGradeEffect.Parameters["maskMode"].SetValue(config._MaskMode);
+                Engine.Graphics.GraphicsDevice.Textures[1] = cg.Texture.Texture_Safe;
+                colorGradeEffect.CurrentTechnique = colorGradeEffect.Techniques[config.ColorGradingAfterColored ? "ColorGradeAftColored" : "ColorGrade"];
+                colorGradeEffect.Parameters["DoMixHair"].SetValue(false); // You know. don't tint hair second.
 
                 Matrix matrix = DynamicData.For(Draw.SpriteBatch).Get<Matrix>("transformMatrix");
                 GameplayRenderer.End();
@@ -543,6 +538,7 @@ namespace Celeste.Mod.SkinModHelper {
                 }
                 colorGradeEffect.Parameters["haircolor"].SetValue((config.effect_hairColor != self.Color ? config.effect_hairColor : Color.White).ToVector4());// Feather
                 colorGradeEffect.Parameters["maskMode"].SetValue(config._MaskMode);
+                colorGradeEffect.Parameters["DoMixHair"].SetValue(config.TintMaskWithHair);
 
                 Matrix matrix = DynamicData.For(Draw.SpriteBatch).Get<Matrix>("transformMatrix");
                 GameplayRenderer.End();
