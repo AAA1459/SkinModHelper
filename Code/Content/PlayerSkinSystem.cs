@@ -676,7 +676,7 @@ namespace Celeste.Mod.SkinModHelper {
                         self.Border = ColorBlend(self.Border, self.Color);
                     }
                 } else if (i == (new int[3] { self.Border.R, self.Border.G, self.Border.B })[character._MaskMode]) {
-                    self.Border = ColorBlend(new Color(i, i, i), self.Color);
+                    self.Border = ColorBlend(new Color(i, i, i, (int)self.Border.A), self.Color);
                 }
 
                 self.Border = ColorBlend(self.Border, self.Color);
