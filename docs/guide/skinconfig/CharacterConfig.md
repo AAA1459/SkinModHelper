@@ -4,10 +4,13 @@ If you wish to apply certain effects to your target, you can check here.
 
 The content here involves a new config, its structure and function is like this
 ```yaml
-SilhouetteMode: [true/false]
-
 LowStaminaFlashHair: [true/false]
 LowStaminaFlashColor: [use six digit RGB hex code]
+
+SilhouetteMode: [true/false]
+
+TintMaskWithHair:  [true/false]
+MaskMode: [Red/Green/Blue/Grayscale]
 
 IdleColdOptions: [Lists with identifiers and weights]
 IdleWarmOptions: [Lists with identifiers and weights]
@@ -35,16 +38,7 @@ If this contains what you need, follow these steps to use them:
    * Example path: `../Gameplay/[target sprites's directory]/skinConfig/CharacterConfig.yaml`
 4. Copy the fields you need and specify their values in `CharacterConfig.yaml`
    * For field details, refer below.
-
----
-### SilhouetteMode
-If you want to Color the entire target's sprites with its hair color, be like a silhouette.
-So use this:
-```yaml
-SilhouetteMode: true
-```
-Note: This also affects target's hair border color, just by default it is unaffected black.
-
+   
 ---
 ### LowStaminaFlash
 When the player's stamina is almost deplete, the player will start flashing red.
@@ -56,6 +50,31 @@ If you want this flash effect to apply to the skin's hair as well, use:
 ```yaml
 LowStaminaFlashHair: true
 ```
+
+---
+### SilhouetteMode
+If you want to Color the entire target's sprites with its hair color, be like a silhouette.
+So enable it with:
+```yaml
+SilhouetteMode: true
+```
+* Always enable [LowStaminaFlashHair](#lowstaminaflash) when this is enabled.
+* color the hair border also when this is enabled.
+
+---
+### TintMaskWithHair
+If you want to color the local pixels of sprites with its hair color. 
+You can enable this and draw the mask part in sprites.
+```yaml
+TintMaskWithHair: true
+```
+And about the mask part, 
+we need a `MaskMode` to confirm if you want to replace the pure red, green, blue, or grayscale (basen on rgb value) with the hair color.
+```yaml
+MaskMode: [Red/Green/Blue/Grayscale]
+```
+* it almost is a better silhouette mode?  Enabling this will always disable [it](#silhouettemode).
+* also replace the hair border when its color matches `MaskMode`
 
 ---
 ### IdleAnimationChance
