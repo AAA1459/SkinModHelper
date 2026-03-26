@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Reflection;
 using Celeste.Mod.Helpers;
 using Microsoft.Xna.Framework;
-using YamlDotNet.Core.Tokens;
+using Microsoft.Xna.Framework.Graphics;
+using MonoMod.Utils;
+using Monocle;
 
 namespace Celeste.Mod.SkinModHelper {
     public static class Extensions {
@@ -47,6 +49,23 @@ namespace Celeste.Mod.SkinModHelper {
                 return type;
             }
             return typeref_cache[FullName] = FakeAssembly.GetFakeEntryAssembly().GetType(FullName);
+        }
+
+
+
+        public static void GetCurrentSpriteBatch(out SpriteSortMode sort, out BlendState blend,
+    out SamplerState sampler, out DepthStencilState depth, out RasterizerState rasterizer, out Effect e, out Matrix m) {
+
+            DynamicData data = DynamicData.For(Draw.SpriteBatch);
+
+            sort = data.Get<SpriteSortMode>("sortMode");
+            blend = data.Get<BlendState>("blendState");
+            sampler = data.Get<SamplerState>("samplerState");
+            depth = data.Get<DepthStencilState>("depthStencilState");
+            rasterizer = data.Get<RasterizerState>("rasterizerState");
+
+            e = data.Get<Effect>("customEffect");
+            m = data.Get<Matrix>("transformMatrix");
         }
     }
 }

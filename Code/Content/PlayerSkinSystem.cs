@@ -510,12 +510,12 @@ namespace Celeste.Mod.SkinModHelper {
                 colorGradeEffect.CurrentTechnique = colorGradeEffect.Techniques[config.ColorGradingAfterColored ? "ColorGradeAftColored" : "ColorGrade"];
                 colorGradeEffect.Parameters["DoMixHair"].SetValue(false); // You know. don't tint hair second.
 
-                Matrix matrix = DynamicData.For(Draw.SpriteBatch).Get<Matrix>("transformMatrix");
+                Extensions.GetCurrentSpriteBatch(out var sort, out var blend, out var sampler, out var depth, out var rasterizer, out var effect, out var matrix);
                 GameplayRenderer.End();
                 Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, colorGradeEffect, matrix);
                 orig(self);
                 GameplayRenderer.End();
-                Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, null, matrix);
+                Draw.SpriteBatch.Begin(sort, blend, sampler, depth, rasterizer, effect, matrix);
                 return;
             }
             orig(self);
@@ -540,12 +540,12 @@ namespace Celeste.Mod.SkinModHelper {
                 colorGradeEffect.Parameters["maskMode"].SetValue(config._MaskMode);
                 colorGradeEffect.Parameters["DoMixHair"].SetValue(config.TintMaskWithHair);
 
-                Matrix matrix = DynamicData.For(Draw.SpriteBatch).Get<Matrix>("transformMatrix");
+                Extensions.GetCurrentSpriteBatch(out var sort, out var blend, out var sampler, out var depth, out var rasterizer, out var effect, out var matrix);
                 GameplayRenderer.End();
                 Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, colorGradeEffect, matrix);
                 orig(self);
                 GameplayRenderer.End();
-                Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, null, matrix);
+                Draw.SpriteBatch.Begin(sort, blend, sampler, depth, rasterizer, effect, matrix);
                 return;
             }
             orig(self);

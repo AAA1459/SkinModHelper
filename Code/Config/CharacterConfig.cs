@@ -129,7 +129,7 @@ namespace Celeste.Mod.SkinModHelper {
                 foreach (string option in value) {
                     string[] array = option.Split(',', 2, StringSplitOptions.TrimEntries);
                     float.TryParse((array.Length == 2 ? array[1] : "3"), out float f);
-                    IdleColdOptions.Add(array[0].StartsWith("idle") ? array[0] : "idle" + array[0], f > 0f ? f : 3f);
+                    IdleColdOptions.Add(array[0].StartsWith("idle") ? array[0] : "idle" + array[0], Math.Max(0, f));
                 }
             }
         }
@@ -140,7 +140,7 @@ namespace Celeste.Mod.SkinModHelper {
                 foreach (string option in value) {
                     string[] array = option.Split(',', 2, StringSplitOptions.TrimEntries);
                     float.TryParse((array.Length == 2 ? array[1] : "3"), out float f);
-                    IdleWarmOptions.Add(array[0].StartsWith("idle") ? array[0] : "idle" + array[0], f > 0f ? f : 3f);
+                    IdleWarmOptions.Add(array[0].StartsWith("idle") ? array[0] : "idle" + array[0], Math.Max(0, f));
                 }
             }
         }
