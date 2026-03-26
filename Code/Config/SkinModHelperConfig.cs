@@ -31,7 +31,7 @@ namespace Celeste.Mod.SkinModHelper {
         public string SkinName { get; set; }
         public bool Player_List { get; set; }
         public bool Silhouette_List { get; set; }
-        public bool? General_List { get; set; }
+        public bool General_List { get; set; } = true;
 
         [YamlIgnore]
         public bool JungleLanternMode = false;
