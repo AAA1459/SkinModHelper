@@ -1,5 +1,5 @@
 - Name: SkinModHelperPlus
-  Version: 0.17.7
+  Version: 0.17.8
   DLL: Code/bin/SkinModHelperPlus.dll
   Dependencies:
     - Name: Everest
