@@ -504,8 +504,6 @@ namespace Celeste.Mod.SkinModHelper {
                 config.effect_hairColor = self.Color;
             }
 
-            self.Alpha = 0.5f;
-
             if (cg != null) {
                 Effect colorGradeEffect = FxColorGrading_SMH;
 
@@ -528,10 +526,6 @@ namespace Celeste.Mod.SkinModHelper {
 
             Atlas atlas = config.ColorGrade_Atlas ?? GFX.Game;
             MTexture cg = config.ColorGrade_Path != null && atlas.Has(config.ColorGrade_Path) ? atlas[config.ColorGrade_Path] : null;
-
-            if (self.Entity is Player) {
-                self.Color *= 0.5f;
-            }
 
             if (cg != null || config.TintMaskWithHair) {
                 Effect colorGradeEffect = FxColorGrading_SMH;
