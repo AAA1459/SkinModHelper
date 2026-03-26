@@ -4,12 +4,13 @@ SKIN_MOD_HELPER_SETTINGS_TITLE= Skin Mod Helper
 
 ##---Options---
 
-SkinModHelper_options_Backpack= Backpack
+SkinModHelper_Settings_Backpack= Backpack
+SkinModHelper_Desc_Backpack= Change the player's backpack status. not apply when there is no the variant.
 
-SkinModHelper_options_BackpackMode_Default= Default
-SkinModHelper_options_BackpackMode_Off= Off
-SkinModHelper_options_BackpackMode_On= On
-SkinModHelper_options_BackpackMode_Invert= Invert
+SkinModHelper_Settings_Backpack_Default= Default
+SkinModHelper_Settings_Backpack_Off= Off
+SkinModHelper_Settings_Backpack_On= On
+SkinModHelper_Settings_Backpack_Invert= Invert
 
 
 SkinModHelper_Settings_PlayerSkin= Player Skins
@@ -27,13 +28,13 @@ SkinModHelper_Settings_Otherskin_onoffHint= the skin changes to apply during the
 SkinModHelper_MORE_OPTIONS= Advanced Options
 
 SkinModHelper_Settings_ShowOtherSelfVariants= Show Otherself variant
-SkinModHelper_Settings_ShowOtherSelfVariants_desc= for the player skins menu. If off it will sync to the player variant changes.
+SkinModHelper_Desc_ShowOtherSelfVariants= for the player skins menu. If off it will sync to the player variant changes.
 
 SkinModHelper_Settings_ShowSkinSourceInAllCategory= Show where the player skin from
-SkinModHelper_Settings_ShowSkinSourceInAllCategory_desc= for the all category of player skins menu
+SkinModHelper_Desc_ShowSkinSourceInAllCategory= for the all category of player skins menu
 
 SkinModHelper_Settings_BetterHairGrowsMotion= Better hair motion on grows
-SkinModHelper_Settings_BetterHairGrowsMotion_desc= Optimize the inconsistent curve of the hair ends when grows.
+SkinModHelper_Desc_BetterHairGrowsMotion= Optimize the inconsistent curve of the hair ends when grows.
 
 
 ##---Precisely skin choose---
@@ -61,12 +62,15 @@ SkinModHelper_Other__Interact_icons= Interact icons
 ##---Description---
 
 SkinModHelper_OptionsDisabled= Unable to switch skins during Wakeup cutscene
+SkinModHelper_LoadedSkinCount= Loaded total -0- categories and -1- skins.
 
 SkinModHelper_NeedConfirm= If you want to get the skin in current category, press confirm!
 SkinModHelper_VanillaConfirmed= Switched to vanilla.
 SkinModHelper_PlayerSkinConfirmed= Switched current variant.
 
 SkinModHelper_Category= Mod: -0-
+
+
 SkinModHelper_SessionHint= The map settings covered the current skin, Press confirm to force cancel it once.
 
 SkinModHelper_GeneralSkin_TurnedIntoOn= Turned this skin on.
