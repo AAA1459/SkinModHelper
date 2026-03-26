@@ -16,10 +16,10 @@ int maskMode;
 bool DoMixHair;
 
 
-float4 DoCG_NoAlpha(float4 pixel : COLOR0) : COLOR0
+float4 DoCG(float4 pixel : COLOR0) : COLOR0
 {
     // unmultiply the alpha before the colorgrade, which is the whole damn reason this shader exists.
-	float4 color = pixel * (1.0 / max(pixel.a, 1/256.0));
+	float4 color = pixel;
 	   
 	// Combine int conversion and +0.5 for rounding.
 	int x = color.r * 15.0 + 0.5;
@@ -58,12 +58,12 @@ float4 PS_NoColorgrade(float4 inPosition : SV_Position, float4 spriteColor : COL
 float4 PS_Colorgrade(float4 inPosition : SV_Position, float4 spriteColor : COLOR0, float2 uv : TEXCOORD0) : COLOR0
 {
     float4 pixel = SAMPLE_TEXTURE(sprite, uv);
-	return MixHair(DoCG_NoAlpha(pixel)) * spriteColor;
+	return MixHair(DoCG(pixel)) * spriteColor;
 }
 float4 PS_ColorgradeAftColored(float4 inPosition : SV_Position, float4 spriteColor : COLOR0, float2 uv : TEXCOORD0) : COLOR0
 {
     float4 pixel = MixHair(SAMPLE_TEXTURE(sprite, uv)) * spriteColor;
-	return DoCG_NoAlpha(pixel);
+	return DoCG(pixel * (1.0 / max(spriteColor.a, 1/256.0))) * spriteColor.a;
 }
 
 //-----------------------------------------------------------------------------
