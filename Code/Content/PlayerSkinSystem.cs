@@ -16,6 +16,7 @@ using System.Text.RegularExpressions;
 using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 using Celeste.Mod.SkinModHelper.CelesteNet;
+using System.Xml.Schema;
 
 namespace Celeste.Mod.SkinModHelper {
     public static class PlayerSkinSystem {

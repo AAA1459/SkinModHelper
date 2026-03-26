@@ -14,6 +14,7 @@ using Microsoft.Xna.Framework.Input;
 
 using static Celeste.Mod.SkinModHelper.SkinsSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
+using static Celeste.Mod.SkinModHelper.SkinModHelperSettings;
 
 namespace Celeste.Mod.SkinModHelper
 {
@@ -24,6 +25,8 @@ namespace Celeste.Mod.SkinModHelper
 
         public NewMenuCategory Category;
         public bool OptionsDisabled;
+
+
         public enum NewMenuCategory {
             SkinFreeConfig, None
         }
@@ -34,6 +37,25 @@ namespace Celeste.Mod.SkinModHelper
             OptionsDisabled = Disabled(inGame);
 
             if (category == NewMenuCategory.None) {
+
+                int skins = 0;
+                HashSet<string> categories = new();
+                foreach (var config in skinConfigs.Values) {
+                    if (config.Player_List || config.Silhouette_List) {
+                        skins++;
+                        categories.Add(config.Mod);
+                    }
+                }
+                foreach (var config in OtherskinConfigs.Values) {
+                    if (config.General_List) {
+                        skins++;
+                        categories.Add(config.Mod);
+                    }
+                }
+                string desc = Dialog.Clean("SkinModHelper_LoadedSkinCount").Replace("-0-", $"{categories.Count}").Replace("-1-", $"{skins}");
+                menu.Add(CreateDescriptionWithoutClean(menu, desc, new(0f, 2.5f), Color.SlateGray, 10f, true));
+                // ---
+
                 if (OptionsDisabled) {
                     menu.Add(CreateDescription(menu, "SkinModHelper_OptionsDisabled", GetColor(3), 0f, true));
                 }
@@ -54,6 +76,7 @@ namespace Celeste.Mod.SkinModHelper
         private int playermenu_index;
         private int playermenu_initindex;
         private bool lastShowOtherSelfVariants;
+
         private void BuildPlayerSkinSelectMenu(TextMenu menu, bool inGame) {
             lastShowOtherSelfVariants = Settings.ShowOtherSelfVariants;
 
@@ -91,6 +114,7 @@ namespace Celeste.Mod.SkinModHelper
                 mods["SkinModHelper_Settings_AllMod"].Add(config);
                 mods[config.Mod].Add(config);
             }
+
             Action[] _OnPressed = new Action[mods.Count];
 
             options_lists.OnPressed += () => {
@@ -388,7 +412,7 @@ namespace Celeste.Mod.SkinModHelper
             }
             Dictionary<string, List<SkinModHelperConfig>> mods = new();
             foreach (var config in OtherskinConfigs.Values) {
-                if (config.General_List == false)
+                if (!config.General_List)
                     continue;
                 if (!mods.ContainsKey(config.Mod))
                     mods.Add(config.Mod, new());
@@ -446,6 +470,7 @@ namespace Celeste.Mod.SkinModHelper
                 options_lists.Add(Dialog.Has(configs.Key) ? Dialog.Clean(configs.Key) : configs.Key, options);
             }
             menu.Add(options_lists);
+
             var changeHint = CreateDescription(menu, "SkinModHelper_Settings_Otherskin_onoffHint", Color.Gray, 0f, false);
             options_lists.OnValueChange += delegate {
                 // everest will call the OnEnter of first-option of currentmenu before entering there... i hate it.
@@ -474,40 +499,58 @@ namespace Celeste.Mod.SkinModHelper
                     return;
                 }
                 TextMenuButtonExt SpriteSubmenu;
-                subMenu.Add(SpriteSubmenu = AbstractSubmenu.BuildOpenMenuButton<OuiCategorySubmenu>(menu, inGame, submenuBackAction, new object[] { NewMenuCategory.SkinFreeConfig }));
+                subMenu.Add(SpriteSubmenu = AbstractSubmenu.BuildOpenMenuButton<OuiCategorySubmenu>(menu, inGame, submenuBackAction, new object[] { NewMenuCategory.SkinFreeConfig }));                // ---
+                                                                                                                                                                                                       // ---
 
-                TextMenu.OnOff sosv = new TextMenu.OnOff(Dialog.Clean("SkinModHelper_Settings_ShowOtherSelfVariants"), Settings.ShowOtherSelfVariants);
-                sosv.Change(OnOff => {
-                    Settings.ShowOtherSelfVariants = OnOff;
-                });
-                subMenu.Add(sosv);
-                sosv.AddDescription(subMenu, menu, Dialog.Clean("SkinModHelper_Settings_ShowOtherSelfVariants_desc"));
-                TextMenuExt.EaseInSubHeaderExt needReloadMenu_desc = CreateDescription(menu, "SkinModHelper_NeedReloadMenu", Color.OrangeRed);
-                subMenu.Add(needReloadMenu_desc);
-                sosv.OnEnter += () => needReloadMenu_desc.FadeVisible = true;
-                sosv.OnLeave += () => needReloadMenu_desc.FadeVisible = false;
-
-
-                TextMenu.OnOff sssiac = new TextMenu.OnOff(Dialog.Clean("SkinModHelper_Settings_ShowSkinSourceInAllCategory"), Settings.ShowSkinSourceInAllCategory);
-                sssiac.Change(OnOff => {
-                    Settings.ShowSkinSourceInAllCategory = OnOff;
-                });
-                subMenu.Add(sssiac);
-                sssiac.AddDescription(subMenu, menu, Dialog.Clean("SkinModHelper_Settings_ShowSkinSourceInAllCategory_desc"));
-                TextMenuExt.EaseInSubHeaderExt needReloadMenu_desc2 = CreateDescription(menu, "SkinModHelper_NeedReloadMenu", Color.OrangeRed);
-                subMenu.Add(needReloadMenu_desc2);
-                sssiac.OnEnter += () => needReloadMenu_desc2.FadeVisible = true;
-                sssiac.OnLeave += () => needReloadMenu_desc2.FadeVisible = false;
-
+                var bp = CreateBackpackEntry(inGame);
+                subMenu.Add(bp);
+                bp.AddDescription(subMenu, menu, Dialog.Clean("SkinModHelper_Desc_Backpack"));
+                // ---
 
                 TextMenu.OnOff bhgm = new TextMenu.OnOff(Dialog.Clean("SkinModHelper_Settings_BetterHairGrowsMotion"), Settings.BetterHairMotionOnGrows);
                 bhgm.Change(OnOff => {
                     Settings.BetterHairMotionOnGrows = OnOff;
                 });
                 subMenu.Add(bhgm);
-                bhgm.AddDescription(subMenu, menu, Dialog.Clean("SkinModHelper_Settings_BetterHairGrowsMotion_desc"));
+                bhgm.AddDescription(subMenu, menu, Dialog.Clean("SkinModHelper_Desc_BetterHairGrowsMotion"));
+                // ---
 
+                TextMenu.OnOff sosv = new TextMenu.OnOff(Dialog.Clean("SkinModHelper_Settings_ShowOtherSelfVariants"), Settings.ShowOtherSelfVariants);
+                sosv.Change(OnOff => {
+                    Settings.ShowOtherSelfVariants = OnOff;
+                });
+                // ---
+
+                subMenu.Add(sosv);
+                sosv.AddDescription(subMenu, menu, Dialog.Clean("SkinModHelper_Desc_ShowOtherSelfVariants"));
+                TextMenuExt.EaseInSubHeaderExt needReloadMenu_desc = CreateDescription(menu, "SkinModHelper_NeedReloadMenu", Color.OrangeRed);
+                subMenu.Add(needReloadMenu_desc);
+                sosv.OnEnter += () => needReloadMenu_desc.FadeVisible = true;
+                sosv.OnLeave += () => needReloadMenu_desc.FadeVisible = false;
+                // ---
+
+                TextMenu.OnOff sssiac = new TextMenu.OnOff(Dialog.Clean("SkinModHelper_Settings_ShowSkinSourceInAllCategory"), Settings.ShowSkinSourceInAllCategory);
+                sssiac.Change(OnOff => {
+                    Settings.ShowSkinSourceInAllCategory = OnOff;
+                });
+                subMenu.Add(sssiac);
+                sssiac.AddDescription(subMenu, menu, Dialog.Clean("SkinModHelper_Desc_ShowSkinSourceInAllCategory"));
+                TextMenuExt.EaseInSubHeaderExt needReloadMenu_desc2 = CreateDescription(menu, "SkinModHelper_NeedReloadMenu", Color.OrangeRed);
+                subMenu.Add(needReloadMenu_desc2);
+                sssiac.OnEnter += () => needReloadMenu_desc2.FadeVisible = true;
+                sssiac.OnLeave += () => needReloadMenu_desc2.FadeVisible = false;
             });
+        }
+        private TextMenu.Item CreateBackpackEntry(bool inGame) {
+            Array enumValues = Enum.GetValues(typeof(BackpackMode));
+            Array.Sort((int[])enumValues);
+            TextMenu.Item item = new TextMenu.Slider("SkinModHelper_Settings_Backpack".DialogClean(),
+                    i => {
+                        string enumName = enumValues.GetValue(i).ToString();
+                        return $"SkinModHelper_Settings_Backpack_{enumName}".DialogClean();
+                    }, 0, enumValues.Length - 1, (int)Settings.Backpack)
+                .Change(value => Settings.Backpack = (BackpackMode)value);
+            return item;
         }
         #endregion
 
@@ -666,12 +709,20 @@ namespace Celeste.Mod.SkinModHelper
             };
         }
         private TextMenuExt.EaseInSubHeaderExt CreateDescriptionWithoutClean(TextMenu menu, string dialog,
-    Color? textColor = null, float heightExtra = 0f, bool initVisible = false) {
-            if (textColor == null) {
-                textColor = Color.Gray;
-            }
+            Color? textColor = null, float heightExtra = 0f, bool initVisible = false) {
+
             return new(dialog, initVisible, menu) {
-                TextColor = textColor.Value,
+                TextColor = textColor ?? Color.Gray,
+                HeightExtra = heightExtra,
+                IncludeWidthInMeasurement = false,
+            };
+        }
+        private TextMenuExt.EaseInSubHeaderExt CreateDescriptionWithoutClean(TextMenu menu, string dialog, Vector2 offset,
+            Color? textColor = null, float heightExtra = 0f, bool initVisible = false) {
+
+            return new(dialog, initVisible, menu) {
+                Offset = offset,
+                TextColor = textColor ?? Color.Gray,
                 HeightExtra = heightExtra,
                 IncludeWidthInMeasurement = false,
             };

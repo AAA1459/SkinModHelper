@@ -31,6 +31,7 @@ namespace Celeste.Mod.SkinModHelper {
         public enum BackpackMode { Default, Invert, Off, On }
         private BackpackMode backpack = BackpackMode.Default;
 
+        [SettingIgnore]
         public BackpackMode Backpack {
             get => backpack;
             set {
@@ -88,24 +89,6 @@ namespace Celeste.Mod.SkinModHelper {
         }
         private Dictionary<string, string> _FreeCollocations_OtherExtra = new(StringComparer.OrdinalIgnoreCase);
 
-
-
-
-        public void CreateBackpackEntry(TextMenu textMenu, bool inGame) {
-            Array enumValues = Enum.GetValues(typeof(BackpackMode));
-            Array.Sort((int[])enumValues);
-            TextMenu.Item item = new TextMenu.Slider("SkinModHelper_options_Backpack".DialogClean(),
-                    i => {
-                        string enumName = enumValues.GetValue(i).ToString();
-                        return $"SkinModHelper_options_{nameof(BackpackMode)}_{enumName}".DialogClean();
-                    }, 0, enumValues.Length - 1, (int)Backpack)
-                .Change(value => Backpack = (BackpackMode)value);
-
-            if (SkinModHelperUI.Disabled(inGame)) {
-                item.Disabled = true;
-            }
-            textMenu.Add(item);
-        }
         public string SelectedSkinMod = null;
     }
 }
