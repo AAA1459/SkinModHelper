@@ -208,7 +208,7 @@ namespace Celeste.Mod.SkinModHelper {
                     config.hashValues = getHash(config.hashSeed) + 1;
 
                     //----------------JungleLantern---------------
-                    if ((config.SkinName.EndsWith("_lantern_NB") || config.SkinName.EndsWith("_lantern"))) {
+                    if ((config.SkinName.EndsWith("_lantern_NB", StringComparison.CurrentCultureIgnoreCase) || config.SkinName.EndsWith("_lantern", StringComparison.CurrentCultureIgnoreCase))) {
                         config.JungleLanternMode = true;
                         if (config.Silhouette_List || config.Player_List) {
                             Logger.Log(LogLevel.Warn, "SkinModHelper", $"'{config.SkinName}' this name will affect the gameplay of junglehelper, it should't appear in the options.");
@@ -493,7 +493,7 @@ namespace Celeste.Mod.SkinModHelper {
                 }
 
                 if (Player_Skinid_verify != player_skinid_verify) {
-                    Player_Skinid_verify = player_skinid_verify;
+                    smh_Session.Last_Player_Skinid_verify = Player_Skinid_verify = player_skinid_verify;
                     RefreshSkins(false, true);
                 }
             }

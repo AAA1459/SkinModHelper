@@ -73,5 +73,13 @@ namespace Celeste.Mod.SkinModHelper {
             }
             RefreshSkins(false);
         }
+
+
+
+        public int? Last_Player_Skinid_verify { get; set; }
+
+
+
+
     }
 }

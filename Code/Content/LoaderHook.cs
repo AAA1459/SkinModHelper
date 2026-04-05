@@ -58,13 +58,24 @@ namespace Celeste.Mod.SkinModHelper {
         }
         // loading if enter the maps.
         private static void on_LevelLoader_StartLevel(On.Celeste.LevelLoader.orig_StartLevel orig, LevelLoader self) {
-            bool vanillaBackpack = self.Level.Session.Inventory.Backpack;
-            backpackOn = backpackSetting == 3 || (backpackSetting == 0 && vanillaBackpack) || (backpackSetting == 1 && !vanillaBackpack);
 
-            Player_Skinid_verify = 0;
-            string hash_object = GetPlayerSkin();
-            if (hash_object != null) {
-                Player_Skinid_verify = skinConfigs[!backpackOn ? GetPlayerSkin("_NB", hash_object) : hash_object].hashValues;
+            Log("load level");
+            if (smh_Session.Last_Player_Skinid_verify is int i) {
+                Player_Skinid_verify = i;
+
+                Log("load level with old skin");
+
+            } else {
+                Log("load level with reset skin");
+
+                bool vanillaBackpack = self.Level.Session.Inventory.Backpack;
+                backpackOn = backpackSetting == 3 || (backpackSetting == 0 && vanillaBackpack) || (backpackSetting == 1 && !vanillaBackpack);
+                string hash_object = GetPlayerSkin();
+                if (hash_object != null) {
+                    Player_Skinid_verify = skinConfigs[!backpackOn ? GetPlayerSkin("_NB", hash_object) : hash_object].hashValues;
+                } else {
+                    Player_Skinid_verify = 0;
+                }
             }
             RefreshSkins(true);
             orig(self);
