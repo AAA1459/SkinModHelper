@@ -91,16 +91,20 @@ namespace Celeste.Mod.SkinModHelper {
             SpriteBank newBank = BuildBank(Basebank, skinId, "Graphics/" + directory + "/" + XML_name);
             if (newBank == null)
                 return;
+            bool firstBuild = !Xml_records.TryAdd(newBank.XMLPath, newBank);
+
             foreach (KeyValuePair<string, SpriteData> spriteDataEntry in newBank.SpriteData) {
                 string spriteId = spriteDataEntry.Key;
                 if (Basebank.SpriteData.TryGetValue(spriteId, out SpriteData origSpriteData)) {
                     SpriteData newSpriteData = spriteDataEntry.Value;
-                    PatchSprite(origSpriteData.Sprite, newSpriteData.Sprite);
 
                     string newSpriteId = spriteId + skinId + cipher;
                     Basebank.SpriteData[newSpriteId] = newSpriteData;
 
-                    OnCombine?.Invoke(newSpriteId, newSpriteData);
+                    if (firstBuild) {
+                        PatchSprite(origSpriteData.Sprite, newSpriteData.Sprite);
+                        OnCombine?.Invoke(spriteId, newSpriteData);
+                    }
                 }
             }
         }
@@ -147,8 +151,7 @@ namespace Celeste.Mod.SkinModHelper {
             if (SkinID == DEFAULT || SkinID == LockedToPlayer) {
                 return CurrentSkins[SpriteID] = GetDefaultSkin(SpriteID, SkinID);
             }
-
-            return CurrentSkins[SpriteID] = SkinID;
+            return CurrentSkins[SpriteID] = (SkinID == ORIGINAL ? "" : SkinID);
         }
 
         public virtual string GetDefaultSkin(string SpriteID, string cipher) {

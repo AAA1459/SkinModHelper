@@ -58,16 +58,9 @@ namespace Celeste.Mod.SkinModHelper {
         }
         // loading if enter the maps.
         private static void on_LevelLoader_StartLevel(On.Celeste.LevelLoader.orig_StartLevel orig, LevelLoader self) {
-
-            Log("load level");
             if (smh_Session.Last_Player_Skinid_verify is int i) {
                 Player_Skinid_verify = i;
-
-                Log("load level with old skin");
-
             } else {
-                Log("load level with reset skin");
-
                 bool vanillaBackpack = self.Level.Session.Inventory.Backpack;
                 backpackOn = backpackSetting == 3 || (backpackSetting == 0 && vanillaBackpack) || (backpackSetting == 1 && !vanillaBackpack);
                 string hash_object = GetPlayerSkin();

@@ -33,6 +33,8 @@ namespace Celeste.Mod.SkinModHelper {
             IL.Celeste.Player.Render += PlayerRenderIlHook_Sprite;
 
             IL.Celeste.FancyText.Parse += ilFancyTextParse;
+            IL.Celeste.OshiroSprite.Update += ilAutoAnimatorWithPortrait;
+            IL.Celeste.BadelineAutoAnimator.Update += ilAutoAnimatorWithPortrait;
             IL.Celeste.CS06_Campfire.Question.ctor += CampfireQuestionHook;
 
             doneILHooks.Add(new ILHook(typeof(Player).GetMethod("TempleFallCoroutine", BindingFlags.NonPublic | BindingFlags.Instance).GetStateMachineTarget(), TempleFallCoroutineILHook));
@@ -85,6 +87,8 @@ namespace Celeste.Mod.SkinModHelper {
             IL.Celeste.Player.Render -= PlayerRenderIlHook_Sprite;
             
             IL.Celeste.FancyText.Parse -= ilFancyTextParse;
+            IL.Celeste.OshiroSprite.Update -= ilAutoAnimatorWithPortrait;
+            IL.Celeste.BadelineAutoAnimator.Update -= ilAutoAnimatorWithPortrait;
             IL.Celeste.CS06_Campfire.Question.ctor -= CampfireQuestionHook;
 
             On.Monocle.Sprite.SetAnimationFrame -= SpriteSetAnimationFrameHook;
@@ -97,18 +101,23 @@ namespace Celeste.Mod.SkinModHelper {
         // Relinking portrait skin's textbox and sfx, instead of just changing the portrait self.
         private static void ilFancyTextParse(ILContext il) {
             ILCursor cursor = new(il);
-
-            string _findPortraitSkin(string sprite) {
-                string skinId = Reskin_PortraitsBank.GetCurrentSkin("portrait_" + sprite);
-                return GFX.PortraitsSpriteBank.Has(skinId) ? skinId.Substring(9) : sprite;
-            }
-
             // This is more universal than the old hook, can works to the choice prompts of lua cutscenes.
             // But cannot refresh timely when in a dialogue.
             if (cursor.TryGotoNext(MoveType.Before, instr => instr.MatchStfld<FancyText.Portrait>("Sprite"))) {
                 cursor.EmitDelegate(_findPortraitSkin);
             }
-
+        }
+        private static void ilAutoAnimatorWithPortrait(ILContext il) {
+            ILCursor cursor = new(il);
+            if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchCallvirt<Textbox>("get_PortraitName"))) {
+                if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdstr(out _))) {
+                    cursor.EmitDelegate(_findPortraitSkin);
+                }
+            }
+        }
+        private static string _findPortraitSkin(string sprite) {
+            string skinId = Reskin_PortraitsBank.GetCurrentSkin("portrait_" + sprite);
+            return GFX.PortraitsSpriteBank.Has(skinId) ? skinId.Substring(9) : sprite;
         }
 
         // This one requires hook - for some reason they implemented a tiny version of the Textbox class that behaves differently
@@ -120,28 +129,24 @@ namespace Celeste.Mod.SkinModHelper {
 
             if (cursor.TryGotoNext(MoveType.After, instr => instr.MatchLdstr("_ask"),
                 instr => instr.MatchCall(out MethodReference method) && method.Name == "Concat")) {
-                cursor.EmitDelegate(ReplaceTextboxPath);
+                cursor.EmitDelegate(_replaceTextboxPath);
             }
         }
 
         // ilFancyTextParse makes textbox_ask path funky, so correct to our real path or revert to vanilla for prevent crashes
-        private static string ReplaceTextboxPath(string textboxPath) {
-
+        private static string _replaceTextboxPath(string textboxPath) {
             string PortraitId = $"portrait_{textboxPath.Remove(textboxPath.LastIndexOf("_ask")).Replace("textbox/", "")}"; // "textbox/[skin id]_ask"
 
             if (GFX.PortraitsSpriteBank.Has(PortraitId)) {
                 string SourcesPath = GFX.PortraitsSpriteBank.SpriteData[PortraitId].Sources[0].XML.Attr("textbox");
-
                 textboxPath = SourcesPath == null ? "textbox/madeline_ask" : $"textbox/{SourcesPath}_ask";
             }
-
             if (!GFX.Portraits.Has(textboxPath)) {
                 Logger.Log(LogLevel.Warn, "SkinModHelper", $"Requested texture that does not exist: {textboxPath}");
                 textboxPath = "textbox/madeline_ask";
             }
             return textboxPath;
         }
-
         #endregion
 
         #region Player Animations Extensions

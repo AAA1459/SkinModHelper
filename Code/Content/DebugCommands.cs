@@ -54,8 +54,15 @@ namespace Celeste.Mod.SkinModHelper {
 
             switch (command) {
                 case "test":
-                    debugging = !debugging;
-                    message = ($"Sprite,{(Engine.Scene as Level)?.Tracker?.GetComponents<Sprite>().Count}. debugging: {debugging}");
+                    switch (command2) {
+                        case "hairmetadata":
+                            message = $"playersprite frame metadata count: {PlayerSprite.FrameMetadata.Count}";
+                            break;
+                        default:
+                            debugging = !debugging;
+                            message = ($"Sprite,{(Engine.Scene as Level)?.Tracker?.GetComponents<Sprite>().Count}. debugging: {debugging}");
+                            break;
+                    }
                     break;
                 case "settings":
                     if (help2) {

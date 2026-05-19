@@ -375,8 +375,7 @@ namespace Celeste.Mod.SkinModHelper {
             }
             if (AssetExists<AssetTypeXml>(xmlPath)) {
                 try {
-                    SpriteBank newBank_2 = new SpriteBank(origBank?.Atlas ?? GFX.Game, xmlPath);
-                    return Xml_records[xmlPath] = newBank_2;
+                    return new SpriteBank(origBank?.Atlas ?? GFX.Game, xmlPath);
                 } catch (Exception e) {
                     Logger.Log(LogLevel.Error, "SkinModHelper", $"The {xmlPath.Replace(dir + "/", "")} of '{skinId}' build failed! \n {xmlPath}: {e.Message}");
                 }
