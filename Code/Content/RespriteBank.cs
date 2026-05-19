@@ -91,7 +91,8 @@ namespace Celeste.Mod.SkinModHelper {
             SpriteBank newBank = BuildBank(Basebank, skinId, "Graphics/" + directory + "/" + XML_name);
             if (newBank == null)
                 return;
-            bool firstBuild = !Xml_records.TryAdd(newBank.XMLPath, newBank);
+            // BuildBank will return same spritebank when multiple skins use it
+            bool firstBuild = Xml_records.TryAdd(newBank.XMLPath, newBank);
 
             foreach (KeyValuePair<string, SpriteData> spriteDataEntry in newBank.SpriteData) {
                 string spriteId = spriteDataEntry.Key;

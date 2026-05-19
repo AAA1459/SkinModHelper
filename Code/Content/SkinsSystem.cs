@@ -376,6 +376,7 @@ namespace Celeste.Mod.SkinModHelper {
             if (AssetExists<AssetTypeXml>(xmlPath)) {
                 try {
                     return new SpriteBank(origBank?.Atlas ?? GFX.Game, xmlPath);
+                    // `Xml_records.TryAdd` will be called within `RespriteBankModule` class.
                 } catch (Exception e) {
                     Logger.Log(LogLevel.Error, "SkinModHelper", $"The {xmlPath.Replace(dir + "/", "")} of '{skinId}' build failed! \n {xmlPath}: {e.Message}");
                 }
