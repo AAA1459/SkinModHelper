@@ -41,9 +41,9 @@ namespace Celeste.Mod.SkinModHelper {
                 config.attached = target;
                 config.SourcePath = rootPath;
 
-                if (target is PlayerSprite playerSprite)
+                if (target is PlayerSprite playerSprite) {
                     config.ModeInitialize(playerSprite.Mode);
-
+                }
                 // SilhouetteMode and TintGrayscaleWithHair are the almost same and conflicting. only the latter work when
                 if (config.TintMaskWithHair) {
                     config.SilhouetteMode = false;
@@ -91,6 +91,7 @@ namespace Celeste.Mod.SkinModHelper {
         internal Color effect_hairColor = Color.White;
         public string ColorGrade_Path;
         public Atlas ColorGrade_Atlas;
+        public PlayerHair playerHair;
 
         public bool? HoldableFacingIsFront;
 

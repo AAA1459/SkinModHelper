@@ -50,7 +50,8 @@ namespace Celeste.Mod.SkinModHelper {
 
             On.Celeste.Lookout.Update += LookoutUpdateHook_ColorGrade;
             On.Celeste.Payphone.Update += PayphoneUpdateHook_ColorGrade;
-            
+            On.Monocle.Sprite.Update += SpriteUpdateHook;
+
             On.Celeste.PlayerHair.Update += PlayerHairUpdateHook;
             IL.Celeste.PlayerHair.Render += il_PlayerHair_Render;
             IL.Celeste.PlayerHair.AfterUpdate += il_PlayerHair_AfterUpdate;
@@ -420,7 +421,7 @@ namespace Celeste.Mod.SkinModHelper {
         private static PlayerSpriteMode _patchSpriteMode_NB(PlayerSpriteMode mode) => (PlayerSpriteMode)(actualBackpack((int)mode) ? 0 : 1);
         #endregion
 
-        #region ColorGrade
+        #region ColorGrade... or shader stuff
         private static Dictionary<string, int> _ColorGradeMaxNum = new();
         private static void PlayerHairRenderHook_ColorGrade(On.Celeste.PlayerHair.orig_Render orig, PlayerHair self) {
             CharacterConfig config = CharacterConfig.For(self.Sprite);
@@ -500,6 +501,7 @@ namespace Celeste.Mod.SkinModHelper {
         goto_one:
 
             MTexture cg = config.ColorGrade_Path != null && atlas.Has(config.ColorGrade_Path) ? atlas[config.ColorGrade_Path] : null;
+
             if (config.TintMaskWithHair) {
                 config.effect_hairColor = self.Color;
             }
@@ -551,6 +553,13 @@ namespace Celeste.Mod.SkinModHelper {
             }
             orig(self);
         }
+        private static void SpriteUpdateHook(On.Monocle.Sprite.orig_Update orig, Sprite self) {
+            orig(self);
+            var config = CharacterConfig.For(self);
+            if (config.TintMaskWithHair && config.playerHair == null && _Player?.Hair is PlayerHair hair) {
+                config.effect_hairColor = hair.Color;
+            }
+        }
         #endregion
 
         #region ColorGrade Other
@@ -571,11 +580,10 @@ namespace Celeste.Mod.SkinModHelper {
         private static void PlayerSpriteRenderHook(On.Celeste.PlayerSprite.orig_Render orig, PlayerSprite self) {
             if (self.Entity is not (Player or PlayerDeadBody) && DynamicData.For(self).Get("isGhost") == null) {
 
-                PlayerHair hair = self.Entity?.Get<PlayerHair>();
-                if (hair?.Sprite == self) {
-                    CharacterConfig ModeConfig = CharacterConfig.For(self);
+                var config = CharacterConfig.For(self);
 
-                    if (ModeConfig.SilhouetteMode == true)
+                if (config.playerHair is PlayerHair hair) {
+                    if (config.SilhouetteMode == true)
                         self.Color = hair.Color * hair.Alpha;
                     else if (self.Color == hair.Color * hair.Alpha)
                         self.Color = Color.White * hair.Alpha;
@@ -653,6 +661,8 @@ namespace Celeste.Mod.SkinModHelper {
         private static void PlayerHairUpdateHook(On.Celeste.PlayerHair.orig_Update orig, PlayerHair self) {
             HairConfig hairConfig = HairConfig.For(self);
             hairConfig.OnHairUpdate?.Invoke();
+
+            CharacterConfig.For(self.Sprite).playerHair = self;
             orig(self);
         }
 
