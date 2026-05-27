@@ -756,14 +756,21 @@ namespace Celeste.Mod.SkinModHelper {
             if (to == null)
                 return;
             CharacterConfig config_ofTo = CharacterConfig.For(to);
+
+            config_ofTo.ColorGradingSuchAsPlayer = false;
             if (from != null) {
                 CharacterConfig config_ofFr = CharacterConfig.For(from);
-
                 config_ofTo.ColorGrade_Atlas = config_ofFr.ColorGrade_Atlas;
                 config_ofTo.ColorGrade_Path = config_ofFr.ColorGrade_Path;
+                config_ofTo.TintMaskWithHair = config_ofFr.TintMaskWithHair;
+                config_ofTo.MaskMode = config_ofFr.MaskMode;
+                config_ofTo.effect_hairColor = config_ofFr.effect_hairColor;
             } else {
                 config_ofTo.ColorGrade_Atlas = null;
                 config_ofTo.ColorGrade_Path = null;
+                config_ofTo.TintMaskWithHair = false;
+                config_ofTo.MaskMode = CharacterConfig.MaskModes.Red;
+                config_ofTo.effect_hairColor = Color.White;
             }
             config_ofTo.RefreshConflict();
         }

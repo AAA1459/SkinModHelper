@@ -106,9 +106,14 @@ namespace Celeste.Mod.SkinModHelper {
 
         /// <summary> Always false when TintMaskWithHair </summary>
         public bool? SilhouetteMode { get; set; }
+
         public bool TintMaskWithHair { get; set; }
         public MaskModes MaskMode { get; set; }
         public int _MaskMode => (int)MaskMode;
+
+
+        public bool ColorGradingSuchAsPlayer { get; set; }
+        public bool ColorGradingAfterColored { get; set; }
 
 
         /// <summary> Always true when SilhouetteMode </summary>
@@ -146,7 +151,6 @@ namespace Celeste.Mod.SkinModHelper {
             }
         }
 
-        public bool ColorGradingAfterColored { get; set; }
         #endregion
 
         #region ParticleModify
