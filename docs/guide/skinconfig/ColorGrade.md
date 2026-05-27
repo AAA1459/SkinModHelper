@@ -22,7 +22,7 @@ For player. If a color grade named `flash[X].png` or `flash.png` near `dash[X].p
 ---
 ### more misc
 * Color grades can also function for NPC Badeline.
-* `CharacterConfig.yaml` has [[ColorGrading before/after Colored]](/docs/guide/skinconfig/CharacterConfig.md#colorgrading-beforeafter-colored) related to here
+* `CharacterConfig.yaml` has [more stuff](/docs/guide/skinconfig/CharacterConfig.md#colorgradingsuchasplayer) related to ColorGrades
 
 ---
-[previous page](/docs/guide/README.md#more-miscellaneous)
+[Main page](/docs/guide/README.md#more-miscellaneous)
