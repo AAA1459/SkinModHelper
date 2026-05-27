@@ -759,8 +759,6 @@ namespace Celeste.Mod.SkinModHelper {
 
             config_ofTo.ColorGradingSuchAsPlayer = false;
             if (from != null) {
-                config_ofTo.playerHair = null;
-
                 CharacterConfig config_ofFr = CharacterConfig.For(from);
                 config_ofTo.ColorGrade_Atlas = config_ofFr.ColorGrade_Atlas;
                 config_ofTo.ColorGrade_Path = config_ofFr.ColorGrade_Path;
