@@ -552,7 +552,6 @@ namespace Celeste.Mod.SkinModHelper {
             if (config.TintMaskWithHair) {
                 config.effect_hairColor = player.Hair.Color;
             }
-
             if (config.ColorGradingSuchAsPlayer) {
                 Atlas atlas = config.ColorGrade_Atlas ??= (SpriteDataCache.TryGetValue(self, out var data) && data.Count < 1) ? GFX.Game : (data[0] as Atlas);
                 string dir = config.ColorGrade_Path = config.ColorGrade_Path is null ? getAnimationRootPath(self, "idle") + "ColorGrading/" : getAnimationRootPath(config.ColorGrade_Path);
