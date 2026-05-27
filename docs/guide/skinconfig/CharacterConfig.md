@@ -12,6 +12,9 @@ SilhouetteMode: [true/false]
 TintMaskWithHair:  [true/false]
 MaskMode: [Red/Green/Blue/Grayscale]
 
+ColorGradingSuchAsPlayer: [true/false]
+ColorGradingAfterColored: [true/false]
+
 IdleColdOptions: [Lists with identifiers and weights]
 IdleWarmOptions: [Lists with identifiers and weights]
 IdleAnimationChance: [floats]
@@ -23,8 +26,6 @@ HoldableFacingFlipable: [true/false]
 
 ParticleModify:
 - < particleModifier >
-
-ColorGradingAfterColored: [true/false]
 
 EntityTweaks:
 - < Tweaks >
@@ -73,8 +74,34 @@ we need a `MaskMode` to confirm if you want to replace the pure red, green, blue
 ```yaml
 MaskMode: [Red/Green/Blue/Grayscale]
 ```
-* it almost is a better silhouette mode?  Enabling this will always disable [it](#silhouettemode).
+* it almost is a better silhouette mode?  enabling this will always disable [it](#silhouettemode).
 * also replace the hair border when its color matches `MaskMode`
+
+* when the sprite has no hair, enabling this will tint mask with player's hair color.
+
+---
+### ColorGradingSuchAsPlayer
+The following content is related to [Skin ColorGrade](/docs/guide//skinconfig/ColorGrade.md).
+```yaml
+ColorGradingSuchAsPlayer: true
+```
+Enabling this will make the sprite try to apply its own colorgrades to self based on the player's dashes.
+* only working if the sprite has no hair
+
+
+---
+### ColorGrading before/after Colored
+The following content is related to [Skin ColorGrade](/docs/guide//skinconfig/ColorGrade.md).
+
+By default. SMH+ applying color grades _**before**_ hair and sprite is colored. 
+it makes the character (especially hair) to be grayscale, solid etc by color grades are impossible...
+
+If you happen to want the character to be grayscale etc. add this in character config: 
+```yaml
+ColorGradingAfterColored: true
+```
+Like literally, it changes the default _**before**_ to _**after**_ there. <br>
+**If you want to change the local colors of character by color grading. ignore this.**
 
 ---
 ### IdleAnimationChance
@@ -168,25 +195,7 @@ ParticleModify:
 
 ```
 
-
-
-
 ---
-### ColorGrading before/after Colored
-The following content is related to [Skin ColorGrade](/docs/guide//skinconfig/ColorGrade.md).
-
-By default. SMH+ applying color grades _**before**_ hair and sprite is colored. 
-it makes the character (especially hair) to be grayscale, solid etc by color grades are impossible...
-
-If you happen to want the character to be grayscale etc. add this in character config: 
-```yaml
-ColorGradingAfterColored: true
-```
-Like literally, it changes the default _**before**_ to _**after**_ there. <br>
-**If you want to change the local colors of character by color grading. ignore this.**
-
----
-
 ### _EntityTweaks_
 there maybe required you have some code knowledge... 
 it'll allow customize entity's any initial-value, any sprites:
