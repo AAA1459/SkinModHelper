@@ -494,7 +494,11 @@ namespace Celeste.Mod.SkinModHelper {
             MTexture cg = config.ColorGrade_Path != null && atlas.Has(config.ColorGrade_Path) ? atlas[config.ColorGrade_Path] : null;
 
             if (config.TintMaskWithHair) {
-                config.effect_hairColor = self.Color;
+                if (DynamicData.For(self.Sprite).Get("isGhost") != null) {
+                    config.effect_hairColor = self.GetHairColor(0);
+                } else {
+                    config.effect_hairColor = self.Color;
+                }
             }
 
             if (cg != null) {
