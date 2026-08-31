@@ -67,5 +67,9 @@ namespace Celeste.Mod.SkinModHelper {
             e = data.Get<Effect>("customEffect");
             m = data.Get<Matrix>("transformMatrix");
         }
+
+        public static Vector2 TransOne(this Vector2 vector) {
+            return new Vector2(vector.X < 0 ? -1 : 1, vector.Y < 0 ? -1 : 1);
+        }
     }
 }

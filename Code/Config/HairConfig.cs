@@ -15,9 +15,6 @@ using static Celeste.Mod.SkinModHelper.PlayerSkinSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 using static Celeste.Mod.SkinModHelper.HairConfig.AttrWithDashes;
 using System.Runtime.CompilerServices;
-using System.Collections;
-using YamlDotNet.Core.Tokens;
-using System.Diagnostics;
 
 namespace Celeste.Mod.SkinModHelper {
     public class HairConfig {
@@ -98,10 +95,14 @@ namespace Celeste.Mod.SkinModHelper {
         #region Values
         public int? lastDashes;
 
-        private PlayerHair attached;
+        public PlayerHair attached;
         private Entity lastEntity;
         private ModAsset Source;
         private string SourcePath;
+
+        internal bool _IsTrail;
+        internal bool _IsDashTrail;
+        internal float _TrailScaleYdiff;
 
         // may be a float. may be a Color.
         public object HairColorGrading;
@@ -410,12 +411,31 @@ namespace Celeste.Mod.SkinModHelper {
             dashes = Math.Min(_AttrDasheslimit, dashes);
         loop:
             if (ActualHairScales.TryGetValue((dashes, (int)SpecialSegment.General), out scale)) {
-                if (ActualHairScales.TryGetValue((dashes, index - attached.Sprite.HairCount), out Vector2 vector) || ActualHairScales.TryGetValue((dashes, index), out vector)) {
+                if (index < (int)SpecialSegment.General && ActualHairScales.TryGetValue((dashes, index - attached.Sprite.HairCount), out Vector2 vector) 
+                    || ActualHairScales.TryGetValue((dashes, index), out vector)) {
                     scale = vector;
                 }
                 // float2.X mean the root scale, float2.Y mean the end scale.
                 float num = scale.Y + (1f - (float)index / (float)(attached.Sprite.HairCount)) * (scale.X - scale.Y);
-                scale = new Vector2(float.Round(num * Math.Abs(attached.Sprite.Scale.X), 2), float.Round(num, 2));
+
+                scale = new Vector2(num * Math.Abs(attached.Sprite.Scale.X), num);
+                return true;
+
+            } else if (dashes <= 2) {
+                return false;
+            }
+            dashes--;
+            goto loop;
+        }
+        public bool GetHairScaleWithSpecified(int index, int dashes, out Vector2 scale) {
+            if (ActualHairScales == null || index == 0) {
+                scale = Vector2.Zero;
+                return false;
+            }
+            dashes = Math.Min(_AttrDasheslimit, dashes);
+        loop:
+            if (ActualHairScales.TryGetValue((dashes, index), out scale)) {
+                scale = new Vector2(scale.X, scale.X);
                 return true;
 
             } else if (dashes <= 2) {

@@ -290,6 +290,7 @@ namespace Celeste.Mod.SkinModHelper {
             HairConfig hairConfig = HairConfig.For(self.Hair);
             int dashCount = GetStartedDashingCount(self);
 
+            hairConfig._IsDashTrail = true;
             if (hairConfig.Safe_GetHairColor((int)HairConfig.SpecialSegment.Trail, dashCount, out Color color))
                 return color;
             return orig(self, wasDashB);
@@ -798,13 +799,31 @@ namespace Celeste.Mod.SkinModHelper {
         private static Vector2 PlayerHairGetHairScaleHook(On.Celeste.PlayerHair.orig_GetHairScale orig, PlayerHair self, int index) {
             HairConfig hairConfig = HairConfig.For(self);
 
-            if (hairConfig.lastDashes is not int dashes || !hairConfig.GetHairScale(index, dashes, out Vector2 scale)) {
+            Vector2 scale;
+            if (hairConfig.lastDashes is int dashes) {
+                bool round;
+                if (!(round = hairConfig.GetHairScale(index, dashes, out scale))) {
+                    scale = orig(self, index);
+                }
+
+                if (hairConfig._IsTrail) {
+                    if (hairConfig._IsDashTrail && self.Entity is Player player) {
+                        dashes = GetStartedDashingCount(player);
+                    }
+                    if (hairConfig.GetHairScaleWithSpecified((int)HairConfig.SpecialSegment.Trail, dashes, out Vector2 scale2)) {
+                        round = true;
+                        scale *= scale2;
+                    }
+                }
+                if (round) {
+                    scale = new Vector2(float.Round(scale.X, 2), float.Round(scale.Y, 2));
+                }
+            } else {
                 scale = orig(self, index);
             }
             return hairConfig.FlipHair(scale, index);
         }
         #endregion
-
         #region PlayerSpriteMode
         private static void SetPlayerSpriteMode(Player player, PlayerSpriteMode? mode) {
             player ??= _Player;
