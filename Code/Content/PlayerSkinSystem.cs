@@ -11,6 +11,7 @@ using System.Reflection;
 using Mono.Cecil.Cil;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
 using static Celeste.Mod.SkinModHelper.SkinsSystem;
@@ -21,6 +22,17 @@ using System.IO;
 
 namespace Celeste.Mod.SkinModHelper {
     public static class PlayerSkinSystem {
+        internal sealed class PlayerSpriteSource {
+            public PlayerSpriteMode RequestedMode;
+
+            public PlayerSpriteSource(PlayerSpriteMode requestedMode) {
+                RequestedMode = requestedMode;
+            }
+        }
+
+        internal static ConditionalWeakTable<PlayerSprite, PlayerSpriteSource> PlayerSpriteSourceCache = new();
+        private static readonly ConditionalWeakTable<PlayerSprite, Action<string>> JungleLanternHandlers = new();
+
         #region Hooks
 
         public static void Load() {
@@ -125,6 +137,7 @@ namespace Celeste.Mod.SkinModHelper {
             return orig(self, sprite, id);
         }
         private static void on_PlayerSprite_ctor(On.Celeste.PlayerSprite.orig_ctor orig, PlayerSprite self, PlayerSpriteMode mode) {
+            RecordLivePlayerSpriteRole(self, mode);
             Level level = Engine.Scene as Level ?? (Engine.Scene as LevelLoader)?.Level;
 
             bool isGhost = mode < 0;
@@ -176,12 +189,7 @@ namespace Celeste.Mod.SkinModHelper {
 
                 if (config.JungleLanternMode == true) {
                     self.Play("idle", restart: true); // replay the "idle" sprite to make it apply immediately.
-                    self.OnFinish += anim => { // when the look up animation finishes, rewind it to frame 7: this way we are getting 7-11 playing in a loop.
-                        if (anim == "lookUp") {
-                            self.Play("lookUp", restart: true);
-                            self.SetAnimationFrame(5);
-                        }
-                    };
+                    ApplyJungleLanternBehavior(self, true);
                 }
             }
 
@@ -878,6 +886,77 @@ namespace Celeste.Mod.SkinModHelper {
                 SetPlayerSpriteMode(player, PlayerSpriteMode.MadelineAsBadeline);
             else
                 SetPlayerSpriteMode(player, null);
+        }
+
+        internal static void RecordLivePlayerSpriteRole(PlayerSprite sprite, PlayerSpriteMode requestedMode) {
+            if (!IsRefreshablePlayerSpriteRole(requestedMode)) {
+                return;
+            }
+            PlayerSpriteSourceCache.AddOrUpdate(sprite, new PlayerSpriteSource(requestedMode));
+        }
+
+        private static bool IsRefreshablePlayerSpriteRole(PlayerSpriteMode mode) {
+            return mode is PlayerSpriteMode.Madeline
+                or PlayerSpriteMode.MadelineNoBackpack
+                or PlayerSpriteMode.Badeline
+                or PlayerSpriteMode.MadelineAsBadeline
+                or PlayerSpriteMode.Playback
+                or (PlayerSpriteMode)444482
+                or (PlayerSpriteMode)444483;
+        }
+
+        internal static bool RefreshLivePlayerSprite(PlayerSprite sprite, bool forceRebind) {
+            if (!PlayerSpriteSourceCache.TryGetValue(sprite, out PlayerSpriteSource source)) {
+                return false;
+            }
+
+            // Constructing an unattached template runs the existing, well-tested skin-selection
+            // logic for this role. We then apply its resolved SpriteBank id to the live component.
+            PlayerSprite template = new(source.RequestedMode);
+            if (string.IsNullOrEmpty(template.spriteName)) {
+                return false;
+            }
+
+            PlayerSpriteMode targetMode = template.Mode;
+            string targetId = template.spriteName;
+            bool jungleLanternMode = JungleLanternHandlers.TryGetValue(template, out _);
+            if (!forceRebind
+                && sprite.Mode == targetMode
+                && string.Equals(sprite.spriteName, targetId, StringComparison.OrdinalIgnoreCase)) {
+                return false;
+            }
+            SkinsSystem.RebindSpritePreservingState(sprite, () => GFX.SpriteBank.CreateOn(sprite, targetId));
+            sprite.Mode = targetMode;
+            ApplyJungleLanternBehavior(sprite, jungleLanternMode);
+
+            if (sprite.Entity != null) {
+                foreach (PlayerHair hair in sprite.Entity.Components.GetAll<PlayerHair>()) {
+                    if (ReferenceEquals(hair.Sprite, sprite)) {
+                        HairConfig._Instance.Remove(hair);
+                    }
+                }
+            }
+            return true;
+        }
+
+        private static void ApplyJungleLanternBehavior(PlayerSprite sprite, bool enabled) {
+            if (JungleLanternHandlers.TryGetValue(sprite, out Action<string> previousHandler)) {
+                sprite.OnFinish -= previousHandler;
+                JungleLanternHandlers.Remove(sprite);
+            }
+            if (!enabled) {
+                return;
+            }
+
+            Action<string> handler = anim => {
+                // When the look-up animation finishes, keep its lantern-holding frames looping.
+                if (anim == "lookUp") {
+                    sprite.Play("lookUp", restart: true);
+                    sprite.SetAnimationFrame(5);
+                }
+            };
+            sprite.OnFinish += handler;
+            JungleLanternHandlers.Add(sprite, handler);
         }
 
         public static int? GetDashCount(Entity entity, PlayerSprite sprite) {
