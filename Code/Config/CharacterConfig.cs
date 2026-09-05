@@ -31,29 +31,46 @@ namespace Celeste.Mod.SkinModHelper {
         public CharacterConfig() {
         }
 
+        internal static CharacterConfig BindCharacterConfig(Image target) {
+            ModAsset asset = GetAssetOnSprite<AssetTypeYaml>(target, _ConfigName);
+            CharacterConfig config = AssetIntoConfig<CharacterConfig>(asset) ?? new();
+
+            config.Source = asset;
+            config.attached = target;
+            config.SourcePath = getAnimationRootPath(target);
+            config.LastCheckedTexture = target.Texture;
+
+            if (target is PlayerSprite playerSprite) {
+                config.ModeInitialize(playerSprite.Mode);
+            }
+            // SilhouetteMode and TintGrayscaleWithHair are almost the same and conflict.
+            // Only the latter should win when both are enabled.
+            config.RefreshConflict();
+            config.ParticleModifierInit();
+
+            // CharacterConfig contains runtime state, so every Image gets its own instance even
+            // when several sprites resolve to the same YAML asset.
+            _Instance.AddOrUpdate(target, config);
+            return config;
+        }
+
+        internal static void InvalidateAll() {
+            _Instance = new();
+        }
+
         public static CharacterConfig For(Image target) {
-            string rootPath = getAnimationRootPath(target);
-            if (!_Instance.TryGetValue(target, out CharacterConfig config) || config.SourcePath != rootPath) {
-
-                ModAsset asset = GetAssetOnSprite<AssetTypeYaml>(target, _ConfigName);
-                config = AssetIntoConfig<CharacterConfig>(asset) ?? new();
-                config.Source = asset;
-                config.attached = target;
-                config.SourcePath = rootPath;
-
-                if (target is PlayerSprite playerSprite) {
-                    config.ModeInitialize(playerSprite.Mode);
+            if (!_Instance.TryGetValue(target, out CharacterConfig config)) {
+                config = BindCharacterConfig(target);
+            } else if (!ReferenceEquals(config.LastCheckedTexture, target.Texture)
+                && !(target is Sprite boundSprite && SpriteDataCache.TryGetValue(boundSprite, out _))) {
+                // Ordinary Images can have their Texture replaced directly. A different texture
+                // only requires a new config when it also resolves to a different resource root.
+                string currentRootPath = getAnimationRootPath(target);
+                if (config.SourcePath == currentRootPath) {
+                    config.LastCheckedTexture = target.Texture;
+                } else {
+                    config = BindCharacterConfig(target);
                 }
-                // SilhouetteMode and TintGrayscaleWithHair are the almost same and conflicting. only the latter work when
-                if (config.TintMaskWithHair) {
-                    config.SilhouetteMode = false;
-
-                } else if (config.SilhouetteMode == true) {
-                    config.LowStaminaFlashHair = true;
-                }
-                config.ParticleModifierInit();
-
-                _Instance.AddOrUpdate(target, config);
             }
             if (target.Entity != config.lastEntity) {
                 config.lastEntity = target.Entity;
@@ -86,6 +103,7 @@ namespace Celeste.Mod.SkinModHelper {
         private Entity lastEntity;
         private ModAsset Source;
         private string SourcePath;
+        private MTexture LastCheckedTexture;
 
         /// <summary> uses when TintMaskWithHair is true </summary>
         internal Color effect_hairColor = Color.White;

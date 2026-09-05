@@ -35,6 +35,7 @@ namespace Celeste.Mod.SkinModHelper {
             GFX.SpriteBank.CreateOn(Sprite, _spriteName);
             if (_spriteName == "player_playback") {
                 Sprite.Mode = PlayerSpriteMode.Playback;
+                PlayerSkinSystem.RecordLivePlayerSpriteRole(Sprite, PlayerSpriteMode.Playback);
             }
             Sprite.Scale = player.Sprite.Scale;
             Sprite.Scale.X *= (float)player.Facing;

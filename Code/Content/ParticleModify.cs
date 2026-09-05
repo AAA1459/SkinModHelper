@@ -74,17 +74,7 @@ namespace Celeste.Mod.SkinModHelper {
                 cursor.Emit(OpCodes.Stsfld, typeof(ParticleModify).GetField("Tracked", BindingFlags.NonPublic | BindingFlags.Static));
             }
             void Redirect(Entity entity) {
-                switch (entity) {
-                    case NPC05_Badeline npc05:
-                        Tracked = npc05.shadow; // BadelineOldsite.P_Vanish
-                        return;
-                    case CS10_HubIntro cs10:
-                        Tracked = cs10.booster; // Booster.Appear
-                        return;
-                    default:
-                        Tracked = entity;
-                        return;
-                }
+                Tracked = entity;
             };
         }
         private static bool PlayerCollider_Check(On.Celeste.PlayerCollider.orig_Check orig, PlayerCollider self, Player player) {
@@ -169,11 +159,21 @@ namespace Celeste.Mod.SkinModHelper {
 
 
         private static bool ParticleReplace(ParticleType ptcl, out ParticleType ptcl2) {
-            // if ((OverrideTracked ?? Tracked) != null && 
+            // if ((OverrideTracked ?? Tracked) != null &&
             //     (ptcl == NPC01_Theo.P_YOLO)) {
             //     Log($"{Tracked} : {OverrideTracked} : {getAnimationRootPath((OverrideTracked ?? Tracked).Get<Sprite>())}");
             // }
-            return ParticleReplace(ptcl, OverrideTracked ?? Tracked, out ptcl2);
+            Entity tracked = Tracked;
+            if (OverrideTracked is null) {
+                // These exceptions only affect particle replacement. Resolve them here instead of
+                // doing two type checks for every entity in every EntityList.Update.
+                tracked = tracked switch {
+                    NPC05_Badeline npc05 => npc05.shadow, // BadelineOldsite.P_Vanish
+                    CS10_HubIntro cs10 => cs10.booster, // Booster.Appear
+                    _ => tracked
+                };
+            }
+            return ParticleReplace(ptcl, OverrideTracked ?? tracked, out ptcl2);
         }
         
         public static bool ParticleReplace(ParticleType ptcl, Entity entity, out ParticleType ptcl2) {

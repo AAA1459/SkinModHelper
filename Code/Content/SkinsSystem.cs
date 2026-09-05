@@ -60,6 +60,22 @@ namespace Celeste.Mod.SkinModHelper {
 
         internal static ConditionalWeakTable<Sprite, List<object>> SpriteDataCache = new();
 
+        internal sealed class SpriteBankSource {
+            public string BankXmlPath;
+            public string SpriteId;
+            public string ResolvedSpriteId;
+
+            public SpriteBankSource(string bankXmlPath, string spriteId, string resolvedSpriteId) {
+                BankXmlPath = bankXmlPath;
+                SpriteId = spriteId;
+                ResolvedSpriteId = resolvedSpriteId;
+            }
+        }
+
+        // SpriteDataCache describes the resolved skin. This second cache deliberately keeps the
+        // unskinned request, so an existing Sprite can be resolved again after settings change.
+        internal static ConditionalWeakTable<Sprite, SpriteBankSource> SpriteBankSourceCache = new();
+
         public static readonly int MAX_HAIRLENGTH = 99;
         public static readonly string playercipher = "_+";
 
@@ -115,6 +131,17 @@ namespace Celeste.Mod.SkinModHelper {
                     Logger.Log(LogLevel.Warn, "SkinModHelper", $"If the new skins's content does not load, please enter the save slot menu to refresh it");
                 }
             }
+            if (IsCharacterConfigAsset(oldAsset) || IsCharacterConfigAsset(newAsset)) {
+                CharacterConfig.InvalidateAll();
+            }
+        }
+
+        private static bool IsCharacterConfigAsset(ModAsset asset) {
+            string path = asset?.PathVirtual;
+            return path != null
+                && (path.EndsWith(CharacterConfig._ConfigName, StringComparison.OrdinalIgnoreCase)
+                    || path.EndsWith(CharacterConfig._ConfigName + ".yaml", StringComparison.OrdinalIgnoreCase)
+                    || path.EndsWith(CharacterConfig._ConfigName + ".yml", StringComparison.OrdinalIgnoreCase));
         }
         public static void ReloadSettings() {
             Logger.Log(LogLevel.Info, "SkinModHelper", $"Skins loading... Settings Initializing...");
@@ -268,30 +295,26 @@ namespace Celeste.Mod.SkinModHelper {
 
         #region SpriteBank Reskin
         private static Sprite SpriteBankCreateHook(On.Monocle.SpriteBank.orig_Create orig, SpriteBank self, string id) {
+            string requestedId = id;
+            bool managedBank = false;
 
             if (RespriteBankModule.SearchInstance(self, out var skinbank)) {
+                managedBank = true;
                 string newId = skinbank.GetCurrentSkin(id);
                 if (self.Has(newId))
                     id = newId;
             }
             Sprite sprite = orig(self, id);
-            if (sprite != null) {
-                var data = self.SpriteData[id];
-                List<object> objs = new() { data.Atlas };
-                for (int i = 0; i < data.Sources.Count; i++) {
-                    SpriteDataSource source = data.Sources[i];
-                    objs.Add(source.OverridePath);
-                    objs.Add(source.Path);
-                }
-                SpriteDataCache.AddOrUpdate(sprite, objs);
-            }
+            UpdateSpriteBinding(self, sprite, requestedId, id, managedBank);
             return sprite;
         }
         private static Sprite SpriteBankCreateOnHook(On.Monocle.SpriteBank.orig_CreateOn orig, SpriteBank self, Sprite sprite, string id) {
-            if (sprite.Entity is OuiFileSelectSlot && SaveFilePortraits)
-                return orig(self, sprite, id);
+            bool skipReskin = sprite.Entity is OuiFileSelectSlot && SaveFilePortraits;
 
-            if (RespriteBankModule.SearchInstance(self, out var skinbank)) {
+            string requestedId = id;
+            bool managedBank = false;
+            if (!skipReskin && RespriteBankModule.SearchInstance(self, out var skinbank)) {
+                managedBank = true;
                 string newId = skinbank.GetCurrentSkin(id);
                 if (self.Has(newId))
                     id = newId;
@@ -307,15 +330,33 @@ namespace Celeste.Mod.SkinModHelper {
                     OnceLog(LogLevel.Warn, $"PlayerSprite used '{id}' but that from the custom SpriteBank/Xml... Cannot CreateFramesMetadata and fill it with the possible animations");
                 }
             }
-            var data = self.SpriteData[id];
-            List<object> objs = new() { data.Atlas };
+            Sprite result = orig(self, sprite, id);
+            UpdateSpriteBinding(self, result, requestedId, id, managedBank);
+            return result;
+        }
+
+        private static void UpdateSpriteBinding(SpriteBank bank, Sprite sprite, string requestedId, string resolvedId, bool managedBank) {
+            if (sprite == null) {
+                return;
+            }
+
+            SpriteData data = bank.SpriteData[resolvedId];
+            List<object> sourceData = new() { data.Atlas };
             for (int i = 0; i < data.Sources.Count; i++) {
                 SpriteDataSource source = data.Sources[i];
-                objs.Add(source.OverridePath);
-                objs.Add(source.Path);
+                sourceData.Add(source.OverridePath);
+                sourceData.Add(source.Path);
             }
-            SpriteDataCache.AddOrUpdate(sprite, objs);
-            return orig(self, sprite, id);
+            SpriteDataCache.AddOrUpdate(sprite, sourceData);
+            if (managedBank) {
+                SpriteBankSourceCache.AddOrUpdate(sprite, new SpriteBankSource(bank.XMLPath, requestedId, resolvedId));
+            } else {
+                SpriteBankSourceCache.Remove(sprite);
+            }
+            // CreateOn may repopulate an existing Sprite from a different source, and content
+            // reloads may change the YAML without changing the resolved sprite id. Always replace
+            // the per-Sprite binding after the final SpriteData has been established.
+            CharacterConfig.BindCharacterConfig(sprite);
         }
         #endregion
 
@@ -428,11 +469,18 @@ namespace Celeste.Mod.SkinModHelper {
 
         #region Skins Refresh
         private static bool DelayRefreshForPlayer;
+        private static bool PendingLiveSpriteForceRebind;
         public static void RefreshSkins(bool Xmls_refresh, bool callByPlayer = false) {
             DelayRefreshForPlayer = !callByPlayer;
+            // PlayerUpdate normally completes the deferred refresh after ResetSpriteNextFrame.
+            // Explicit XML refresh callers can skip that path, so still refresh the main player.
+            if (Xmls_refresh && callByPlayer && _Player != null) {
+                PlayerSkinSystem.RefreshPlayerSpriteMode();
+            }
             _RefreshSkins(Xmls_refresh, Engine.Scene is Level);
         }
         private static void _RefreshSkins(bool Xmls_refresh, bool inGame) {
+            PendingLiveSpriteForceRebind |= Xmls_refresh;
             if (Xmls_refresh) {
                 LogLevel logLevel = Logger.GetLogLevel("Atlas");
                 if (!build_warning)
@@ -455,6 +503,9 @@ namespace Celeste.Mod.SkinModHelper {
                 build_warning = false;
                 Logger.SetLogLevel("Atlas", logLevel);
             }
+            // A refresh can replace CharacterConfig.yaml even when the selected SpriteBank id and
+            // source paths stay the same. Explicitly invalidate all live bindings.
+            CharacterConfig.InvalidateAll();
             if (DelayRefreshForPlayer && _Player != null) {
                 Player_Skinid_verify = -1;
                 PlayerSkinSystem.RefreshPlayerSpriteMode();
@@ -467,8 +518,106 @@ namespace Celeste.Mod.SkinModHelper {
                         Player_Skinid_verify = skinConfigs[skinName].hashValues;
                 }
                 RefreshSkinValues(null, inGame);
+                if (inGame && Engine.Scene is Level level) {
+                    RefreshLiveSprites(level, PendingLiveSpriteForceRebind);
+                }
+                PendingLiveSpriteForceRebind = false;
                 afterSkinRefresh?.Invoke(Xmls_refresh, inGame);
                 DelayRefreshForPlayer = false;
+            }
+        }
+
+        private static void RefreshLiveSprites(Level level, bool forceRebind) {
+            int bankSprites = 0;
+            int playerSprites = 0;
+
+            foreach (Entity entity in level.Entities.ToArray()) {
+                foreach (Component component in entity.Components.ToArray()) {
+                    if (component is not Sprite sprite) {
+                        continue;
+                    }
+
+                    try {
+                        if (sprite is PlayerSprite playerSprite) {
+                            if (entity is Player player && ReferenceEquals(player.Sprite, playerSprite)) {
+                                continue;
+                            }
+                            if (PlayerSkinSystem.RefreshLivePlayerSprite(playerSprite, forceRebind)) {
+                                playerSprites++;
+                            }
+                        } else if (RefreshLiveBankSprite(sprite, forceRebind)) {
+                            bankSprites++;
+                        }
+                    } catch (Exception e) {
+                        Logger.Log(LogLevel.Warn, "SkinModHelper",
+                            $"Cannot refresh live sprite on '{entity.GetType().FullName}': {e}");
+                    }
+                }
+            }
+
+            Logger.Log(LogLevel.Info, "SkinModHelper",
+                $"Live skin refresh: {bankSprites} SpriteBank sprites, {playerSprites} character sprites");
+        }
+
+        private static bool RefreshLiveBankSprite(Sprite sprite, bool forceRebind) {
+            if (!SpriteBankSourceCache.TryGetValue(sprite, out SpriteBankSource source)) {
+                return false;
+            }
+
+            RespriteBankModule skinBank = RespriteBankModule.InstanceList
+                .FirstOrDefault(candidate => candidate.Basebank?.XMLPath == source.BankXmlPath);
+            SpriteBank bank = skinBank?.Basebank;
+            if (bank == null || !bank.Has(source.SpriteId)) {
+                return false;
+            }
+
+            string resolvedId = skinBank.GetCurrentSkin(source.SpriteId);
+            if (!bank.Has(resolvedId)) {
+                resolvedId = source.SpriteId;
+            }
+            if (!forceRebind
+                && string.Equals(resolvedId, source.ResolvedSpriteId, StringComparison.OrdinalIgnoreCase)) {
+                return false;
+            }
+
+            RebindSpritePreservingState(sprite, () => bank.CreateOn(sprite, source.SpriteId));
+            return true;
+        }
+
+        internal static void RebindSpritePreservingState(Sprite sprite, Action recreate) {
+            string animation = sprite.CurrentAnimationID;
+            string lastAnimation = sprite.LastAnimationID;
+            int frame = sprite.CurrentAnimationFrame;
+            bool animating = sprite.Animating;
+            float animationTimer = sprite.animationTimer;
+            Vector2 position = sprite.Position;
+
+            recreate();
+
+            // Keep callback changes made by other CreateOn hooks, but do not invoke gameplay
+            // callbacks merely because the skin refresh restores an existing animation state.
+            Action<string, string> onChange = sprite.OnChange;
+            Action<string> onFrameChange = sprite.OnFrameChange;
+            sprite.OnChange = null;
+            sprite.OnFrameChange = null;
+            try {
+                if (!string.IsNullOrEmpty(animation) && sprite.Has(animation)) {
+                    sprite.Play(animation, restart: true);
+                    int frameCount = sprite.CurrentAnimationTotalFrames;
+                    if (frameCount > 0) {
+                        sprite.SetAnimationFrame(Math.Min(frame, frameCount - 1));
+                    }
+                    sprite.Animating = animating;
+                    sprite.animationTimer = animationTimer;
+                } else if (string.IsNullOrEmpty(animation)) {
+                    sprite.Stop();
+                }
+
+                sprite.LastAnimationID = lastAnimation;
+                sprite.Position = position;
+            } finally {
+                sprite.OnChange = onChange;
+                sprite.OnFrameChange = onFrameChange;
             }
         }
 
