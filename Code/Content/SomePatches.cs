@@ -199,7 +199,7 @@ namespace Celeste.Mod.SkinModHelper {
                             id = "runSlow_carry";
                         break;
                     case "dash":
-                        if (swimCheck) {
+                        if (swimCheck && self.Has(animPrefix + "swimDash")) {
                             dashDirAnim("swimDash");
                         } else {
                             dashDirAnim("dash");
@@ -209,7 +209,8 @@ namespace Celeste.Mod.SkinModHelper {
                         if (player.DashAttacking) {
                             if (player.dashStartedOnGround && player.DashDir.Y >= 0f && player.DashDir.X != 0f && (player.DashDir.X > 0f ? 1 : -1) == (int)player.Facing && self.Has(animPrefix + "dashSlide")) {
                                 id = "dashSlide";
-                            } else if (swimCheck && self.Has(dashDirAnim("swimDashCrouch"))) {
+                            } else if (swimCheck && self.Has(animPrefix + "swimDashCrouch")) {
+                                dashDirAnim("swimDashCrouch");
                             } else {
                                 dashDirAnim("dashCrouch");
                             }
@@ -236,7 +237,7 @@ namespace Celeste.Mod.SkinModHelper {
                         break;
                 }
                 #region dashDirAnim
-                string dashDirAnim(string baseID) {
+                void dashDirAnim(string baseID) {
                     baseID = animPrefix + baseID;
                     if (self.Has(baseID)) {
                         id = baseID;
@@ -261,7 +262,6 @@ namespace Celeste.Mod.SkinModHelper {
                             id = baseID + "_SideDown";
                         }
                     }
-                    return id;
                 }
                 #endregion
 
