@@ -64,6 +64,7 @@ namespace Celeste.Mod.SkinModHelper {
             });
             self.Components.current.Add(brh2);
             self.Components.components.Insert(0, brh2);
+            brh2.Added(self);
 
             self.Add(new BeforeRenderHook(() => {
                 foreach (var c in HairConfig._Instance) {
