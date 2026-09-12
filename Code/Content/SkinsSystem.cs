@@ -115,6 +115,17 @@ namespace Celeste.Mod.SkinModHelper {
                     Logger.Log(LogLevel.Warn, "SkinModHelper", $"If the new skins's content does not load, please enter the save slot menu to refresh it");
                 }
             }
+            if (IsCharacterConfigAsset(oldAsset) || IsCharacterConfigAsset(newAsset)) {
+                CharacterConfig.InvalidateAll();
+            }
+        }
+
+        private static bool IsCharacterConfigAsset(ModAsset asset) {
+            string path = asset?.PathVirtual;
+            return path != null
+                && (path.EndsWith(CharacterConfig._ConfigName, StringComparison.OrdinalIgnoreCase)
+                    || path.EndsWith(CharacterConfig._ConfigName + ".yaml", StringComparison.OrdinalIgnoreCase)
+                    || path.EndsWith(CharacterConfig._ConfigName + ".yml", StringComparison.OrdinalIgnoreCase));
         }
         public static void ReloadSettings() {
             Logger.Log(LogLevel.Info, "SkinModHelper", $"Skins loading... Settings Initializing...");
@@ -275,21 +286,15 @@ namespace Celeste.Mod.SkinModHelper {
                     id = newId;
             }
             Sprite sprite = orig(self, id);
-            if (sprite != null) {
-                var data = self.SpriteData[id];
-                List<object> objs = new() { data.Atlas };
-                for (int i = 0; i < data.Sources.Count; i++) {
-                    SpriteDataSource source = data.Sources[i];
-                    objs.Add(source.OverridePath);
-                    objs.Add(source.Path);
-                }
-                SpriteDataCache.AddOrUpdate(sprite, objs);
-            }
+            UpdateSpriteBinding(self, sprite, id);
             return sprite;
         }
         private static Sprite SpriteBankCreateOnHook(On.Monocle.SpriteBank.orig_CreateOn orig, SpriteBank self, Sprite sprite, string id) {
-            if (sprite.Entity is OuiFileSelectSlot && SaveFilePortraits)
-                return orig(self, sprite, id);
+            if (sprite.Entity is OuiFileSelectSlot && SaveFilePortraits) {
+                Sprite portraitSprite = orig(self, sprite, id);
+                UpdateSpriteBinding(self, portraitSprite, id);
+                return portraitSprite;
+            }
 
             if (RespriteBankModule.SearchInstance(self, out var skinbank)) {
                 string newId = skinbank.GetCurrentSkin(id);
@@ -307,7 +312,17 @@ namespace Celeste.Mod.SkinModHelper {
                     OnceLog(LogLevel.Warn, $"PlayerSprite used '{id}' but that from the custom SpriteBank/Xml... Cannot CreateFramesMetadata and fill it with the possible animations");
                 }
             }
-            var data = self.SpriteData[id];
+            Sprite result = orig(self, sprite, id);
+            UpdateSpriteBinding(self, result, id);
+            return result;
+        }
+
+        private static void UpdateSpriteBinding(SpriteBank bank, Sprite sprite, string id) {
+            if (sprite == null) {
+                return;
+            }
+
+            SpriteData data = bank.SpriteData[id];
             List<object> objs = new() { data.Atlas };
             for (int i = 0; i < data.Sources.Count; i++) {
                 SpriteDataSource source = data.Sources[i];
@@ -315,7 +330,9 @@ namespace Celeste.Mod.SkinModHelper {
                 objs.Add(source.Path);
             }
             SpriteDataCache.AddOrUpdate(sprite, objs);
-            return orig(self, sprite, id);
+            // CreateOn may repopulate the same Sprite from a different source. Always replace the
+            // per-Sprite config after the final SpriteData has been established.
+            CharacterConfig.BindCharacterConfig(sprite);
         }
         #endregion
 
@@ -455,6 +472,9 @@ namespace Celeste.Mod.SkinModHelper {
                 build_warning = false;
                 Logger.SetLogLevel("Atlas", logLevel);
             }
+            // A refresh can replace CharacterConfig.yaml even when the selected SpriteBank id and
+            // source paths stay the same. Explicitly invalidate all live bindings.
+            CharacterConfig.InvalidateAll();
             if (DelayRefreshForPlayer && _Player != null) {
                 Player_Skinid_verify = -1;
                 PlayerSkinSystem.RefreshPlayerSpriteMode();
