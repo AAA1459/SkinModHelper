@@ -42,8 +42,7 @@ If you want something more advanced, You can set independent textures for specif
 
 ---
 ### HairAttrWithDashes
-Here you can setting something according to the dashes, 
-e.g hair color, length. to make them different from madeline:
+Here you can setting something according to the dashes, such hair color, length. to make them different from madeline.
 ```yaml
 HairAttrWithDashes:
 - Dashes: [any integers]     # except for this must be set, all others are optional
@@ -61,7 +60,18 @@ HairAttrWithDashes:
 * The default scale is `1, 0.25`
 * The default length is `4`, `5`, `7` for normal, two-dashes, feather.
 
-If you want to go a step further, set attr ​​for individual segments, so use this in the each set's ends
+This is a usege. it means hair _color_ to **yellow(ffff00)**, and hair _scale_ to **1.5~1** and _length_ to **10** that so long when player have **1** _dashes_
+```yaml
+HairAttrWithDashes:
+- Dashes: 1
+  Color: ffff00     
+  Scale: 1.5, 1
+  Length: 10
+```
+
+
+### HairAttrWithDashes > SegmentAttrs
+If you want to go a step further, set attr ​​for individual segments, then these in the each set's ends
 ```yaml
   SegmentAttrs:
   - Segment: [Which segment of hair]     # work in reverse order if it is a negative number
@@ -74,7 +84,22 @@ If you want to go a step further, set attr ​​for individual segments, so use
   * the segment `Trail`, used for dash trail color.
   * the segment `DashPtcl`, used for dash particle color.
   * the segment `Outline`, used for hair border color.
-  * the segment `Flash`, used for hair flashes color. can works at dashes 0 btw :)
+  * the segment `Flash`, used for hair flashes color.
+
+This is a usege too. it means player's the flashing color would be **light pink(ffd4f5)** when player's _dashes_ consumed to **0**. and **pink(ff81e1)** when _dashes_ refill to **1**.
+```yaml
+HairAttrWithDashes:
+- Dashes: 0
+  Color: "ffff00"
+  SegmentAttrs:
+  - Segment: Flash
+    Color: "ffd4f5"
+- Dashes: 1
+  Color: "ffff00"
+  SegmentAttrs:
+  - Segment: Flash
+    Color: "ff81e1"
+```
 
 ---
 ### OutlineColor
