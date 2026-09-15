@@ -302,23 +302,36 @@ namespace Celeste.Mod.SkinModHelper {
                                         return;
                             }
                         }
-                        if (origID == "runStumble") {
-                            return;
+                        if (CharacterConfig.For(self).WarpAnimationsPlay.TryGetValue((self.LastAnimationID, id), out string warp_id)) {
+                            if (warp_id == "_")
+                                return;
+                            id = warp_id;
                         }
-                        if (self.LastAnimationID.Contains("jumpCrazy")) {
-                            if ((origID == "jumpFast" || origID == "fallSlow" || origID == "runFast" || origID == "runWind") && (!player.onGround || !player.OnGround())) {
-                                return;
-                            }
-                        } else if (self.LastAnimationID.Contains("jumpHyper") || self.LastAnimationID.Contains("jumpSuper")) {
-                            if ((origID == "jumpFast" || origID == "fallFast" || origID == "runFast" || origID == "runWind" || (origID == "duck" && player.StartedDashing == false) || origID == "idle" || origID == "jumpSlow")
-                                && (!player.wasOnGround || player.Speed.Y < 0f)
+                        switch (self.LastAnimationID, origID) {
+                            case ("jumpCrazy", "jumpFast" or "fallSlow" or "runFast" or "runWind"):
+                                if (!player.onGround || !player.OnGround()) {
+                                    return;
+                                }
+                                break;
+                            case ("jumpHyper" or "jumpSuper", "jumpFast" or "fallFast" or "runFast" or "runWind" or "idle" or "jumpSlow"):
+                            caseA:
+                                if ((!player.wasOnGround || player.Speed.Y < 0f)
                                 && (Math.Abs(player.Speed.X) > 110f || (player.wallSpeedRetentionTimer > 0f && Math.Abs(player.wallSpeedRetained) > 110f))) {
+                                    return;
+                                }
+                                break;
+                            case ("jumpHyper" or "jumpSuper", "duck"):
+                                if (player.StartedDashing == false) {
+                                    goto caseA;
+                                }
+                                break;
+                            case ("wallBounce", "jumpFast" or "jumpSlow" or "fallSlow" or "fallFast"):
+                                if (!player.onGround) {
+                                    goto caseA;
+                                }
+                                break;
+                            case (_, "runStumble"):
                                 return;
-                            }
-                        } else if (self.LastAnimationID.Contains("wallBounce")) {
-                            if ((origID == "jumpFast" || origID == "jumpSlow" || origID == "fallSlow" || origID == "fallFast") && !player.onGround) {
-                                return;
-                            }
                         }
                     }
                 }

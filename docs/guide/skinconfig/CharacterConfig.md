@@ -19,6 +19,8 @@ IdleColdOptions: [Lists with identifiers and weights]
 IdleWarmOptions: [Lists with identifiers and weights]
 IdleAnimationChance: [floats]
 
+WarpAnimationsPlay: [Lists with three item each group]
+
 TrailsColor: [use six digit RGB hex code]
 DeathParticleColor: [use six digit RGB hex code]
 
@@ -125,6 +127,33 @@ IdleAnimationChance: [Numbers between 0 and 1]
   # 1 is 100% to play the idle variants. The default value is 0.2 as 20%
 ```
 
+
+
+---
+### WarpAnimationsPlay
+Editable animation warp effects for player; play new transition animations between two animations.
+
+such when animation change from `duck` to `idle`, play your new animation `standUp`.
+```
+WarpAnimationsPlay:
+- duck, idle, standUp
+```
+* The new animation should actually exist in XML file
+Note: While the `standUp` animation is playing, the game will still attempt to play the `idle` animation. You need...
+```
+- standUp, idle, _
+```
+When the third item is `_`, game won't play the second one if the first one is playing now. so it working.
+* If you need play `idle` animation after `standUp` ends, reference to the _goto_ usege with the XML. and _goto_ takes precedence over above.
+
+
+After the above content is merged, it should looks like this.
+```
+WarpAnimationsPlay:
+- duck, idle, standUp
+- standUp, idle, _
+```
+You can do more as long as you need.
 
 
 ---

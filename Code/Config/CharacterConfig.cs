@@ -16,6 +16,7 @@ using static Celeste.Mod.SkinModHelper.PlayerSkinSystem;
 using static Celeste.Mod.SkinModHelper.SkinModHelperModule;
 using System.Runtime.CompilerServices;
 using static Celeste.Mod.SkinModHelper.CharacterConfig;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Celeste.Mod.SkinModHelper {
     public class CharacterConfig {
@@ -117,6 +118,9 @@ namespace Celeste.Mod.SkinModHelper {
         public Chooser<string> IdleColdOptions;
         [YamlIgnore]
         public Chooser<string> IdleWarmOptions;
+
+        [YamlIgnore]
+        public Dictionary<(string, string), string> WarpAnimationsPlay = new();
         #endregion
 
         #region Configurable values
@@ -168,6 +172,25 @@ namespace Celeste.Mod.SkinModHelper {
                 }
             }
         }
+        [YamlMember(Alias = "WarpAnimationsPlay")]
+        public List<string> _WarpAnimationsPlay {
+            get => null; set {
+                foreach (var option in value) {
+                    string[] If = option.Split(',', StringSplitOptions.TrimEntries);
+                    if (If.Length < 2)
+                        continue;
+                    // When LastAnimationID, and If the next animation, Then play another animation.
+                    string When = If[0];
+                    string Then = If[If.Length - 1];
+                    if (string.IsNullOrEmpty(Then))
+                        Then = "_";
+                    for (int i = If.Length - 2; i > 0; i--)
+                        WarpAnimationsPlay[(When, If[i])] = Then;
+                }
+            }
+        }
+
+
 
         #endregion
 
