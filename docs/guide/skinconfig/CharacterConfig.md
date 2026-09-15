@@ -131,21 +131,23 @@ IdleAnimationChance: [Numbers between 0 and 1]
 
 ---
 ### WarpAnimationsPlay
-Editable animation warp effects for player; play new transition animations between two animations.
+Editable animation warp effects for player; insert and play another animations between two animations.
 
-such when animation change from `duck` to `idle`, play your new animation `standUp`.
+such when animation change from `duck` to `idle`, play your new animation `standUp`. (instead of `idle`)
 ```yaml
 WarpAnimationsPlay:
 - duck, idle, standUp
 ```
 * The new animation should actually exist in XML file
 
-Note: While the `standUp` animation is playing, the game will still attempt to play the `idle` animation. You need...
+Note: While the `standUp` animation is playing, the game still wants to play the `idle` animation and interrupting `standUp` since it's not playing. <br> So we need one more line stuff.
 ```yaml
 - standUp, idle, _
 ```
-When the third item is `_`, game won't play the second one if the first one is playing now. so it working.
-* If you need play `idle` animation after `standUp` ends, reference to the _goto_ usege with the XML. and _goto_ takes precedence over above.
+When the third item is `_`, game will no longer play the animation corresponds to second one if the first one is playing now. so it working.
+
+You may notice the `idle` animation does not play even `standUp` ends. that isn't "expected" in a sense.
+<br> At this point, you need to add a `goto` element for the animation in the XML. For details please refer to the example in the XML or vanilla Sprites.xml file.
 
 
 After the above content is merged, it should looks like this.
