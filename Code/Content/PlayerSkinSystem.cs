@@ -29,6 +29,7 @@ namespace Celeste.Mod.SkinModHelper {
 
             using (new DetourContext() { Before = { "*" } }) {
                 On.Celeste.PlayerSprite.CreateFramesMetadata += on_PlayerSprite_CreateFramesMetadata;
+                On.Celeste.PlayerSprite.ClearFramesMetadata += on_PlayerSprite_ClearFramesMetadata;
             }
 
             using (new DetourContext() { After = { "*" } }) { // btw fixes silhouette color for DJMapHelper's MaxDashesTrigger
@@ -84,6 +85,7 @@ namespace Celeste.Mod.SkinModHelper {
             On.Monocle.SpriteBank.CreateOn -= SpriteBankCreateOn;
             On.Celeste.PlayerSprite.ctor -= on_PlayerSprite_ctor;
             On.Celeste.PlayerSprite.CreateFramesMetadata -= on_PlayerSprite_CreateFramesMetadata;
+            On.Celeste.PlayerSprite.ClearFramesMetadata -= on_PlayerSprite_ClearFramesMetadata;
 
             On.Celeste.Player.Update -= PlayerUpdateHook;
             On.Celeste.Player.UpdateHair -= PlayerUpdateHairHook;
@@ -197,9 +199,6 @@ namespace Celeste.Mod.SkinModHelper {
 
         private static void on_PlayerSprite_CreateFramesMetadata(On.Celeste.PlayerSprite.orig_CreateFramesMetadata orig, string id) {
             orig(id);
-            if (id == "player") {
-                IDHasHairMetadate.Clear();
-            }
             IDHasHairMetadate.Add(id);
 
             List<string> ids = new();
@@ -219,6 +218,11 @@ namespace Celeste.Mod.SkinModHelper {
                 PatchSprite(GFX.SpriteBank.SpriteData[patchId].Sprite, sprite);
             }
         }
+        private static void on_PlayerSprite_ClearFramesMetadata(On.Celeste.PlayerSprite.orig_ClearFramesMetadata orig) {
+            IDHasHairMetadate.Clear();
+            orig();
+        }
+
         internal static HashSet<(string, Dictionary<string, string>)> patchPlayerSprite_List = new();
         #endregion
 
