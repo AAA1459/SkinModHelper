@@ -139,6 +139,7 @@ WarpAnimationsPlay:
 - duck, idle, standUp
 ```
 * The new animation should actually exist in XML file
+
 Note: While the `standUp` animation is playing, the game will still attempt to play the `idle` animation. You need...
 ```
 - standUp, idle, _
