@@ -134,14 +134,14 @@ IdleAnimationChance: [Numbers between 0 and 1]
 Editable animation warp effects for player; play new transition animations between two animations.
 
 such when animation change from `duck` to `idle`, play your new animation `standUp`.
-```
+```yaml
 WarpAnimationsPlay:
 - duck, idle, standUp
 ```
 * The new animation should actually exist in XML file
 
 Note: While the `standUp` animation is playing, the game will still attempt to play the `idle` animation. You need...
-```
+```yaml
 - standUp, idle, _
 ```
 When the third item is `_`, game won't play the second one if the first one is playing now. so it working.
@@ -149,7 +149,7 @@ When the third item is `_`, game won't play the second one if the first one is p
 
 
 After the above content is merged, it should looks like this.
-```
+```yaml
 WarpAnimationsPlay:
 - duck, idle, standUp
 - standUp, idle, _
