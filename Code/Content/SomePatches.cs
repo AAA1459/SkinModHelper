@@ -383,18 +383,16 @@ namespace Celeste.Mod.SkinModHelper {
             ILCursor cursor = new ILCursor(il);
 
             string _findStartStarFlyWhiteSprite(string orig, Player p) {
-                // This hook position runs only when player.Sprite.CurrentAnimationID are "startStarFly", So we can indexing the textures directly.
-                string spritePath = getAnimationRootPath(p.Sprite.Texture) + "startStarFlyWhite";
+                // This hook position runs only when player.Sprite.CurrentAnimationID are "startStarFly".
+                string spritePath = p.Sprite.Texture?.ToString()?.TrimEndDigit() + "White";
 
-                if (p.Holding != null && GFX.Game.HasAtlasSubtextures($"{spritePath}_carry")) {
-                    return $"{spritePath}_carry";
-                }
                 if (GFX.Game.HasAtlasSubtextures(spritePath)) {
                     return spritePath;
                 }
+
                 DynamicData selfData = DynamicData.For(p);
-                if (!selfData.TryGet("SMH_DisposableLog_bsaofsdlk", out string ddd)) {
-                    selfData.Set("SMH_DisposableLog_bsaofsdlk", "");
+                if (!selfData.TryGet("SMH_DisposableLog_" + spritePath, out _)) {
+                    selfData.Set("SMH_DisposableLog_" + spritePath, "");
                     GFX.Game.GetAtlasSubtextures(spritePath); // Triggering an atlas warning.
                 }
                 return orig;
