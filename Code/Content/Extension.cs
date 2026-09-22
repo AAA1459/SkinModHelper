@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoMod.Utils;
 using Monocle;
+using System.Linq;
 
 namespace Celeste.Mod.SkinModHelper {
     public static class Extensions {
@@ -49,6 +50,13 @@ namespace Celeste.Mod.SkinModHelper {
                 return type;
             }
             return typeref_cache[FullName] = FakeAssembly.GetFakeEntryAssembly().GetType(FullName);
+        }
+
+        public static string TrimEndDigit(this string value) {
+            while (char.IsDigit(value.Last())) {
+                value = value.Remove(value.Length - 1);
+            }
+            return value;
         }
 
 
