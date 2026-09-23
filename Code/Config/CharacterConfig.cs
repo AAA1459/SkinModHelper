@@ -405,7 +405,8 @@ namespace Celeste.Mod.SkinModHelper {
         public bool TweaksTEST;
         public List<Tweak> EntityTweaks { get; set; }
         public class Tweak {
-            public string Name { get => name; set {
+            public string Name {
+                get => name; set {
                     string[] array = value.Split(',', 2, StringSplitOptions.TrimEntries);
                     if (array.Length == 2) {
                         Value = array[1];
