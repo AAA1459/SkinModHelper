@@ -307,31 +307,41 @@ namespace Celeste.Mod.SkinModHelper {
                                 return;
                             id = warp_id;
                         }
-                        switch (self.LastAnimationID, origID) {
-                            case ("jumpCrazy", "jumpFast" or "fallSlow" or "runFast" or "runWind"):
-                                if (!player.onGround || !player.OnGround()) {
-                                    return;
-                                }
-                                break;
-                            case ("jumpHyper" or "jumpSuper", "jumpFast" or "fallFast" or "runFast" or "runWind" or "idle" or "jumpSlow"):
-                            caseA:
-                                if ((!player.wasOnGround || player.Speed.Y < 0f)
-                                && (Math.Abs(player.Speed.X) > 110f || (player.wallSpeedRetentionTimer > 0f && Math.Abs(player.wallSpeedRetained) > 110f))) {
-                                    return;
-                                }
-                                break;
-                            case ("jumpHyper" or "jumpSuper", "duck"):
-                                if (player.StartedDashing == false) {
-                                    goto caseA;
-                                }
-                                break;
-                            case ("wallBounce", "jumpFast" or "jumpSlow" or "fallSlow" or "fallFast"):
-                                if (!player.onGround) {
-                                    goto caseA;
-                                }
-                                break;
-                            case (_, "runStumble"):
+
+                        switch (origID) {
+                            case "runStumble":
                                 return;
+                            case "jumpFast":
+                                if (jumpCrazy() || jumpHyper() || wallBounce())
+                                    return;
+                                break;
+                            case "fallSlow":
+                                if (jumpCrazy() || wallBounce())
+                                    return;
+                                break;
+                            case "runFast":
+                            case "runWind":
+                                if (jumpCrazy() || jumpHyper())
+                                    return;
+                                break;
+                            case "jumpSlow":
+                            case "fallFast":
+                                if (jumpHyper() || wallBounce())
+                                    return;
+                                break;
+                            case "idle":
+                                if (jumpHyper())
+                                    return;
+                                break;
+                            case "duck":
+                                if (!player.StartedDashing && jumpHyper())
+                                    return;
+                                break;
+                                bool jumpCrazy() => self.LastAnimationID.Contains("jumpCrazy") && (!player.onGround || !player.OnGround());
+                                bool jumpHyper() => (self.LastAnimationID.Contains("jumpHyper") || self.LastAnimationID.Contains("jumpSuper"))
+                                    && (!player.wasOnGround || player.Speed.Y < 0f)
+                                    && (Math.Abs(player.Speed.X) > 110f || (player.wallSpeedRetentionTimer > 0f && Math.Abs(player.wallSpeedRetained) > 110f));
+                                bool wallBounce() => !player.onGround && self.LastAnimationID.Contains("wallBounce");
                         }
                     }
                 }
