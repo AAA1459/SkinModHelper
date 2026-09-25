@@ -157,6 +157,7 @@ WarpAnimationsPlay:
 - standUp, idle, _
 ```
 You can do more as long as you need.
+<br>This works for most animations. If not, you can try feeding it back to SMH+.
 
 
 ---
