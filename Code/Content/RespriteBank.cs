@@ -104,7 +104,7 @@ namespace Celeste.Mod.SkinModHelper {
 
                     if (firstBuild) {
                         PatchSprite(origSpriteData.Sprite, newSpriteData.Sprite);
-                        OnCombine?.Invoke(spriteId, newSpriteData);
+                        OnCombine?.Invoke(newSpriteId, newSpriteData);
                     }
                 }
             }
