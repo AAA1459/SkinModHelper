@@ -4,15 +4,15 @@ If you want to customize hair color or more to your target, you can check here.
 
 The content here involves a new config, its structure and function is like this
 ```yaml
+BangsOrigin: [x],[y]
+HairOrigin: [x],[y]
+
 HairAttrWithDashes:
 - < AttrWithDashes >  # color, lengths, scale.
 
 OutlineColor: [use six digit RGB hex code]
 
 HairFlipMode: [None/SyncBangs/FacingBangs/FacingPrevHair]
-
-BangsOrigin: [x],[y]
-HairOrigin: [x],[y]
   
 HairFlash: [true/false]
 HairFloatingDashCount: [number]
@@ -39,6 +39,31 @@ If you want something more advanced, You can set independent textures for specif
 <br>e.g `hair00_3` as the _third_ segment. `hair00_-1` as the _one to last_ segment.
 
 (No need to operate the config file but still write it here)
+
+---
+### HairFlipMode
+Vanilla only flips bangs based on player facing, not hair.
+
+So we provide the following ways to flip your hair. You can choose them.
+```
+HairFlipMode: [None/SyncBangs/FacingBangs/FacingPrevHair]    # The default value is "None"
+```
+* If its value is `None`. they just not to flips. just vanilla.
+* If its value is `SyncBangs`. all segments will sync the bangs facing.
+* If its value is `FacingBangs`... the segments will facing to bangs.
+* If its value is `FacingPrevHair`. the segments will facing its previous segment.
+
+---
+### HairOrigin
+Vanilla assumes the center position of the hair texture is `5,5`. then flip and render them from there.
+
+If your hair texture size is larger than vanilla hair with 10x10. The player may become baldelline. Or hair cannot be flipped correctly
+
+And here. can re-set the center position of the hair to avoid these.
+```yaml
+BangsOrigin: [number as X], [number as Y]
+HairOrigin: [number as X], [number as Y]
+```
 
 ---
 ### HairAttrWithDashes
@@ -110,30 +135,6 @@ OutlineColor: [use six digit RGB hex code]     # default color is "000000"
 You may have noticed that [[HairAttrWithDashes](/docs/guide/skinconfig/HairConfig.md#hairattrwithdashes)] can also recolor the OutlineColor. 
 But the OutlineColor set here will be used as the default hair border color. used when any dashes
 
----
-### HairFlipMode
-Vanilla only flips bangs based on player facing, not hair.
-
-So we provide the following ways to flip your hair. You can choose them.
-```
-HairFlipMode: [None/SyncBangs/FacingBangs/FacingPrevHair]    # The default value is "None"
-```
-* If its value is `None`. they just not to flips. just vanilla.
-* If its value is `SyncBangs`. all segments will sync the bangs facing.
-* If its value is `FacingBangs`... the segments will facing to bangs.
-* If its value is `FacingPrevHair`. the segments will facing its previous segment.
-
----
-### HairOrigin
-Vanilla assumes the center position of the hair texture is `5,5`. then flip and render them from there.
-
-If your hair texture size is larger than vanilla hair with 10x10. The player may become baldelline. Or hair cannot be flipped correctly
-
-And here. can re-set the center position of the hair to avoid these.
-```yaml
-BangsOrigin: [number as X], [number as Y]
-HairOrigin: [number as X], [number as Y]
-```
 
 ---
 ### HairFlash
