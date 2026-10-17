@@ -481,7 +481,7 @@ namespace Celeste.Mod.SkinModHelper {
                 DeathEffectNewDraw(self.Entity.Position + self.Position, self.Color, self.Percent, disableDeathParticleFlash, texture);
             }
         }
-        public static void DeathEffectNewDraw(Vector2 position, Color color, float ease, bool disableDeathParticleFlash, MTexture mTexture = null) {
+        public static void DeathEffectNewDraw(Vector2 position, Color color, float ease, bool disableParticleFlash, MTexture mTexture = null) {
             float alpha = GetAlpha(color);
             if (alpha <= 0f)
                 return;
@@ -489,7 +489,7 @@ namespace Celeste.Mod.SkinModHelper {
 
             Color outline = Color.Black * alpha;
             Color color2 = color;
-            if (!disableDeathParticleFlash)
+            if (!disableParticleFlash)
                 color2 = (Math.Floor(ease * 10f) % 2.0 == 0.0) ? color : Color.White * alpha;
             float num = (ease < 0.5f) ? (0.5f + ease) : Ease.CubeOut(1f - (ease - 0.5f) * 2f);
 
