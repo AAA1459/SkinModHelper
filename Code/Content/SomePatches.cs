@@ -433,6 +433,10 @@ namespace Celeste.Mod.SkinModHelper {
             DynamicData selfData = DynamicData.For(self);
             bool? deathAnimating = selfData.Get<bool?>("deathAnimating");
 
+            bool disableDeathParticleFlash = false;
+            if (selfData.Data.ContainsKey("disableDeathParticleFlash"))
+                disableDeathParticleFlash = selfData.Get<bool>("disableDeathParticleFlash");
+            
             if (!selfData.TryGet<MTexture>("mTexture", out var texture) && self.Entity != null) {
                 texture = null;
 
@@ -449,7 +453,10 @@ namespace Celeste.Mod.SkinModHelper {
                     } else if (sprite.Has(anim)) {
                         InsertDeathAnimation(self, sprite, anim);
                     }
-                    string scolor = CharacterConfig.For(sprite).DeathParticleColor;
+
+                    CharacterConfig characterConfig = CharacterConfig.For(sprite);
+                    string scolor = characterConfig.DeathParticleColor;
+                    disableDeathParticleFlash = characterConfig.DisableDeathParticleFlash;
 
                     if (RGB_IsMatch(scolor)) {
                         self.Color = Calc.HexToColor(scolor) * GetAlpha(self.Color);
@@ -465,22 +472,25 @@ namespace Celeste.Mod.SkinModHelper {
                     }
                 }
                 selfData.Set("mTexture", texture);
+                selfData.Set("disableDeathParticleFlash", disableDeathParticleFlash);
             }
 
             if (deathAnimating == true) {
                 self.Percent = 0.0f;
             } else if (self.Entity != null) {
-                DeathEffectNewDraw(self.Entity.Position + self.Position, self.Color, self.Percent, texture);
+                DeathEffectNewDraw(self.Entity.Position + self.Position, self.Color, self.Percent, disableDeathParticleFlash, texture);
             }
         }
-        public static void DeathEffectNewDraw(Vector2 position, Color color, float ease, MTexture mTexture = null) {
+        public static void DeathEffectNewDraw(Vector2 position, Color color, float ease, bool disableDeathParticleFlash, MTexture mTexture = null) {
             float alpha = GetAlpha(color);
             if (alpha <= 0f)
                 return;
             mTexture ??= GFX.Game["characters/player/hair00"];
 
             Color outline = Color.Black * alpha;
-            Color color2 = (Math.Floor(ease * 10f) % 2.0 == 0.0) ? color : Color.White * alpha;
+            Color color2 = color;
+            if (!disableDeathParticleFlash)
+                color2 = (Math.Floor(ease * 10f) % 2.0 == 0.0) ? color : Color.White * alpha;
             float num = (ease < 0.5f) ? (0.5f + ease) : Ease.CubeOut(1f - (ease - 0.5f) * 2f);
 
             for (int i = 0; i < 8; i++) {
@@ -543,12 +553,16 @@ namespace Celeste.Mod.SkinModHelper {
         private static void DeathEffectDrawHook(On.Celeste.DeathEffect.orig_Draw orig, Vector2 position, Color color, float ease) {
             MTexture texture = null;
 
+            bool disableRespawnParticleFlash = false;
             if (Engine.Scene != null) {
                 foreach (Player player in Engine.Scene.Tracker.GetEntities<Player>()) {
                     if (player.Center + player.deadOffset == position) {
                         Sprite sprite = player.Sprite; // CelesteTAS hooked here. dont move it.
 
-                        string scolor = CharacterConfig.For(sprite).DeathParticleColor;
+                        CharacterConfig characterConfig = CharacterConfig.For(sprite);
+                        string scolor = characterConfig.DeathParticleColor;
+                        disableRespawnParticleFlash = characterConfig.DisableRespawnParticleFlash;
+                        
                         if (RGB_IsMatch(scolor)) {
                             color = Calc.HexToColor(scolor);
                         } else {
@@ -568,7 +582,7 @@ namespace Celeste.Mod.SkinModHelper {
                     }
                 }
             }
-            DeathEffectNewDraw(position, color, ease, texture);
+            DeathEffectNewDraw(position, color, ease, disableRespawnParticleFlash, texture);
         }
         #endregion
 

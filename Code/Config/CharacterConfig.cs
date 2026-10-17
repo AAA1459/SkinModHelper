@@ -146,6 +146,8 @@ namespace Celeste.Mod.SkinModHelper {
 
         public string TrailsColor { get; set; }
         public string DeathParticleColor { get; set; }
+        public bool DisableDeathParticleFlash { get; set; }
+        public bool DisableRespawnParticleFlash { get; set; }
 
 
         public float? IdleAnimationChance;
